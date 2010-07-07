@@ -1,0 +1,753 @@
+widgets:
+  - link2
+  - link2_hyperlink
+  - link2_section
+  - image
+  - file
+  - toc
+  - include
+  - section
+  - recent_changes
+  - hashtag
+  - tag
+  - tag_list
+  - weblog
+  - weblog_list
+  - fetchrss
+  - fetchatom
+  - search
+  - googlesoap
+  - googlesearch
+  - technorati
+  - aim
+  - yahoo
+  - skype
+  - user
+  - date
+  - asis
+  - new_form_page
+  - ss
+
+widget:
+
+  toc:
+    id: toc
+    label: Table of Contents
+    color: darkseagreen
+    pattern: '{toc: %workspace_id [%page_title]}'
+    fields: [workspace_id, page_title]
+    pdfields: [workspace_id, page_title]
+    input:
+      page_title: radio
+      workspace_id: radio
+    labels:
+      page_title: Headers and<br/>sections in
+      workspace_id: Page in
+    title: Table of contents for '$page_title'. Click to edit.
+    desc: Display a table of contents for a page. Each header or section on the page is listed as a link in the table of contents. Click "Save" now, or click "More options" to edit the properties for the table of contents.
+    more_desc: Optionally, specify which page\'s headers and sections to use for the table of contents.
+    parse:
+      regexp: '^(\S*)?\s*\[([^\]]*)\]\s*$'
+      no_match: workspace_id
+    checks: [require_page_if_workspace]
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: page_title, text: "toc: %page_title" }
+        - { field: default, text: "toc" }
+
+  link2:
+    id: link2
+    label: Link to a Wiki page
+    hide_in_menu: true
+    color: blue
+    pattern: '"%label"{link: %workspace_id [%page_title] %section_name}'
+    fields: [section_name, label, workspace_id, page_title]
+    pdfields: [label, workspace_id, page_title]
+    primary_field: section_name
+    labels:
+      workspace_id: Workspace
+    input:
+       workspace_id: radio
+       page_title: radio
+    title: Link to $workspace_id: '$page_title' $section_name. Click to edit.
+    desc: Use this form to edit the properties of the link to a page section.
+    more_desc: Optional properties include the text to display for the link, and the title of a different page.
+    parse:
+      regexp: '?three-part-link'
+      no_match: section_name
+      fields: [workspace_id, page_title, section_name]
+    checks: [require_page_if_workspace]
+    required: [section_name]
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    select_if:
+        blank: [workspace_id]
+    image_text:
+        - { field: label, text: "link: %label" }
+        - { field: page_title, text: "link: %page_title (%section_name )" }
+        - { field: default, text: "link: %section_name" }
+
+  link2_hyperlink:
+    id: link2_hyperlink
+    label: Link to a Web Page
+    hide_in_menu: true
+    color: blue
+    pattern: '"%label"{link: %workspace_id [%page_title] %section_name}'
+    fields: [label, url]
+    pdfields: [label, url]
+    primary_field: url
+    labels:
+      url: Link destination
+      label: Linked text
+    title: Link to '$url'. Click to edit.
+    desc: Use this form to edit the properties of the link to a web page.
+    more_desc: Optional properties include the text to display for the link.
+    required: [url]
+
+  link2_section:
+    id: link2_section
+    label: Link to a Section
+    hide_in_menu: true
+    color: blue
+    pattern: '"%label"{link: %workspace_id [%page_title] %section_name}'
+    fields: [label, url]
+    pdfields: [label, url]
+    primary_field: url
+    labels:
+      url: Link destination
+      label: Linked text
+    title: Link to '$url'. Click to edit.
+    desc: Use this form to edit the properties of the link to a section.
+    more_desc: Optional properties include the text to display for the link.
+    required: [url]
+
+  section:
+    id: section
+    label: Section Marker
+    color: darkred
+    pattern: '{section: %section_name}'
+    field: section_name
+    title: Section marker '$section_name'. Click to edit.
+    desc: Add a section marker at the current cursor location. You can link to a section marker using a "Section Link". Use this form to edit the properties for the section marker.
+    more_desc: There are no optional properties for a section marker.
+    image_text:
+        - { field: default, text: "section: %section_name" }
+
+  image:
+    id: image
+    label: Attached Image
+    color: red
+    pattern: '"%label"{image: %workspace_id [%page_title] %image_name size=%size}'
+    fields: [image_name, workspace_id, page_title, label, size]
+    pdfields: [workspace_id, page_title, label]
+    extra_fields: [width, height]
+    input:
+       workspace_id: radio
+       page_title: radio
+       size: size
+    labels:
+      image_name: Image filename
+      page_title: Attached to
+      workspace_id: Page in
+      size: Size
+    title: Display image '$image_name'. Click to edit.
+    desc: Display an image on this page. The image must be already uploaded as an attachment to this page or another page. Use this form to edit the properties of the displayed image.
+    more_desc: Optional properties include the title of another page to which the image is attached, and link text. If link text is specified then a link to the image is displayed instead of the image.
+    parse:
+      regexp: '?three-part-link'
+      no_match: image_name
+      fields: [workspace_id, page_title, image_name]
+    checks: [require_page_if_workspace]
+    required: [image_name]
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: label, text: "image: %label" }
+        - { field: default, text: "image: %image_name" }
+
+  file:
+    id: file
+    label: Attachment Link
+    color: brown
+    pattern: '"%label"{file: %workspace_id [%page_title] %file_name}'
+    fields: [file_name, workspace_id, page_title, label]
+    pdfields: [workspace_id, page_title, label]
+    input:
+       workspace_id: radio
+       page_title: radio
+    labels:
+        workspace_id: Page in
+        page_title: File attached to
+        file_name: Attachment filename
+    title: Link to file '$file_name'. Click to edit.
+    desc: Display a link to a file attached to a page. Use this form to edit the properities of the link.
+    more_desc: Optional properties include specifying a different page for the attachment, and link text.
+    parse:
+      regexp: '?three-part-link'
+      no_match: file_name
+      fields: [workspace_id, page_title, file_name]
+    checks: [require_page_if_workspace]
+    required: [file_name]
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: label, text: "file: %label" }
+        - { field: default, text: "file: %file_name" }
+
+  weblog:
+    id: weblog
+    label: Weblog Link
+    color: purple
+    pattern: '"%label"{weblog: %workspace_id; %weblog_name}'
+    fields: [label, weblog_name, workspace_id ]
+    pdfields: [label, workspace_id]
+    title: Link to weblog '$weblog_name'. Click to edit.
+    labels:
+       workspace_id: Weblog on
+    input:
+       workspace_id: radio
+    desc: Display a link to a weblog. Use this form to edit the properties of the link.
+    more_desc: Optional properties include link text, and the name of a different workspace for the weblog.
+    parse:
+      regexp: '?workspace-value'
+      no_match: weblog_name
+      fields: [workspace_id, weblog_name]
+    required: [weblog_name]
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: label, text: "weblog: %label" }
+        - { field: default, text: "weblog: %weblog_name" }
+
+  hashtag:
+    id: hashtag
+    label: Signal Tag Link
+    color: green
+    pattern: '{hashtag: %tag}'
+    fields: [tag]
+    title: Link to tag '$tag'. Click to edit.
+    required: [tag]
+    image_text:
+        - { field: tag, text: "#%tag" }
+
+  tag:
+    id: tag
+    label: Tag Link
+    color: green
+    pattern: '"%label"{tag: %workspace_id; %tag_name}'
+    fields: [tag_name, label, workspace_id]
+    pdfields: [label, workspace_id]
+    title: Link to tag '$tag_name'. Click to edit.
+    desc: Display a link to a list of pages with a specific tag. Use this form to edit the properties of the link.
+    more_desc: Optional properties include link text, and the name of a different workspace for the tags.
+    input:
+       workspace_id: radio
+    labels:
+        workspace_id: Search
+    parse:
+      regexp: '?workspace-value'
+      no_match: tag_name
+      fields: [workspace_id, tag_name]
+    required: [tag_name]
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: label, text: "tag: %label" }
+        - { field: tag_name, text: "tag: %tag_name" }
+
+  search:
+    id: search
+    label: Search Results
+    color: gold4
+    pattern: '{search: <%workspace_id> %search_term}'
+    fields: [search_term, workspace_id]
+    pdfields: [workspace_id]
+    input:
+       workspace_id: radio
+    title:
+      default: Search for '$search_term'. Click to edit.
+      full: Display result for searching '$search_term'. Click to edit.
+    desc: Display the search results for the given phrase within a workspace. Use this form to edit the properties for the search.
+    more_desc: Optional properties include the name of the workspace to search, whether to search in the page title, text or tags, and whether to display full results or just page titles.
+    labels:
+        workspace_id: In
+        seach_term: Search for
+    parse:
+      regexp: '^(?:<(\S+)>)?\s*(.*?)?\s*$'
+      fields: [workspace_id, search_term]
+    required: [search_term]
+    full: off
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: default, text: "search: %search_term" }
+
+  include:
+    id: include
+    label: Page Include
+    color: darkblue
+    pattern: '{include: %workspace_id [%page_title]}'
+    fields: [workspace_id, page_title]
+    pdfields: []
+    input:
+       workspace_id: radio
+    labels:
+        workspace_id: Other page in
+    title: Include the page '$page_title'. Click to edit.
+    desc: Display the contents of another page within the current page. Use this form to edit the properties for the page include.
+    more_desc: There are no optional properties for page include.
+    parse:
+      regexp: '^(\S*)?\s*\[([^\]]*)\]\s*$'
+    checks: [require_page_if_workspace]
+    required: [page_title]
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: default, text: "include: %page_title" }
+
+  new_form_page:
+    id: new_form_page
+    label: New Form Page
+    color: maroon
+    pattern: '{new_form_page: %form_name %form_text}'
+    fields: [form_name, form_text]
+    title: Use $form_name to generate a form. Click to edit.
+    desc: Select a form and generates a new form page.
+    more_desc: There are no optional properties for a new form page.
+    required: [form_name, form_text]
+    parse:
+        regexp:  '^\s*(\S+)\s+(.+)\s*$'
+    image_text:
+        - { field: default, text: "form: %form_name" }
+    on_menu: false
+
+  fetchrss:
+    id: fetchrss
+    label: Inline RSS
+    color: orange
+    pattern: '{fetchrss: %rss_url}'
+    field: rss_url
+    title: Include the '$rss_url' RSS feed. Click to edit.
+    desc: Display the content of an RSS feed. Use this form to edit the properties of the inline RSS feed.
+    more_desc: There are no optional properties for an RSS feed.
+    image_text:
+        - { field: default, text: "feed: %rss_url" }
+
+  fetchatom:
+    id: fetchatom
+    label: Inline Atom
+    color: darkgreen
+    pattern: '{fetchatom: %atom_url}'
+    field: atom_url
+    title: Include the '$atom_url' Atom feed. Click to edit.
+    desc: Display the content of an Atom feed. Use this form to edit the properties of the inline Atom feed.
+    more_desc: There are no optional properties for an Atom feed.
+    image_text:
+        - { field: default, text: "feed: %atom_url" }
+
+  googlesearch:
+    id: googlesearch
+    label: Google Search
+    color: saddlebrown
+    pattern: '{googlesearch: %search_term}'
+    field: search_term
+    title: Search Google for '$search_term'. Click to edit.
+    desc: Display the results from a Google search. Use this form to edit the properties for the search.
+    more_desc: There are no optional properties for an Google search.
+    labels:
+        search_term: Search for
+    image_text:
+        - { field: default, text: "Google: %search_term" }
+
+  googlesoap:
+    id: googlesoap
+    label: Google Search
+    color: saddlebrown
+    pattern: '{googlesoap: %search_term}'
+    field: search_term
+    title: Search Google for '$search_term'. Click to edit.
+    desc: Display the results from a Google search. Use this form to edit the properties for the search.
+    more_desc: There are no optional properties for an Google search.
+    labels:
+        search_term: Search for
+    image_text:
+        - { field: default, text: "Google: %search_term" }
+
+  technorati:
+    id: technorati
+    label: Technorati Search
+    color: darkmagenta
+    pattern: '{technorati: %search_term}'
+    field: search_term
+    title: Search Technorati for '$search_term'. Click to edit.
+    desc: Display the results for a Technorati search. Use this form to edit the properties for the search.
+    more_desc: There are no optional properties for a Technorati search.
+    labels:
+        search_term: Search for
+    image_text:
+        - { field: default, text: "Technorati: %search_term" }
+
+  recent_changes:
+    id: recent_changes
+    label: What\'s New
+    color: gold
+    pattern: '{recent_changes: %workspace_id}'
+    fields: [workspace_id]
+    input:
+       workspace_id: radio
+    labels:
+       workspace_id: Workspace
+    title:
+      default: What's new in the '$workspace_id' workspace. Click to edit.
+      full: Display what's new in the '$workspace_id' workspace. Click to edit.
+    desc: Display a list of pages recently changed in a workspace. By default only the page titles are displayed. Use this form to edit the list properties.
+    more_desc: Optionally, specify that the page contents should be displayed.
+    parse:
+        regexp: '^\s*(.*?)?\s*$'
+    full: off
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: workspace_id, text: "recent changes: %workspace_id" }
+        - { field: default, text: "recent changes" }
+
+  tag_list:
+    id: tag_list
+    label: Tag List
+    color: darkviolet
+    pattern: '{tag_list: <%workspace_id> %tag_name}'
+    fields: [tag_name, workspace_id]
+    pdfields: [workspace_id]
+    input:
+       workspace_id: radio
+    labels:
+       workspace_id: Pages in
+    title:
+      default: Pages with the '$tag_name' tag. Click to edit.
+      full: Display pages with the '$tag_name' tag. Click to edit.
+    desc: Display a list of the most recently changed pages in a workspace that have a specific tag. By default only the page title is displayed. Use this form to edit the list properties.
+    more_desc: Optional properties include specifying which workspace to use and whether to display page titles or whole pages.
+    required: [tag_name]
+    parse:
+      regexp: '^(?:<(\S+)>)?\s*(.*?)?\s*$'
+      fields: [workspace_id, tag_name]
+    full: off
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: default, text: "tag list: %tag_name" }
+
+  weblog_list:
+    id: weblog_list
+    label: Weblog List
+    color: forestgreen
+    pattern: '{weblog_list: <%workspace_id> %weblog_name}'
+    fields: [workspace_id, weblog_name]
+    pdfields: [workspace_id]
+    input:
+       workspace_id: radio
+    labels:
+       workspace_id: in
+    title:
+      default: Include the weblog '$weblog_name'. Click to edit.
+      full: Display the weblog '$weblog_name'. Click to edit.
+    desc: Display a list of the most recent entries from a weblog in a workspace. By default only the weblog entry names are displayed. Use this form to edit the list properties.
+    more_desc: Optional parameters include specifying which workspace to use and whether to display page titles or whole pages.
+    required: [weblog_name]
+    parse:
+      regexp: '^(?:<(\S+)>)?\s*(.*?)?\s*$'
+      fields: [workspace_id, weblog_name]
+    full: off
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: default, text: "weblog list: %weblog_name" }
+
+  aim:
+    id: aim
+    label: AIM Link
+    pattern: 'aim:%aim_id'
+    markup: ['bound_phrase', 'aim:', '']
+    field: aim_id
+    title: Instant message to '$aim_id' using AIM. Click to edit.
+    desc: Display a link to an AIM screen name. The icon will show whether the person is online. Clicking the link will start an IM conversation with the person if your IM client is properly configured. Use this form to edit the properties of the link.
+    more_desc: There are no optional properties for an AIM link.
+    required: [aim_id]
+    image_text:
+        - { field: default, text: "AIM: %aim_id" }
+
+  yahoo:
+    id: yahoo
+    label: Yahoo! IM Link
+    pattern: 'yahoo:%yahoo_id'
+    markup: ['bound_phrase', 'yahoo:', '']
+    field: yahoo_id
+    title: Instant message to '$yahoo_id' using Yahoo! Click to edit.
+    desc: Display a link to a Yahoo! instant message ID. The icon will show whether the person is online. Clicking the link will start an IM conversation with the person if your IM client is properly configured. Use this form to edit the properties of the link.
+    more_desc: There are no optional properties for a Yahoo! link.
+    required: [yahoo_id]
+    image_text:
+        - { field: default, text: "Yahoo! IM: %yahoo_id" }
+
+  skype:
+    id: skype
+    label: Skype Link
+    pattern: 'skype:%skype_id'
+    markup: ['bound_phrase', 'skype:', '']
+    field: skype_id
+    title: Call '$skype_id' using Skype. Click to edit.
+    desc: Display a link to a Skype name. Clicking the link will start a Skype call with the person if your Skype client is properly configured. Use this form to edit the properties of the link.
+    more_desc: There are no optional properties for a Skype link.
+    required: [skype_id]
+    image_text:
+        - { field: default, text: "Skype: %skype_id" }
+
+  user:
+    id: user
+    label: User Name
+    color: darkgoldenrod
+    pattern: '{user: %user_email}'
+    field: user_email
+    title: User mention. Click to edit.
+    desc: Display the full name for the given email address or user name. Use this form to edit the properties of the user name.
+    more_desc: There are no optional properties for a user name.
+    required: [user_email]
+    image_text:
+        - { field: default, text: "user: %user_email" }
+
+  date:
+    id: date
+    label: Date in Local Time
+    color: royalblue
+    pattern: '{date: %date_string}'
+    field: date_string
+    title: Display '$date_string' in reader's time zone. Click to edit.
+    desc: Display the given date and time in the individually-set time zone for each reader. Use this form to edit the date and time to be displayed
+    more_desc: There are no optional properties for a date display.
+    image_text:
+        - { field: default, text: "date: %date_string" }
+
+  http:
+    id: http
+    color: darkorange
+    title: Relative HTTP link. Edit in Wiki Text mode.
+    uneditable: true
+
+  asis:
+    id: asis
+    label: Unformatted
+    color: darkslateblue
+    pattern: '{{%asis_content}}'
+    markup: ['bound_phrase', '{{', '}}']
+    field: asis_content
+    title: Unformatted Content
+    desc: Include unformatted text in the page. This text will not be treated as wiki text. Use this form to edit the text.
+    more_desc: There are no optional properties for unformatted text.
+    required: [asis_content]
+    image_text:
+        - { field: default, text: "unformatted: %asis_content" }
+
+  html:
+    id: html
+    color: indianred
+    title: Raw HTML section. Edit in Wiki Text mode.
+    uneditable: true
+
+  sharepoint:
+    id: sharepoint
+    color: red
+    title: Sharepoint link. Edit in Wiki Text mode.
+    uneditable: true
+
+  unknown:
+    id: unknown
+    color: darkslategrey
+    title: Unknown widget '$unknown_id'. Edit in Wiki Text mode.
+    uneditable: true
+
+  irc:
+    id: irc
+    color: darkorange
+    title: IRC link. Edit in Wiki Text mode.
+    uneditable: true
+
+  https:
+    id: https
+    color: darkorange
+    title: HTTP relative link. Edit in Wiki Text mode.
+    uneditable: true
+
+  ftp:
+    id: ftp
+    color: darkorange
+    title: FTP link. Edit in Wiki Text mode.
+    uneditable: true
+
+  ss:
+    id: ss
+    label: Spreadsheet Include
+    color: pink
+    pattern: '{ss: %workspace_id [%spreadsheet_title] %spreadsheet_cell}'
+    fields: [workspace_id, spreadsheet_title, spreadsheet_cell]
+    pdfields: []
+    input:
+       workspace_id: radio
+    labels:
+        workspace_id: Other spreadsheet in
+    title: Include the page '$spreadsheete_title'. Click to edit.
+    desc: Display the contents of a spreadsheet within the current page. Use this form to edit the properties for the spreadsheet include.
+    more_desc: There are no optional properties for spreadsheet include.
+    parse:
+      regexp: '?three-part-link'
+    checks: [require_page_if_workspace]
+    required: [spreadsheet_title]
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: default, text: "ss: %spreadsheet_title (%spreadsheet_cell)" }
+
+fields:
+  workspace_id: Workspace
+  page_title: Page title
+  spreadsheet_title: Spreadsheet title
+  spreadsheet_cell: Spreadsheet cell
+  section_name: Section name
+  file_name: File name
+  image_name: Image name
+  weblog_name: Weblog name
+  tag_name: Tag name
+  rss_url: RSS feed URL
+  atom_url: Atom feed URL
+  aim_id: AIM screen name
+  yahoo_id: Yahoo! ID
+  skype_id: Skype name
+  relative_url: Relative URL
+  search_term: Search term
+  user_email: User\'s email
+  date_string: YYYY-MM-DD&nbsp;HH:MM:SS
+  asis_content: Unformatted content
+  label: Link text
+  form_name: Form name
+  form_text: Link text
+
+match:
+  workspace_id: '^[a-z0-9_\-]+$'
+  date_string: '^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}.*)$'
+  user_email: '^([a-zA-Z0-9_\+\.\-\&\!\%\+\$\*\^\'']+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9:]{2,4})+)$'
+  # user_email regexp adapted from
+  # http://fightingforalostcause.net/misc/2006/compare-email-regex.php
+  aim_id: '^(\S+)$'
+  yahoo_id: '^(\S+)$'
+  skype_id: '^(\S+)$'
+
+regexps:
+  three-part-link: '^(\S*)?\s*\[([^\]]*)\]\s*(.*?)?\s*$'
+  workspace-value: '^(?:(\S+);)?\s*(.*?)?\s*$'
+
+synonyms:
+  ymsgr: yahoo
+  callme: skype
+  callto: skype
+  category: tag
+  category_list: tag_list
+
+api_for_title:
+  workspace_id: /data/workspaces/:workspace_id
+
+menu_hierarchy:
+  - label: Spreadsheet
+    widget: ss
+  - label: Image
+    widget: image
+  - label: Table
+    insert: table
+  - label: Horizontal Line
+    insert: hr
+  - label: A link to...       
+    sub_menu:
+      - label: A file attached to this page
+        widget: file
+      - label: A section in this page
+        widget: link2_section
+      - label: A different wiki page
+        widget: link2
+      - label: A person's blog
+        widget: weblog
+      - label: Pages related to a tag
+        widget: tag
+      - label: A page on the web
+        widget: link2_hyperlink
+  - label: From workspaces...   
+    sub_menu:
+      - label: A page include
+        widget: include
+      - label: A spreadsheet include
+        widget: ss
+      - label: Tagged pages
+        widget: tag_list
+      - label: Recent changes
+        widget: recent_changes
+      - label: Blog postings
+        widget: weblog_list
+      - label: Wiki search results
+        widget: search
+  - label: From the web...   
+    sub_menu:
+      - label: Google search results
+        widget: googlesearch
+      - label: Technorati results
+        widget: technorati
+      - label: RSS feed items
+        widget: fetchrss
+      - label: Atom feed items
+        widget: fetchatom
+  - label: Organizing your page... 
+    sub_menu:
+      - label: Table of contents
+        widget: toc
+      - label: Section marker
+        widget: section
+      - label: Horizontal line
+        insert: hr
+  - label: Communicating...    
+    sub_menu:
+      - label: Skype link
+        widget: skype
+      - label: AIM link
+        widget: aim
+      - label: Yahoo! Messenger link
+        widget: yahoo
+  - label: Name & Date...      
+    sub_menu:
+      - label: User name
+        widget: user
+      - label: Local Date & Time
+        widget: date
+  - label: Unformatted text...  
+    widget: asis
+

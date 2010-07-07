@@ -1,0 +1,42 @@
+<span class="title">[% loc('Google Search') %]</span>
+<form>
+<div class="st-widget-dialog">
+<p class="st-widget-description">[% loc('Display the results from a Google search. Use this form to edit the properties for the search.') %]</p>
+<div id="st-widgets-standardoptionspanel">
+<table class="st-widgets-optionstable">
+<tr>
+<td class="label">[% loc('Search for:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <input size="40" type="text" id="st-widget-search_term" name="search_term" value="[% search_term | html %]"/>
+  </td>
+</tr>
+</table>
+</div>
+<div id="googlesoap_widget_edit_error_msg" class="widget_edit_error_msg"></div>
+<div class="st-widgets-options">
+    <img id="st-widgets-optionsicon" src="[% skin_path %]/images/st/show_more.gif">
+    <a id="st-widgets-moreoptions" href="#">[% loc('More options') %]</a>
+</div>
+<div id="st-widgets-moreoptionspanel">
+<p class="st-widget-description">[% loc('There are no optional properties for an Google search.') %]</p>
+<table class="st-widgets-moreoptionstable">
+
+
+
+
+</table>
+<div class="st-widgetdialog-wikitext">
+    <span class="label">[% loc('wiki text') %][% googlesoap_st_widgetdialog_wikitext %]
+</span>
+    <span class="wikitext" id="googlesoap_wafl_text">&nbsp;</span>
+</div>
+</div>
+</div>
+<div class="buttons">
+    <input id="st-widget-savebutton" type="submit" value=[% loc('Save') %] />
+    <input id="st-widget-cancelbutton" type="reset" value=[% loc('Cancel') %] />
+</div>
+</form>
+
+
+

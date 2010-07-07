@@ -1,0 +1,63 @@
+<span class="title">[% loc('Spreadsheet Include') %]</span>
+<form>
+<div class="st-widget-dialog">
+<p class="st-widget-description">[% loc('Display the contents of a spreadsheet within the current page. Use this form to edit the properties for the spreadsheet include.') %]</p>
+<div id="st-widgets-standardoptionspanel">
+<table class="st-widgets-optionstable">
+<tr>
+  <td class="label">[% loc('Other spreadsheet in:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" [% workspace_id ? '' : "checked" %]>
+[% loc('the current workspace') %]
+<i>&nbsp;&nbsp;[% loc('or') %]</i></p>
+<p class="st-widget-dialog-choiceradio">
+  <input type="radio" name="st-widget-workspace_id-rb" value="other" [% workspace_id ? "checked" : '' %] ?>
+  [% loc('the workspace named') %]
+[%- ss_st_widget_workspace_id_rb -%] 
+&nbsp;
+<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="[% workspace_id | html %]"/>
+</p>
+</td>
+</tr>
+<tr>
+<td class="label">[% loc('Spreadsheet title:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <input size="40" type="text" id="st-widget-spreadsheet_title" name="spreadsheet_title" value="[% spreadsheet_title | html %]"/>
+  </td>
+</tr>
+<tr>
+<td class="label">[% loc('Spreadsheet cell:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <input size="40" type="text" id="st-widget-spreadsheet_cell" name="spreadsheet_cell" value="[% spreadsheet_cell | html %]"/>
+  </td>
+</tr>
+</table>
+</div>
+<div id="ss_widget_edit_error_msg" class="widget_edit_error_msg"></div>
+<div class="st-widgets-options">
+    <img id="st-widgets-optionsicon" src="[% skin_path %]/images/st/show_more.gif">
+    <a id="st-widgets-moreoptions" href="#">[% loc('More options') %]</a>
+</div>
+<div id="st-widgets-moreoptionspanel">
+<p class="st-widget-description">[% loc('There are no optional properties for spreadsheet include.') %]</p>
+<table class="st-widgets-moreoptionstable">
+
+
+
+
+</table>
+<div class="st-widgetdialog-wikitext">
+    <span class="label">[% loc('wiki text') %][% ss_st_widgetdialog_wikitext %]
+</span>
+    <span class="wikitext" id="ss_wafl_text">&nbsp;</span>
+</div>
+</div>
+</div>
+<div class="buttons">
+    <input id="st-widget-savebutton" type="submit" value=[% loc('Save') %] />
+    <input id="st-widget-cancelbutton" type="reset" value=[% loc('Cancel') %] />
+</div>
+</form>
+
+
+

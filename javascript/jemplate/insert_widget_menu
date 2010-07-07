@@ -1,0 +1,90 @@
+<ul id="st-editing-insert-menu">
+  <li><a href="#" onclick="return false">Insert</a>
+    <ul>
+      
+      <li><a href="#" onclick="return false;" do="do_widget_ss">Spreadsheet</a></li>
+      
+      <li><a href="#" onclick="return false;" do="do_widget_image">Image</a></li>
+      
+      <li><a href="#" onclick="return false;" do="do_table">Table</a></li>
+      
+      <li><a href="#" onclick="return false;" do="do_hr">Horizontal&nbsp;Line</a></li>
+      <li><a href="#" onclick="return false">A&nbsp;link&nbsp;to...</a>
+        <ul>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_file">A&nbsp;file&nbsp;attached&nbsp;to&nbsp;this&nbsp;page</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_link2_section">A&nbsp;section&nbsp;in&nbsp;this&nbsp;page</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_link2">A&nbsp;different&nbsp;wiki&nbsp;page</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_weblog">A&nbsp;person's&nbsp;blog</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_tag">Pages&nbsp;related&nbsp;to&nbsp;a&nbsp;tag</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_link2_hyperlink">A&nbsp;page&nbsp;on&nbsp;the&nbsp;web</a></li>
+        </ul>
+      </li>
+      <li><a href="#" onclick="return false">From&nbsp;workspaces...</a>
+        <ul>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_include">A&nbsp;page&nbsp;include</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_ss">A&nbsp;spreadsheet&nbsp;include</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_tag_list">Tagged&nbsp;pages</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_recent_changes">Recent&nbsp;changes</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_weblog_list">Blog&nbsp;postings</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_search">Wiki&nbsp;search&nbsp;results</a></li>
+        </ul>
+      </li>
+      <li><a href="#" onclick="return false">From&nbsp;the&nbsp;web...</a>
+        <ul>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_googlesearch">Google&nbsp;search&nbsp;results</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_technorati">Technorati&nbsp;results</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_fetchrss">RSS&nbsp;feed&nbsp;items</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_fetchatom">Atom&nbsp;feed&nbsp;items</a></li>
+        </ul>
+      </li>
+      <li><a href="#" onclick="return false">Organizing&nbsp;your&nbsp;page...</a>
+        <ul>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_toc">Table&nbsp;of&nbsp;contents</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_section">Section&nbsp;marker</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_hr">Horizontal&nbsp;line</a></li>
+        </ul>
+      </li>
+      <li><a href="#" onclick="return false">Communicating...</a>
+        <ul>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_skype">Skype&nbsp;link</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_aim">AIM&nbsp;link</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_yahoo">Yahoo!&nbsp;Messenger&nbsp;link</a></li>
+        </ul>
+      </li>
+      <li><a href="#" onclick="return false">Name&nbsp;&&nbsp;Date...</a>
+        <ul>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_user">User&nbsp;name</a></li>
+      
+          <li><a href="#" onclick="return false;" do="do_widget_date">Local&nbsp;Date&nbsp;&&nbsp;Time</a></li>
+        </ul>
+      </li>
+      
+      <li><a href="#" onclick="return false;" do="do_widget_asis">Unformatted&nbsp;text...</a></li>
+    </ul>
+  </li>
+</ul>
+
+<div id="menu-style-reset" style="clear: both" />

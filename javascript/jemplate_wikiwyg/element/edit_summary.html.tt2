@@ -1,0 +1,19 @@
+<div id="st-edit-summary">
+    <div class="body">
+        <form action="#">
+            <div class="field">
+                <label for="st-edit-summary-text-area">[% loc("Summarize your edit (optional)") %]</label>
+                <input type="text" id="st-edit-summary-text-area" maxlength="250" class="input">
+            </div>
+            [% IF plugins_enabled.grep("signals").size && plugins_enabled_for_current_workspace_account.grep("signals").size -%]
+            <div class="signal">
+                <div class="preview" style="display: none;">Your Signal will appear as:<div id="st-edit-summary-signal-preview" class="text"></div></div>
+                <input id="st-edit-summary-signal-checkbox" type="checkbox" /><label for="st-edit-summary-signal-checkbox">Signal this edit</label>
+            </div>
+            [%- END %]
+         [%#    <div class="minor">
+                <input id="st-edit-summary-minor-checkbox" type="checkbox" /><label for="st-edit-summary-minor-checkbox">Minor edit</label>&nbsp;&nbsp;
+            </div> %]
+        </form>
+    </div>
+</div>

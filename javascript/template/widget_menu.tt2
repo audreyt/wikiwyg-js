@@ -1,0 +1,29 @@
+<ul id="st-editing-insert-menu">
+  <li><a href="#" onclick="return false">Insert</a>
+    <ul>
+<! FOR entry = menu_hierarchy -!>
+<! IF entry.sub_menu -!>
+      <li><a href="#" onclick="return false"><! entry.label | replace(' ', '&nbsp;') !></a>
+        <ul>
+<! FOR entry2 = entry.sub_menu -!>
+<! PROCESS menu_entry entry=entry2 padding="    " -!>
+<! END -!>
+        </ul>
+      </li>
+<! ELSE -!>
+<! PROCESS menu_entry entry=entry padding="" -!>
+<! END -!>
+<! END -!>
+    </ul>
+  </li>
+</ul>
+
+<! BLOCK menu_entry -!>
+<!- IF entry.insert -!>
+      <! method = "do_" _ entry.insert !>
+<! ELSE -!>
+      <! method = "do_widget_" _ entry.widget !>
+<! END -!>
+      <! padding !><li><a href="#" onclick="return false;" do="<! method !>"><! entry.label | replace(' ', '&nbsp;') !></a></li>
+<! END -!>
+<div id="menu-style-reset" style="clear: both" />

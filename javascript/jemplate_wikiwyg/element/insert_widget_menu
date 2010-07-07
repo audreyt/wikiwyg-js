@@ -1,0 +1,52 @@
+<ul>
+  <li class="main">Insert
+    <ul>
+      <li do="do_widget_image">Image</li>
+      <li do="do_table">Table</li>
+      <li do="do_hr">Horizontal&nbsp;Line</li>
+      <li>Link
+        <ul>
+          <li do="do_widget_link2">Wiki&nbsp;Link</li>
+          <li do="do_widget_link2">Web&nbsp;Link</li>
+          <li do="do_widget_link2">Section&nbsp;Link</li>
+          <li do="do_widget_tag">Tag&nbsp;Link</li>
+          <li do="do_widget_weblog">Blog&nbsp;Link</li>
+          <li do="do_widget_file">Attachment&nbsp;Link</li>
+        </ul>
+      </li>
+      <li>Content&nbsp;Block
+        <ul>
+          <li do="do_widget_toc">Table&nbsp;of&nbsp;contents</li>
+          <li do="do_widget_include">Page&nbsp;Include</li>
+          <li do="do_widget_ss">Spreadsheet&nbsp;Include</li>
+          <li do="do_widget_recent_changes">Recent&nbsp;Changes</li>
+          <li do="do_widget_weblog_list">Blog&nbsp;List</li>
+          <li do="do_widget_tag_list">Tag&nbsp;List</li>
+          <li do="do_widget_search">Search&nbsp;Results</li>
+          <li do="do_widget_googlesearch">Google&nbsp;Search</li>
+        </ul>
+      </li>
+      <li>Field
+        <ul>
+          <li do="do_widget_user">Username</li>
+          <li do="do_widget_date">Local&nbsp;Date&nbsp;and&nbsp;Time</li>
+        </ul>
+      </li>
+      <li>IM&nbsp;Link
+        <ul>
+          <li do="do_widget_aim">AIM</li>
+          <li do="do_widget_yahoo">Yahoo!</li>
+          <li do="do_widget_skype">Skype</li>
+        </ul>
+      </li>
+      <li>External&nbsp;Feed
+        <ul>
+          <li do="do_widget_fetchrss">RSS</li>
+          <li do="do_widget_fetchatom">ATOM</li>
+          <li do="do_widget_technorati">Technorati</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+

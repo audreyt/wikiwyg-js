@@ -1,0 +1,63 @@
+<span class="title">[% loc('Tag Link') %]</span>
+<form>
+<div class="st-widget-dialog">
+<p class="st-widget-description">[% loc('Display a link to a list of pages with a specific tag. Use this form to edit the properties of the link.') %]</p>
+<div id="st-widgets-standardoptionspanel">
+<table class="st-widgets-optionstable">
+<tr>
+<td class="label">[% loc('Tag name:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <input size="40" type="text" id="st-widget-tag_name" name="tag_name" value="[% tag_name | html %]"/>
+  </td>
+</tr>
+</table>
+</div>
+<div id="tag_widget_edit_error_msg" class="widget_edit_error_msg"></div>
+<div class="st-widgets-options">
+    <img id="st-widgets-optionsicon" src="[% skin_path %]/images/st/show_more.gif">
+    <a id="st-widgets-moreoptions" href="#">[% loc('More options') %]</a>
+</div>
+<div id="st-widgets-moreoptionspanel">
+<p class="st-widget-description">[% loc('Optional properties include link text, and the name of a different workspace for the tags.') %]</p>
+<table class="st-widgets-moreoptionstable">
+<tr>
+<td class="label">[% loc('Link text:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <input size="40" type="text" id="st-widget-label" name="label" value="[% label | html %]"/>
+  </td>
+</tr>
+<tr>
+  <td class="label">[% loc('Search:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" [% workspace_id ? '' : "checked" %]>
+[% loc('the current workspace') %]
+<i>&nbsp;&nbsp;[% loc('or') %]</i></p>
+<p class="st-widget-dialog-choiceradio">
+  <input type="radio" name="st-widget-workspace_id-rb" value="other" [% workspace_id ? "checked" : '' %] ?>
+  [% loc('the workspace named') %]
+[%- tag_st_widget_workspace_id_rb -%] 
+&nbsp;
+<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="[% workspace_id | html %]"/>
+</p>
+</td>
+</tr>
+
+
+
+
+</table>
+<div class="st-widgetdialog-wikitext">
+    <span class="label">[% loc('wiki text') %][% tag_st_widgetdialog_wikitext %]
+</span>
+    <span class="wikitext" id="tag_wafl_text">&nbsp;</span>
+</div>
+</div>
+</div>
+<div class="buttons">
+    <input id="st-widget-savebutton" type="submit" value=[% loc('Save') %] />
+    <input id="st-widget-cancelbutton" type="reset" value=[% loc('Cancel') %] />
+</div>
+</form>
+
+
+

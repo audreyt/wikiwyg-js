@@ -1,0 +1,189 @@
+/* Lightbox */
+
+.lightbox {
+    line-height: 1.2em;
+    text-align: left;
+    display: none;
+    margin: 10px;
+    padding: 10px;
+}
+
+#lightbox {
+    background: white;
+    position: absolute;
+    display: none;
+    padding: 0;
+    margin: auto;
+    font-size: 12px;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+.lightbox td, .lightbox th {
+    vertical-align: top;
+    padding: 0;
+}
+
+.lightbox th {
+    font-weight: bold;
+}
+
+.lightbox input {
+    margin: 4px;
+    vertical-align: middle;
+}
+
+.lightbox label {
+    padding-top: 3px;
+    vertical-align: middle;
+}
+
+.lightbox .label {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.lightbox #st-widgets-moreoptionspanel .label {
+    font-size: 1em;
+}
+
+.lightbox table {
+    border-spacing: 0px;
+    border: none;
+}
+
+.lightbox table td {
+    border: none;
+}
+
+.lightbox .additional {
+    border-top: 1px solid black;
+    clear: both;
+}
+
+.lightbox .additional .hint {
+    margin-left: 25px;
+}
+
+.lightbox .additional .bigHint {
+    margin-left: 25px;
+    font-size: 125%;
+    line-height: 125%;
+    font-weight: bold;
+}
+
+.lightbox .st-widgets-optionstable tr, .lightbox .st-widgets-optionstable td {
+    vertical-align: middle;
+}
+
+
+.lightbox .add-a-link-set .editlabel {
+    margin-left: 10px;
+}
+
+.lightbox .emphasis {
+    font-weight: bold;
+}
+
+.lightbox .editlabel {
+    width: 10em;
+    float: left;
+    padding-right: 0.5em;
+    padding-top: 3px;
+}
+
+.lightbox .buttons {
+    float: right;
+    margin-top: 20px;
+}
+
+.lightbox .fileprompt {
+    margin: 0.2em 0 0.4em 0;
+    padding-bottom: 0px;
+}
+
+.lightbox .message {
+    font-weight: bold;
+    margin-bottom: 1em;
+    display: none;
+}
+
+.lightbox .error {
+    font-weight: bold;
+    color: #f00;
+    margin-bottom: 1em;
+    display: none;
+}
+
+.lightbox .list {
+    display: none;
+    font-size: 90%;
+    color: #666;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    border-top: 1px solid #4949BA;
+    border-bottom: 1px solid #4949BA;
+    background-color: #F5F5F5;
+    padding: 3px;
+}
+
+.lightbox .listlabel {
+    color: #4949BA;
+}
+
+.lightbox .hint {
+    font-size: 90%;
+    font-style: italic;
+}
+
+.lightbox .title {
+    display:block;
+    font-size:1.5em;
+    font-weight:bold;
+    padding-bottom: 3px;
+    padding-left:0;
+    border-bottom: 1px solid black;
+}
+
+.lightbox .heads-up {
+    margin-top: 3px;
+    margin-bottom: 7px;
+}
+
+.widget_edit_error_msg {
+    background-color:#F5F5F5;
+    border-bottom:1px solid #BA4949;
+    border-top:1px solid #BA4949;
+    color:#800000;
+    display:none;
+    font-size:90%;
+    padding:4px;
+}
+
+#st-widgets-moreoptionspanel {
+    display: none;
+    background-color: #F0F0F0;
+    padding: 2px 4px 4px 4px;
+    margin: 6px 0 4px 0;
+    border: 1px solid #B0CCFF;
+}
+
+#st-widgets-moreoptions {
+    padding-left: 8px;
+}
+
+
+.st-lightbox-content {
+    background-color: #fff;
+    color: #000;
+    border: 4px solid #ccc;
+    padding: 0.5em;
+    width: 450px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10%;
+}
+
+.lightbox form {
+    margin: 0px;
+    padding: 0px;
+}

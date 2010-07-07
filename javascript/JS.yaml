@@ -1,0 +1,43 @@
+---
+'socialtext-editor.js':
+    parts:
+        - {dir: skin/s2/javascript, file: main.js}
+        - jemplate_wikiwyg.js
+        - jemplate_wikiwyg_edit.js
+        - lib/Wikiwyg.js
+        - Widgets.js
+        - lib/Wikiwyg/Widgets.js
+        - lib/Wikiwyg/Toolbar.js
+        - lib/Wikiwyg/Preview.js
+        - lib/Wikiwyg/Wysiwyg.js
+        - lib/Wikiwyg/HTML.js
+        - Wikiwyg/MessageCenter.js
+        - lib/Wikiwyg/Wikitext.js
+        - Wikiwyg/DataValidator.js
+        - wikiwyg.js
+        - lib/Document/Emitter.js
+        - lib/Document/Emitter/HTML.js
+        - lib/Document/Parser.js
+        - lib/Document/Parser/Wikitext.js
+'socialtext-editor-light.js':
+    parts:
+        - {dir: skin/s2/javascript, file: main.js}
+        - lib/Wikiwyg.js
+        - Widgets.js
+        - lib/Wikiwyg/Widgets.js
+        - lib/Wikiwyg/Wikitext.js
+        - lib/Wikiwyg/Wysiwyg.js
+'jemplate_wikiwyg.js':
+    parts:
+        - jemplate: jemplate_wikiwyg
+        - jemplate: jemplate
+'jemplate_wikiwyg_edit.js':
+    parts:
+        - widget_template: widget_edit.tt2
+          all: 1
+        - widget_template: widget_menu.tt2
+          target: jemplate/insert_widget_menu
+'Widgets.js':
+    parts:
+        - { json: 'Widgets.yaml', name: 'Wikiwyg.Widgets' }
+

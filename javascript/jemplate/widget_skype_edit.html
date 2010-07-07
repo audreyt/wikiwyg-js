@@ -1,0 +1,42 @@
+<span class="title">[% loc('Skype Link') %]</span>
+<form>
+<div class="st-widget-dialog">
+<p class="st-widget-description">[% loc('Display a link to a Skype name. Clicking the link will start a Skype call with the person if your Skype client is properly configured. Use this form to edit the properties of the link.') %]</p>
+<div id="st-widgets-standardoptionspanel">
+<table class="st-widgets-optionstable">
+<tr>
+<td class="label">[% loc('Skype name:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <input size="40" type="text" id="st-widget-skype_id" name="skype_id" value="[% skype_id | html %]"/>
+  </td>
+</tr>
+</table>
+</div>
+<div id="skype_widget_edit_error_msg" class="widget_edit_error_msg"></div>
+<div class="st-widgets-options">
+    <img id="st-widgets-optionsicon" src="[% skin_path %]/images/st/show_more.gif">
+    <a id="st-widgets-moreoptions" href="#">[% loc('More options') %]</a>
+</div>
+<div id="st-widgets-moreoptionspanel">
+<p class="st-widget-description">[% loc('There are no optional properties for a Skype link.') %]</p>
+<table class="st-widgets-moreoptionstable">
+
+
+
+
+</table>
+<div class="st-widgetdialog-wikitext">
+    <span class="label">[% loc('wiki text') %][% skype_st_widgetdialog_wikitext %]
+</span>
+    <span class="wikitext" id="skype_wafl_text">&nbsp;</span>
+</div>
+</div>
+</div>
+<div class="buttons">
+    <input id="st-widget-savebutton" type="submit" value=[% loc('Save') %] />
+    <input id="st-widget-cancelbutton" type="reset" value=[% loc('Cancel') %] />
+</div>
+</form>
+
+
+

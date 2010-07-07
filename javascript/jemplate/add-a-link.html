@@ -1,0 +1,78 @@
+<div id="st-widget-link-dialog" class="lightbox">
+  <span class="title">[% loc('Add a link') %]</span>
+  <form id="add-a-link-form">
+   <p class="heads-up">[% loc('Required fields are indicated by an') %] <span class="heads-up-indicator">*</span></p>
+
+   <div id="add-wiki-link-section">
+    <div class="add-a-link-subheader">
+      <input type="radio" class="editfield" checked="checked"
+             name="add-link-type" id="add-wiki-link" />
+      <label for="add-wiki-link" class="label">[% loc('Wiki link') %]</label>
+    </div>
+    <div class="add-a-link-set">
+     <div>
+         <label for="wiki-link-text" class="editlabel">[% loc('Linked text') %]:</label>
+         <input type="text" size="25" class="editfield" 
+                name="wiki-link-text" id="wiki-link-text" />
+     </div>
+     <div>
+        <label for="wiki-link-workspace" class="editlabel">[% loc("Workspace") %]:</label>
+        <input type="text" size="25" class="editfield" 
+               name="wiki-link-workspace" id="st-widget-workspace_id"/>
+        <span class="additional-info">[% loc('If not current') %]</span>
+     </div>
+     <div>
+         <label for="wiki-link-page" class="editlabel">[% loc('Page') %]: <span class="heads-up-indicator">*</span></label>
+        <input type="text" size="25" class="editfield" 
+               name="wiki-link-page" id="st-widget-page_title" />
+     </div>
+     <div>
+        <label for="wiki-link-section" class="editlabel">[% loc('Section') %]:</label>
+        <input type="text" size="25" class="editfield" 
+               name="wiki-link-section" id="wiki-link-section" />
+     </div>
+    </div>
+   </div>
+
+  <div id="add-web-link-section">
+   <div class="add-a-link-subheader">
+       <input type="radio" class="editfield" 
+             name="add-link-type" id="add-web-link" />
+       <label for="add-web-link" class="label">[% loc('Web link') %]</label>
+   </div>
+   <div class="add-a-link-set">
+    <div>
+        <label for="web-link-text" class="editlabel">[% loc('Linked text') %]:</label>
+        <input type="text" size="25" class="editfield" 
+               name="web-link-text" id="web-link-text" />
+    </div>
+    <div>
+        <label for="web-link-destination" class="editlabel">[% loc('Link destination') %]: <span class="heads-up-indicator">*</span></label>
+        <input type="text" size="25" class="editfield" value="http://"
+               name="web-link-destination" id="web-link-destination" />
+    </div>
+   </div>
+  </div>
+
+  <div id="add-section-link-section">
+   <div class="add-a-link-subheader">
+       <input type="radio" class="editfield" 
+             name="add-link-type" id="add-section-link" />
+       <label for="add-section-link" class="label">[% loc('Section in current page') %]</label>
+   </div>
+   <div class="add-a-link-set">
+    <div>
+        <label for="section-link-text" class="editlabel">[% loc('Section') %] <span class="heads-up-indicator">*</span>:</label>
+        <input type="text" size="25" class="editfield" 
+               name="section-link-text" id="section-link-text" />
+    </div>
+   </div>
+  </div>
+
+  <div id="add-a-link-error" class="widget_edit_error_msg"></div>
+  <div class="buttons">
+    <input id="st-widget-link-savebutton" type="submit" value=[% loc('Save') %] />
+    <input id="st-widget-link-cancelbutton" type="reset" value=[% loc('Cancel') %] />
+  </div>
+ </form>
+</div>

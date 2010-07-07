@@ -1,0 +1,61 @@
+ <div id="st-page-editing-widget-menu">
+  <ul id="st-editing-insert-menu">
+   <li><a onclick="return false" href="#">Insert</a>
+    <ul>
+     <li><a do="do_widget_image" onclick="return false;" href="#">Image</a></li>
+     <li><a do="do_table" onclick="return false;" href="#">Table</a></li>
+     <li><a do="do_hr" onclick="return false;" href="#">Horizontal Line</a></li>
+     <li><a onclick="return false" href="#" class="daddy">A Link To...</a>
+      <ul>
+       <li><a do="do_widget_file" onclick="return false;" href="#">A File Attached to This Page</a></li>
+       <li><a do="do_widget_link2_section" onclick="return false;" href="#">A Section in This Page</a></li>
+       <li><a do="do_widget_link2" onclick="return false;" href="#">A Different Wiki Page</a></li>
+       <li><a do="do_widget_weblog" onclick="return false;" href="#">A Person's Blog</a></li>
+       <li><a do="do_widget_tag" onclick="return false;" href="#">Pages Related to a Tag</a></li>
+       <li><a do="do_widget_link2_hyperlink" onclick="return false;" href="#">A Page on The Web</a></li>
+      </ul>
+     </li>
+     <li>
+      <a onclick="return false" href="#" class="daddy">From Workspaces...</a>
+      <ul>
+       <li><a do="do_widget_include" onclick="return false;" href="#">A Page Include</a></li>
+       <li><a do="do_widget_ss" onclick="return false;" href="#">A Spreadsheet Include</a></li>
+       <li><a do="do_widget_tag_list" onclick="return false;" href="#">Tagged Pages</a></li>
+       <li><a do="do_widget_recent_changes" onclick="return false;" href="#">Recent Changes</a></li>
+       <li><a do="do_widget_weblog_list" onclick="return false;" href="#">Blog Postings</a></li>
+       <li><a do="do_widget_search" onclick="return false;" href="#">Wiki Search Results</a></li>
+      </ul>
+     </li>
+     <li><a onclick="return false" href="#" class="daddy">From The Web...</a>
+      <ul>
+       <li><a do="do_widget_googlesearch" onclick="return false;" href="#">Google Search Results</a></li>
+       <li><a do="do_widget_technorati" onclick="return false;" href="#">Technorati Results</a></li>
+       <li><a do="do_widget_fetchrss" onclick="return false;" href="#">RSS Feed Items</a></li>
+       <li><a do="do_widget_fetchatom" onclick="return false;" href="#">Atom Feed Items</a></li>
+      </ul>
+     </li>
+     <li><a onclick="return false" href="#" class="daddy">Organizing Your Page...</a>
+      <ul>
+       <li><a do="do_widget_toc" onclick="return false;" href="#">Table of Contents</a></li>
+       <li><a do="do_widget_section" onclick="return false;" href="#">Section Marker</a></li>
+      </ul>
+     </li>
+     <li><a onclick="return false" href="#" class="daddy">Communicating...</a>
+      <ul>
+      <li><a do="do_widget_skype" onclick="return false;" href="#">Skype Link</a></li>
+      <li><a do="do_widget_aim" onclick="return false;" href="#">AIM Link</a></li>
+      <li><a do="do_widget_yahoo" onclick="return false;" href="#">Yahoo! Messenger Link</a></li>
+     </ul>
+    </li>
+    <li><a onclick="return false" href="#" class="daddy">Name &amp; Date...</a>
+     <ul>
+      <li><a do="do_widget_user" onclick="return false;" href="#">User Name</a></li>
+      <li><a do="do_widget_date" onclick="return false;" href="#">Local Date &amp; Time</a></li>
+     </ul>
+    </li>
+    <li><a do="do_widget_asis" onclick="return false;" href="#">Unformatted Text...</a></li>
+   </ul>
+  </li>
+ </ul>
+ <div style="clear: both;" id="menu-style-reset"/>
+ </div>

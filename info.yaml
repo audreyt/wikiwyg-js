@@ -1,0 +1,7 @@
+name: wikiwyg
+version: 1.0.0
+abstract: Socialtext Editor
+author:
+  name: Socialtext Dev Team
+  email: dev@lists.socialtext.com
+license: CPAL

@@ -1,0 +1,66 @@
+<span class="title">[% loc('Tag List') %]</span>
+<form>
+<div class="st-widget-dialog">
+<p class="st-widget-description">[% loc('Display a list of the most recently changed pages in a workspace that have a specific tag. By default only the page title is displayed. Use this form to edit the list properties.') %]</p>
+<div id="st-widgets-standardoptionspanel">
+<table class="st-widgets-optionstable">
+<tr>
+<td class="label">[% loc('Tag name:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <input size="40" type="text" id="st-widget-tag_name" name="tag_name" value="[% tag_name | html %]"/>
+  </td>
+</tr>
+</table>
+</div>
+<div id="tag_list_widget_edit_error_msg" class="widget_edit_error_msg"></div>
+<div class="st-widgets-options">
+    <img id="st-widgets-optionsicon" src="[% skin_path %]/images/st/show_more.gif">
+    <a id="st-widgets-moreoptions" href="#">[% loc('More options') %]</a>
+</div>
+<div id="st-widgets-moreoptionspanel">
+<p class="st-widget-description">[% loc('Optional properties include specifying which workspace to use and whether to display page titles or whole pages.') %]</p>
+<table class="st-widgets-moreoptionstable">
+<tr>
+  <td class="label">[% loc('Pages in:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" [% workspace_id ? '' : "checked" %]>
+[% loc('the current workspace') %]
+<i>&nbsp;&nbsp;[% loc('or') %]</i></p>
+<p class="st-widget-dialog-choiceradio">
+  <input type="radio" name="st-widget-workspace_id-rb" value="other" [% workspace_id ? "checked" : '' %] ?>
+  [% loc('the workspace named') %]
+[%- tag_list_st_widget_workspace_id_rb -%] 
+&nbsp;
+<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="[% workspace_id | html %]"/>
+</p>
+</td>
+</tr>
+
+
+
+
+<tr>
+<td class="label">
+  [% loc('Full results:') %]
+</td>
+<td class="st-widget-dialog-editfield">
+<input type="checkbox" name="full"[% IF full %] checked="checked"[% END %] />
+</td>
+</tr>
+
+</table>
+<div class="st-widgetdialog-wikitext">
+    <span class="label">[% loc('wiki text') %][% tag_list_st_widgetdialog_wikitext %]
+</span>
+    <span class="wikitext" id="tag_list_wafl_text">&nbsp;</span>
+</div>
+</div>
+</div>
+<div class="buttons">
+    <input id="st-widget-savebutton" type="submit" value=[% loc('Save') %] />
+    <input id="st-widget-cancelbutton" type="reset" value=[% loc('Cancel') %] />
+</div>
+</form>
+
+
+

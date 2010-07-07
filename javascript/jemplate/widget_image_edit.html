@@ -1,0 +1,122 @@
+<span class="title">[% loc('Attached Image') %]</span>
+<form>
+<div class="st-widget-dialog">
+<p class="st-widget-description">[% loc('Display an image on this page. The image must be already uploaded as an attachment to this page or another page. Use this form to edit the properties of the displayed image.') %]</p>
+<div id="st-widgets-standardoptionspanel">
+<table class="st-widgets-optionstable">
+<tr>
+<td class="label">[% loc('Image filename:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <input size="40" type="text" id="st-widget-image_name" name="image_name" value="[% image_name | html %]"/>
+  </td>
+</tr>
+<tr>
+  <td class="label">
+    [% loc('Size:') %]
+  </td>
+  <td class="st-widget-dialog-editfield">
+    [% IF !size %][% size='scaled' %][% END %]
+    [% sizes = [
+        ['small', 'Small', 100],
+        ['medium', 'Medium', 300],
+        ['large', 'Large', 600],
+        ['scaled', 'Scaled to fit', 0]
+       ]
+    %]
+    <table>
+    [% FOR choice = sizes %]
+      <tr>
+        <td>
+          <input type="radio" name="size" value="[% choice.0 %]"
+            [% IF choice.0 == size %] checked="1" [% END %]/>
+          [% loc(choice.1) %]
+        </td>
+        <td style="color:#999999">
+          [% IF choice.2 %]
+            [% loc('width: [_1]', choice.2) %]
+          [% END %]
+        </td>
+      </tr>
+    [% END %]
+      <tr>
+        <td>
+          <input type="radio" [% IF width OR height %]checked="1"[% END %]
+                 name="size" value="custom"/>
+          [% loc('Custom') %]
+        </td>
+        <td style="color:#999999">
+          [% loc('width:') %]
+          <input size="3" name="width" value="[% width %]"/>
+          [% loc('height:') %]
+          <input size="3" name="height" value="[% height %]"/>
+        </td>
+      </td>
+    </table>
+  </td>
+</tr>
+</table>
+</div>
+<div id="image_widget_edit_error_msg" class="widget_edit_error_msg"></div>
+<div class="st-widgets-options">
+    <img id="st-widgets-optionsicon" src="[% skin_path %]/images/st/show_more.gif">
+    <a id="st-widgets-moreoptions" href="#">[% loc('More options') %]</a>
+</div>
+<div id="st-widgets-moreoptionspanel">
+<p class="st-widget-description">[% loc('Optional properties include the title of another page to which the image is attached, and link text. If link text is specified then a link to the image is displayed instead of the image.') %]</p>
+<table class="st-widgets-moreoptionstable">
+<tr>
+  <td class="label">[% loc('Page in:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" [% workspace_id ? '' : "checked" %]>
+[% loc('the current workspace') %]
+<i>&nbsp;&nbsp;[% loc('or') %]</i></p>
+<p class="st-widget-dialog-choiceradio">
+  <input type="radio" name="st-widget-workspace_id-rb" value="other" [% workspace_id ? "checked" : '' %] ?>
+  [% loc('the workspace named') %]
+[%- image_st_widget_workspace_id_rb -%] 
+&nbsp;
+<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="[% workspace_id | html %]"/>
+</p>
+</td>
+</tr>
+<tr>
+  <td class="label">[% loc('Attached to:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-page_title-rb" value="current" [% page_title ? '' : "checked" %]>
+[% loc('the current page') %]
+<i>&nbsp;&nbsp;[% loc('or') %]</i></p>
+<p class="st-widget-dialog-choiceradio">
+  <input type="radio" name="st-widget-page_title-rb" value="other" [% page_title ? "checked" : '' %] ?>
+  [% loc('the page titled') %]
+[%- image_st_widget_page_title_rb -%] 
+&nbsp;
+<input size="25" type="text" id="st-widget-page_title" name="page_title" value="[% page_title | html %]"/>
+</p>
+</td>
+</tr>
+<tr>
+<td class="label">[% loc('Link text:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <input size="40" type="text" id="st-widget-label" name="label" value="[% label | html %]"/>
+  </td>
+</tr>
+
+
+
+
+</table>
+<div class="st-widgetdialog-wikitext">
+    <span class="label">[% loc('wiki text') %][% image_st_widgetdialog_wikitext %]
+</span>
+    <span class="wikitext" id="image_wafl_text">&nbsp;</span>
+</div>
+</div>
+</div>
+<div class="buttons">
+    <input id="st-widget-savebutton" type="submit" value=[% loc('Save') %] />
+    <input id="st-widget-cancelbutton" type="reset" value=[% loc('Cancel') %] />
+</div>
+</form>
+
+
+

@@ -1,0 +1,57 @@
+<span class="title">[% loc('Page Include') %]</span>
+<form>
+<div class="st-widget-dialog">
+<p class="st-widget-description">[% loc('Display the contents of another page within the current page. Use this form to edit the properties for the page include.') %]</p>
+<div id="st-widgets-standardoptionspanel">
+<table class="st-widgets-optionstable">
+<tr>
+  <td class="label">[% loc('Other page in:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" [% workspace_id ? '' : "checked" %]>
+[% loc('the current workspace') %]
+<i>&nbsp;&nbsp;[% loc('or') %]</i></p>
+<p class="st-widget-dialog-choiceradio">
+  <input type="radio" name="st-widget-workspace_id-rb" value="other" [% workspace_id ? "checked" : '' %] ?>
+  [% loc('the workspace named') %]
+[%- include_st_widget_workspace_id_rb -%] 
+&nbsp;
+<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="[% workspace_id | html %]"/>
+</p>
+</td>
+</tr>
+<tr>
+<td class="label">[% loc('Page title:') %]</td>
+  <td class="st-widget-dialog-editfield">
+    <input size="40" type="text" id="st-widget-page_title" name="page_title" value="[% page_title | html %]"/>
+  </td>
+</tr>
+</table>
+</div>
+<div id="include_widget_edit_error_msg" class="widget_edit_error_msg"></div>
+<div class="st-widgets-options">
+    <img id="st-widgets-optionsicon" src="[% skin_path %]/images/st/show_more.gif">
+    <a id="st-widgets-moreoptions" href="#">[% loc('More options') %]</a>
+</div>
+<div id="st-widgets-moreoptionspanel">
+<p class="st-widget-description">[% loc('There are no optional properties for page include.') %]</p>
+<table class="st-widgets-moreoptionstable">
+
+
+
+
+</table>
+<div class="st-widgetdialog-wikitext">
+    <span class="label">[% loc('wiki text') %][% include_st_widgetdialog_wikitext %]
+</span>
+    <span class="wikitext" id="include_wafl_text">&nbsp;</span>
+</div>
+</div>
+</div>
+<div class="buttons">
+    <input id="st-widget-savebutton" type="submit" value=[% loc('Save') %] />
+    <input id="st-widget-cancelbutton" type="reset" value=[% loc('Cancel') %] />
+</div>
+</form>
+
+
+
