@@ -712,7 +712,7 @@ proto.enable_pastebin_webkit = function () {
         pasteBin.style.top = '0';
         pasteBin.style.right = '-4000';
         pasteBin.appendChild( editDoc.createTextNode('') );
-        editDoc.body.lastChild.appendChild( pasteBin );
+        editDoc.body.appendChild( pasteBin );
         pasteBin.focus();
 
         var r = editDoc.createRange();
@@ -730,7 +730,7 @@ proto.enable_pastebin_webkit = function () {
             else {
                 pastedHtml = pasteBin.innerHTML;
             }
-            editDoc.body.lastChild.removeChild( pasteBin );
+            editDoc.body.removeChild( pasteBin );
             sel.removeAllRanges();
             sel.addRange(oldRange);
             self.on_pasted(pastedHtml);
