@@ -37,23 +37,31 @@
                 wikiwyg.modeButtonMap = {};
                 wikiwyg.editMode();
 
+                wikiwyg.modeByName(WW_ADVANCED_MODE).convertWikitextToHtml = function(wikitext, func) {
+                    func((new Document.Parser.Wikitext()).parse(wikitext, new Document.Emitter.HTML()))
+                };
+
                 var mode = wikiwyg.current_mode;
                 setTimeout(function(){
                     mode.enableThis();
                     mode.set_focus();
                 }, 500);
+
+                window.wikiwyg = wikiwyg;
             });
         </script>
     </head>
     <body>
+        <div id="buttons">
+            <input type="button" value="Richtext" onclick="window.wikiwyg.switchMode( WW_SIMPLE_MODE )">
+            <input type="button" value="Wikitext" onclick="window.wikiwyg.switchMode( WW_ADVANCED_MODE )">
+        </div>
         <div id="wikiwyg_toolbar"></div>
             <iframe style="display: none" frameborder="0" id="frame"
                 name="frame" src="wikiwyg.html" scrolling="no"></iframe>
-            <div id="formularDiv"></div>
             <textarea id="text" type="text" value="" style="overflow: hidden;
                 display: none"></textarea>
             <div id="edit" style="width: 100%; height: 90%"><div class="wiki">
-                Demo!
             </div></div>
         <iframe style="height: 1px; position: fixed; top: -2px;"
             frameborder="0" id="pastebin" src="wikiwyg.html"></iframe>
