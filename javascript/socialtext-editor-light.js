@@ -5394,7 +5394,12 @@ proto.enable_pastebin = function () {
 proto.enable_pastebin_webkit = function () {
     var self = this;
     self.get_edit_window().addEventListener("paste", function(e) {
+        self.get_edit_window().focus();
+
         var editDoc = self.get_edit_document();
+        var sel = self.get_edit_window().getSelection();
+        var oldRange = sel.getRangeAt(0);
+
         var pasteBin = editDoc.createElement('div');
         pasteBin.style.width = '1px';
         pasteBin.style.height = '1px';
@@ -5402,11 +5407,8 @@ proto.enable_pastebin_webkit = function () {
         pasteBin.style.top = '0';
         pasteBin.style.right = '-4000';
         pasteBin.appendChild( editDoc.createTextNode('') );
-        editDoc.getElementsByTagName('div')[0].appendChild( pasteBin );
+        editDoc.body.lastChild.appendChild( pasteBin );
         pasteBin.focus();
-
-        var sel = self.get_edit_window().getSelection();
-        var oldRange = sel.getRangeAt(0);
 
         var r = editDoc.createRange();
         r.setStart( pasteBin, 0 );
@@ -5423,9 +5425,9 @@ proto.enable_pastebin_webkit = function () {
             else {
                 pastedHtml = pasteBin.innerHTML;
             }
+            editDoc.body.lastChild.removeChild( pasteBin );
             sel.removeAllRanges();
             sel.addRange(oldRange);
-            editDoc.getElementsByTagName('div')[0].removeChild( pasteBin );
             self.on_pasted(pastedHtml);
         }, 1);
     }, false);
