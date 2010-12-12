@@ -61,7 +61,12 @@ proto.clear_inner_html = function() {
     var clear = this.config.clearRegex;
     var res = inner_html.match(clear) ? 'true' : 'false';
     if (clear && inner_html.match(clear)) {
-        this.set_inner_html('');
+        if ($.browser.safari) {
+            this.set_inner_html('<div></div>');
+        }
+        else {
+            this.set_inner_html('');
+        }
     }
 }
 
@@ -313,7 +318,7 @@ proto.toHtml = function(func) {
         html = self.remove_padding_material(html);
         html = html
             .replace(/\n*<p>\n?/ig, "")
-            .replace(/<\/p>/ig, br)
+            .replace(/<\/p>(?:<br class=padding>)?/ig, br)
 
         func(html);
     });
@@ -323,17 +328,18 @@ proto.remove_padding_material = function(html) {
     var dom = document.createElement("div");
     if (Wikiwyg.is_ie)
         html = html.replace(/<P>\s*<HR>\s*<\/P>\s*/g, '<HR>\n\n');
-    dom.innerHTML = html;
+
+    $(dom).html(html);
 
     // <BR>&nbsp; at t last. This is likely
     // something left by deleting from a padding <p>.
     var pTags = dom.getElementsByTagName("p");
 
     for(var i = 0; i < pTags.length; i++) {
-      var p = pTags[i]
+      var p = pTags[i];
       if (p.nodeType == 1) {
-          if (p.outerHTML.match(/<P class=padding>&nbsp;<\/P>/)) {
-              p.outerHTML = "<BR>"
+          if (/<P class=padding>&nbsp;<\/P>/.test(p.outerHTML)) {
+              p.outerHTML = "<BR class=padding>"
           } else if (p.innerHTML.match(/&nbsp;$/)) {
               var h = p.innerHTML
               p.innerHTML = h.replace(/&nbsp;$/,"");
@@ -499,6 +505,8 @@ proto.set_inner_html = function(html) {
         // First time running get_editable_div() -- give it 1.6sec
         // The heuristic here is to allow 3 tries of tryAppendDiv to pass.
         self.get_editable_div();
+
+        if (!html) { return }
         setTimeout( function() {
             self.set_inner_html(html);
         }, 1600);      
@@ -656,6 +664,22 @@ proto.enable_pastebin = function () {
     var self = this;
 
     if ($.browser.safari) {
+        this.bind('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.which) {
+                    case 66: case 98: {
+                        self.do_bold();
+                        e.preventDefault();
+                        break;
+                    }
+                    case 73: case 105: {
+                        self.do_italic();
+                        e.preventDefault();
+                        break;
+                    }
+                }
+            }
+        });
         self.enable_pastebin_webkit();
         return;
     }
@@ -698,12 +722,14 @@ proto.enable_pastebin = function () {
 // so it needs a separate treatment.
 proto.enable_pastebin_webkit = function () {
     var self = this;
-    self.get_edit_window().addEventListener("paste", function(e) {
+    $(self.get_edit_window()).unbind('paste').bind("paste", function(e) {
         self.get_edit_window().focus();
 
         var editDoc = self.get_edit_document();
         var sel = self.get_edit_window().getSelection();
         var oldRange = sel.getRangeAt(0);
+
+        $('div.pastebin', editDoc).remove();
 
         var pasteBin = editDoc.createElement('div');
         pasteBin.style.width = '1px';
@@ -711,6 +737,7 @@ proto.enable_pastebin_webkit = function () {
         pasteBin.style.position = 'fixed';
         pasteBin.style.top = '0';
         pasteBin.style.right = '-4000';
+        pasteBin.className = 'pastebin';
         pasteBin.appendChild( editDoc.createTextNode('') );
         editDoc.body.appendChild( pasteBin );
         pasteBin.focus();
@@ -724,13 +751,20 @@ proto.enable_pastebin_webkit = function () {
 
         setTimeout(function(){
             var pastedHtml;
+
+            while (pasteBin.firstChild && pasteBin.firstChild.tagName && pasteBin.firstChild.tagName.toLowerCase() == 'meta') {
+                pasteBin.removeChild( pasteBin.firstChild );
+            }
+
             if (pasteBin.firstChild && pasteBin.firstChild.className == 'Apple-style-span') {
                 pastedHtml = pasteBin.firstChild.innerHTML;
             }
             else {
                 pastedHtml = pasteBin.innerHTML;
             }
-            editDoc.body.removeChild( pasteBin );
+            try {
+                editDoc.body.removeChild( pasteBin );
+            } catch (e) {}
             sel.removeAllRanges();
             sel.addRange(oldRange);
             self.on_pasted(pastedHtml);
@@ -807,22 +841,37 @@ proto.enableThis = function() {
 
     var self = this;
     var ready = function() {
-        if (!self.wikiwyg.previous_mode) {
+        if (!self.wikiwyg.previous_mode && !Wikiwyg.is_gecko) {
             self.fromHtml( self.wikiwyg.div.innerHTML );
         }
         if (Wikiwyg.is_gecko) {
-            self.get_edit_document().designMode = 'on';
-            setTimeout(function() {
+            var doEnableDesignMode = function() {
                 try {
-                    self.get_edit_document().execCommand(
-                        "enableObjectResizing", false, false
-                    );
-                    self.get_edit_document().execCommand(
-                        "enableInlineTableEditing", false, false
-                    );
+                    self.get_edit_document().designMode = 'on';
+                } catch (e) {
+                    setTimeout(doEnableDesignMode, 100);
+                    return;
                 }
-                catch(e){}
-            }, 100);
+                setTimeout(function() {
+                    try {
+                        self.get_edit_document().execCommand(
+                            "enableObjectResizing", false, false
+                        );
+                        self.get_edit_document().execCommand(
+                            "enableInlineTableEditing", false, false
+                        );
+
+                        if (!self.wikiwyg.previous_mode) {
+                            self.fromHtml( self.wikiwyg.div.innerHTML );
+                        }
+                    }
+                    catch(e){
+                        setTimeout(doEnableDesignMode, 100);
+                    }
+                    $('#st-page-editing-wysiwyg').css('visibility', 'visible');
+                }, 100);
+            };
+            doEnableDesignMode();
         }
         else if (Wikiwyg.is_ie) {
             /* IE needs this to prevent stack overflow when switching modes,
@@ -844,6 +893,11 @@ proto.enableThis = function() {
                     'overflow', 'visible'
                 );
             }
+
+            $('#st-page-editing-wysiwyg').css('visibility', 'visible');
+        }
+        else {
+            $('#st-page-editing-wysiwyg').css('visibility', 'visible');
         }
 
         self.enable_keybindings();
@@ -872,6 +926,13 @@ proto.enableThis = function() {
 
     jQuery.poll(
         function() {
+            var win = self.get_edit_window();
+            var loaded = false;
+            try {
+                loaded = self.edit_iframe.contentWindow.Socialtext.body_loaded;
+            } catch (e) {}
+            if (!loaded) return false;
+
             var doc = self.get_edit_document();
             if (!doc) return false;
             if (jQuery.browser.msie && doc.readyState != 'interactive' && doc.readyState != 'complete') {
@@ -904,6 +965,8 @@ proto.disableThis = function() {
 proto.on_pasted = function(html) {
     var self = this;
 
+    html = html.replace(/^(?:\s*<meta\s[^>]*>)+/i, '');
+
     if (this.paste_buffer_is_simple(html)) {
         self.insert_html( html );
         return;
@@ -915,7 +978,7 @@ proto.on_pasted = function(html) {
     if (!/<(?:table|img)[\s>]/i.test(html)) {
         // The HTML does not contain tables or images - use the JS Document parser.
         html = ((new Document.Parser.Wikitext()).parse(wikitext, new Document.Emitter.HTML()));
-        self.insert_html( html );
+        self.insert_html( html.replace(/^\s*<p>/i, '').replace(/<\/p>\s*$/i, '') );
         return;
     }
 
@@ -933,7 +996,7 @@ proto.on_pasted = function(html) {
 
             html = html
                 .replace(/^<div class="wiki">\n*/i, '')
-                .replace(/\n*<br\/><\/div>\n*$/i, '')
+                .replace(/\n*<br\b[^>]*\/><\/div>\n*$/i, '')
                 .replace(/^<p>([\s\S]*?)<\/p>/, '$1')
                 .replace(/(<a\b[^>]*\bhref=['"])(index.cgi)?\?/ig, '$1' + base + '?');
 
@@ -1060,6 +1123,7 @@ proto.set_clear_handler = function () {
     var clean = function(e) {
         self.clear_inner_html();
         jQuery(editor).unbind('click', clean).unbind('keydown', clean);
+        $(window).focus();
         self.set_focus();
     };
 
@@ -1191,7 +1255,7 @@ proto.make_link = function(label, page_name, url) {
 
     // Anchor text
     var text = label || page_name || url;
-    link_node.appendChild( document.createTextNode(text) );
+    link_node.appendChild( document.createTextNode(text.replace(/"/g, '\uFF02')) );
 
     // Anchor HREF
     link_node.href = url || "?" + encodeURIComponent(page_name);
@@ -1209,13 +1273,13 @@ proto.make_link = function(label, page_name, url) {
 if (Wikiwyg.is_ie) {
     proto.make_link = function(label, page_name, url) {
 
-        var text = html_escape( label || page_name || url );
+        var text = label || page_name || url;
         var href = url || "?" + encodeURIComponent(page_name);
         var attr = "";
         if (page_name) {
-            attr = " wiki_page=\"" + page_name + "\"";
+            attr = " wiki_page=\"" + html_escape(page_name).replace(/"/g, "&quot;") + "\"";
         }
-        var html = "<a href=\"" + href + "\"" + attr + ">" + text;
+        var html = "<a href=\"" + href + "\"" + attr + ">" + html_escape( text.replace(/"/g, '\uFF02').replace(/"/g, "&quot;") );
 
 
         html += "</a>";
@@ -1275,7 +1339,8 @@ proto.insert_table_html = function(rows, columns, options) {
         .attr('id', id)
         .addClass("formatter_table")
         .html(innards);
-    this.insert_html($table.parent().html());
+    var $div = jQuery('<div />').append($table);
+    this.insert_html($div.html());
 
     jQuery.poll(
         function() {
@@ -1364,6 +1429,25 @@ proto.deselect = function() {
 proto.find_table_cell_with_cursor = function() {
     var doc = this.get_edit_document();
 
+    try {
+        var container = this.get_edit_window().getSelection()
+            .getRangeAt(0).startContainer;
+    }
+    catch (e) {};
+
+    if (container) {
+        this.deselect();
+
+        var $container = $(container);
+        if ($container.get(0).tagName && $container.get(0).tagName.toLowerCase() == 'td') {
+            return $container;
+        }
+
+        var $td = $container.parents('td:first');
+        if (! $td.length) { return; }
+        return $td;
+    }
+
     jQuery("span.find-cursor", doc).removeClass('find-cursor');
 
     // Note that we explicitly don't call set_focus() here, otherwise
@@ -1372,8 +1456,7 @@ proto.find_table_cell_with_cursor = function() {
     this.insert_html("<span class=\"find-cursor\"></span>");
 
     var cursor = jQuery("span.find-cursor", doc);
-    if (! cursor.parents('td').length)
-        return;
+    if (! cursor.parents('td').length) { return; }
     var $cell = cursor.parents("td");
 
     cursor.remove();
@@ -1561,7 +1644,7 @@ proto.do_add_col_left = function() {
             $td.before(
                 $(doc.createElement( $td.get(0).tagName ))
                     .attr({style: 'border: 1px solid black;', padding: '0.2em'})
-                    .html("&nbsp;")
+                    .html("<span>&nbsp;</span>")
             );
         });
 
@@ -1580,7 +1663,7 @@ proto.do_add_col_right = function() {
             $td.after(
                 $(doc.createElement( $td.get(0).tagName ))
                     .attr({style: 'border: 1px solid black;', padding: '0.2em'})
-                    .html("&nbsp;")
+                    .html("<span>&nbsp;</span>")
             );
         });
 
@@ -2027,9 +2110,22 @@ proto.assert_padding_between_block_elements = function(html) {
 
 proto.assert_padding_around_block_elements = function(html) {
     var tmpElement = document.createElement('div');
-    tmpElement.innerHTML = 
-        html.replace(/<div\b/g, '<span tmp="div"')
-            .replace(/<\/div>/g, '</span>')
+    var separator = '<<<'+Math.random()+'>>>';
+    var chunks = html.replace(/<!--[\d\D]*?-->/g, separator + '$&' + separator).split(separator);
+    var escapedHtml = '';
+    for(var i=0;i<chunks.length;i++) {
+        var chunk = chunks[i];
+        if (/^<!--/.test(chunk) && /-->$/.test(chunk)) {
+            /* {bz: 4285}: Do not escape <div>s in <!-- wiki: ... --> sections */
+            escapedHtml += chunk;
+        }
+        else {
+            escapedHtml += chunk
+                .replace(/<div\b/g, '<span tmp="div"')
+                .replace(/<\/div>/g, '</span>')
+        }
+    }
+    tmpElement.innerHTML = escapedHtml;
     var doc = $(tmpElement);
 
     var el;
@@ -2074,13 +2170,19 @@ proto.replace_p_with_br = function(html) {
     var p_tags = jQuery(doc).find("p").get();
     for(var i=0;i<p_tags.length;i++) {
         var html = p_tags[i].innerHTML;
+        var parent_tag = null;
+        var parent = p_tags[i].parentNode;
+        if (parent && parent.tagName) {
+            parent_tag = parent.tagName.toLowerCase();
+        }
         var prev = p_tags[i].previousSibling;
         var prev_tag = null;
         if (prev && prev.tagName) {
             prev_tag = prev.tagName.toLowerCase();
         }
 
-        html = html.replace(/(<br>)?\s*$/, br + br);
+        html = html.replace(/(<br\b[^>]*>)?\s*$/, br + br);
+
         if (prev && prev_tag && (prev_tag == 'div' || (prev_tag == 'span' && prev.firstChild && prev.firstChild.tagName && prev.firstChild.tagName.toLowerCase() == 'div'))) {
             html = html.replace(/^\n?[ \t]*/,br + br)
         }
@@ -2128,7 +2230,7 @@ proto.toHtml = function(func) {
             html = self.remove_padding_material(html);
             html = html
                 .replace(/\n*<p>\n?/ig, "")
-                .replace(/<\/p>/ig, br)
+                .replace(/<\/p>(?:<br class=padding>)?/ig, br)
 
             func(html);
         });
@@ -2171,23 +2273,23 @@ proto.setWidgetHandlers = function() {
 
     if (jQuery(doc, win).data("mouseup_handler_set")) return;
 
-    var $$ = jQuery;
     jQuery(doc, win).mouseup(function(e) {
-        if (!$$(e.target).is("img[widget]")) return true;
-        self.currentWidget = self.parseWidgetElement(e.target);
-        var id = self.currentWidget.id;  
-        if (widget_data[id] && widget_data[id].uneditable) {
-            alert(loc("This is not an editable widget. Please edit it in Wiki Text mode."))  
-        }
-        else {
-            self.getWidgetInput(e.target, false, false);
+        if (e.target && e.target.tagName && e.target.tagName.toLowerCase() == 'img' && /^st-widget-/.test(e.target.getAttribute('alt'))) {
+            self.currentWidget = self.parseWidgetElement(e.target);
+            var id = self.currentWidget.id;  
+            if (widget_data[id] && widget_data[id].uneditable) {
+                alert(loc("This is not an editable widget. Please edit it in Wiki Text mode."))  
+            }
+            else {
+                self.getWidgetInput(e.target, false, false);
+            }
         }
     }).data("mouseup_handler_set", true);
 }
 
 proto.setWidgetHandler = function(img) {
-    var widget = img.getAttribute('widget');
-    if (! widget) return;
+    var widget = img.getAttribute('alt');
+    if (! /^st-widget-/.test(widget)) return;
     this.currentWidget = this.parseWidgetElement(img);
     this.currentWidget = this.setTitleAndId(this.currentWidget);
     this.attachTooltip(img);
@@ -2208,7 +2310,7 @@ proto.revert_widget_images = function() {
         for (var i=0, l = imgs.length; i < l; i++) {
             var img = imgs[i];
 
-            if (!img.getAttribute("widget")) { continue; }
+            if (! /^st-widget-/.test(img.getAttribute('alt'))) { continue; }
 
             img.removeAttribute("style");
             img.removeAttribute("width");
@@ -2282,7 +2384,7 @@ proto.reclaim_element_registry_space = function() {
         var found = false;
         for (var j = 0; j < imgs.length; j++) {
             var img = imgs[j];
-            if (!img.getAttribute("widget")) { continue; }
+            if (! /^st-widget-/.test(img.getAttribute('alt'))) { continue; }
             if (wikiwyg_widgets_element_registry[i] == img) {
                 found = true;
                 break;
@@ -2378,7 +2480,7 @@ proto.setTitleAndId = function (widget) {
 }
 
 proto.parseWidgetElement = function(element) {
-    var widget = element.getAttribute('widget');
+    var widget = element.getAttribute('alt').replace(/^st-widget-/, '');
     if (Wikiwyg.is_ie) widget = Wikiwyg.htmlUnescape( widget );
     return this.parseWidget(widget);
 }
@@ -2581,6 +2683,11 @@ proto.replace_widget = function(elem) {
     var widget_image;
     var src;
 
+    if ( (matches = widget.match(/^"([\s\S]+?)"<(.+?)>$/m)) || // Named Links
+        (matches = widget.match(/^(?:"([\s\S]*)")?\{(\w+):?\s*([\s\S]*?)\s*\}$/m))) {
+        // For labeled links or wafls, remove all newlines/returns
+        widget = widget.replace(/[\r\n]/g, ' ');
+    }
     if (widget.match(/^{image:/)) {
         var orig = elem.firstChild;
         if (orig.src) src = orig.src;
@@ -2590,7 +2697,7 @@ proto.replace_widget = function(elem) {
 
     widget_image = Wikiwyg.createElementWithAttrs('img', {
         'src': src,
-        'widget': Wikiwyg.is_ie? Wikiwyg.htmlEscape(widget) : widget
+        'alt': 'st-widget-' + (Wikiwyg.is_ie? Wikiwyg.htmlEscape(widget) : widget)
     });
     elem.parentNode.replaceChild(widget_image, elem);
     return widget_image;
@@ -2647,22 +2754,23 @@ proto.insert_image = function (src, widget, widget_element, cb) {
                             .replace(/'/g, "\\'")
                             .replace(/\\/g, "\\\\");
         html += 'if (!window.image_dimension_cache) window.image_dimension_cache = {};';
-        html += 'window.image_dimension_cache[' + "'";
+        html += 'if (this.offsetWidth && this.offsetHeight) { window.image_dimension_cache[' + "'";
         html += srcEscaped;
         html += "'" + '] = [ this.offsetWidth, this.offsetHeight ]; ';
         html += "this.style.width = this.offsetWidth + 'px'; this.style.height = this.offsetHeight + 'px'";
-        html += '"';
+        html += '}"';
     }
 
     html += ' src="' + src +
-        '" widget="' + widget.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + '" />';
+        '" alt="st-widget-' + widget.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + '" />';
     if ( widget_element ) {
         if ( widget_element.parentNode ) {
-            var div = this.get_edit_document().createElement("div");
-            div.innerHTML = html;
-
-            var new_widget_element = div.firstChild;
-            widget_element.parentNode.replaceChild(new_widget_element, widget_element);
+            if (widget_element.getAttribute('alt') == 'st-widget-' + widget) {
+                // Do nothing - The widget was not modified.
+            }
+            else {
+                $(widget_element).replaceWith(html);
+            }
         }
         else {
             this.insert_html(html);
@@ -2767,7 +2875,7 @@ proto.getWidgetImageUrl = function(widget_text) {
         // Just ignore and set the text to be the widget text
     }
 
-    return '/data/wafl/' + encodeURIComponent(widget_text) + (uneditable ? '?uneditable=1' : '');
+    return '/data/wafl/' + encodeURIComponent(widget_text).replace(/%2F/g, '/') + (uneditable ? '?uneditable=1' : '');
 }
 
 proto.create_wafl_string = function(widget, form) {
@@ -3148,9 +3256,9 @@ proto.getWidgetInput = function(widget_element, selection, new_widget) {
         }
     );
 
-    jQuery('#st-widget-savebutton')
-        .unbind('click')
-        .click(function() {
+    jQuery(form)
+        .unbind('submit')
+        .submit(function() {
             var error = null;
             jQuery('#lightbox .buttons input').attr('disabled', 'disabled');
             try {

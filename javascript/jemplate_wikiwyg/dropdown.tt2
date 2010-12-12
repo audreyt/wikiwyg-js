@@ -1,0 +1,7 @@
+<ul id="[% id %]-list" class="dropdownOptions">
+    [% FOR option = options %]
+        <li class="dropdownItem [% IF loop.last %]last[% END %]">
+            <a value="[% option.value %]" href="#">[% option.optionTitle || option.title %]</a>
+        </li>
+    [% END %]
+</ul>

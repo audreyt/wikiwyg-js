@@ -67,29 +67,8 @@ proto.disableFinished = function() {
 }
 
 proto.fromHtml = function(html) {
-    if (this.wikiwyg.previous_mode.classname.match(/Wysiwyg/)) {
-        var wikitext_mode = this.wikiwyg.modeByName('Wikiwyg.Wikitext');
-        var self = this;
-        wikitext_mode.convertHtmlToWikitext(
-            html,
-            function(wikitext) {
-                wikitext_mode.convertWikitextToHtml(
-                    wikitext,
-                    function(new_html) {
-                        self.wikiwyg.enable_edit_more();
-                        self.div.innerHTML = new_html;
-                        self.div.style.display = 'block';
-                        self.wikiwyg.enableLinkConfirmations();
-                    }
-                );
-            }
-        );
-    }
-    else {
-        this.wikiwyg.enable_edit_more();
-        this.div.innerHTML = html;
-        this.div.style.display = 'block';
-        this.wikiwyg.enableLinkConfirmations();
-    }
+    this.div.innerHTML = html;
+    this.div.style.display = 'block';
+    this.wikiwyg.enableLinkConfirmations();
 }
 

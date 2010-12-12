@@ -114,6 +114,35 @@
     display: none;
 }
 
+.lightbox .warning {
+    background-color: #fffcdd;
+    border: 1px solid #d5d6d5;
+    padding: 5px;
+}
+
+.lightbox .chooser {
+    text-align: right;
+}
+
+.lightbox .warning li {
+    border-right: 1px solid #333;
+    display: inline;
+    margin: 0px;
+    padding: 0px 5px 0px 2px;
+}
+
+.lightbox .warning li.last {
+    border-right: none;
+    padding-right: none;
+}
+
+.lightbox .warning a {
+    color: black;
+    font-weight: bold;
+    margin: 0px;
+    padding: 0px;
+}
+
 .lightbox .list {
     display: none;
     font-size: 90%;
@@ -133,6 +162,23 @@
 .lightbox .hint {
     font-size: 90%;
     font-style: italic;
+}
+
+.lightbox em {
+    font-style: italic;
+    font-size: inherit;
+}
+
+.lightbox .warning div {
+    padding: 10px 0px;
+}
+
+.lightbox .more p {
+    display: inline;
+}
+
+.lightbox .tip img {
+    float: left;
 }
 
 .lightbox .title {

@@ -1,0 +1,100 @@
+/*
+
+Socialtext ie 6 specific Style Sheet
+Author: Mark Schuber :: Araucaria Design
+Date: 05/12/2008
+
+*/
+
+div.widget.regular div.widgetBottom {
+	background: url(../images/widgetBottom.png) no-repeat 1px bottom;
+	height: 10px;
+}
+
+/* Fix buttons so they don't have 100% width */
+ul li a.genericBlueButton { width: 0 }
+ul li a.genericOrangeButton { width: 0 }
+ul li a.addButton { width: 0 }
+ul li a.editButton { width: 0 }
+ul li a.commentButton { width: 0 }
+ul li a.greyButton { width: 0; margin-left: 0 }
+
+ul li a.genericBlueButton:hover { color: #fff }
+ul li a.genericOrangeButton:hover { color: #fff }
+ul li a.addButton:hover { color: #fff }
+ul li a.editButton:hover { color: #fff }
+ul li a.commentButton:hover { color: #fff }
+ul li a.greyButton:hover { color: #fff }
+
+div#bottomButtons ul {
+	margin-right: -10px;
+}
+
+div#bottomButtons ul.buttonRight {
+	margin-right: 0;
+}
+
+div#bottomButtons ul li a {
+	padding-right:14px;
+}
+
+div#bottomButtons ul li a.genericBlueButton {
+	padding-right:34px;
+}
+
+div#st-editing-tools-edit ul.buttonRight {
+	padding:0;
+}
+
+#st-edit-summary form .field label {
+    margin: 1.4em 0 -1.8em 0;
+}
+
+#st-edit-summary .signal {
+    float: left;
+    margin-top: 1em;
+}
+
+#st-editing-tools-edit h2.tableTitle {
+    margin-top:10px;
+}
+
+#st-page-lock-notification,
+#st-page-lock-admin {
+    margin-top: 10px;
+    margin-bottom: -10px;
+}
+
+/* Special rule for {bz: 2589} as IE6 calculate margins rather differently. */
+body .container.edit_profile #col0 {
+    width: 80%;
+    margin-left: 5%;
+    margin-right: 0%;
+}
+
+div#controls div#controlsRight ul li a.export {
+    background-position-x: 5px; /* really only for ie6 but doesn't hurt others */
+    margin-left: 15px;
+}
+
+div #mainNav ul.level2 li {
+    position: static;
+    float: none;
+}
+
+body#contentPage * div#contentColumns div#contentRight {
+    padding-right: 0px;
+}
+
+div.widgetContent div#profile,
+div.widgetContent div.profile {
+    width: 90%;
+}
+
+#st-edit-mode-container #controlsRight ul.level1 {
+    margin-right: 5px;
+}
+
+#wysiwyg-editable-div {
+    overflow: auto !important;
+}

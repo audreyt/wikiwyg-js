@@ -17,7 +17,7 @@ proto.create_grammar = function() {
         brace2 = '\\' + (brace2 || brace1);
         brace1 = '\\' + brace1;
         return {
-            match: new RegExp('(?:^|[^'+brace1+preAlphaNum+'])('+brace1+'(?=\\S)(?!'+brace2+')(.*?)'+brace2+'(?=[^'+brace2+'\\w]|$))'),
+            match: new RegExp('(?:^|[^'+brace1+preAlphaNum+'])('+brace1+'(?=\\S)(?!'+brace2+')(.*?[^\\s'+brace2+'])'+brace2+'(?=[^'+brace2+'\\w]|$))'),
             phrases: (brace1 == '\\`') ? null : all_phrases,
             lookbehind: true
         };
@@ -67,10 +67,11 @@ proto.create_grammar = function() {
         });
     };
 
+    var FFFC = new RegExp(String.fromCharCode(0xFFFC), 'g');
     var _unescape_pipes = function(output) {
         // Unescape 0xFFFC back to |.
         return output.replace(/{{(.*?)}}/g, function(match, text) {
-            return '{{'+text.replace(new RegExp(String.fromCharCode(0xFFFC), 'g'), '|')+'}}';
+            return '{{'+text.replace(FFFC, '|')+'}}';
         });
     };
 
@@ -185,9 +186,9 @@ proto.create_grammar = function() {
             }
         },
         p: {
-            match: /^((?:(?!(?:(?:\^+|\#+|\*+|\-+) |\>|\.\w+\s*\n|\{[^\}]+\}\s*\n))[^\n]*\S[^\n]*\n)+(?:(?=^|\n)\s*\n)*)/,
+            match: /^((?:(?!(?:(?:\^+|\#+|\*+|\-+) |\>|\.\w+\s*\n|\{[^\}\n]+\}\s*\n))[^\n]*\S[^\n]*\n)+(?:(?=^|\n)\s*\n)*)/,
             phrases: all_phrases,
-            filter: function(node) { return node.text.replace(/\n$/, '') }
+            filter: function(node) { return node.text.replace(/\n$/, '').replace(/\n/g, String.fromCharCode(0xFFFC)+'\n'); }
         },
         empty: {
             match: /^(\s*\n)/,
@@ -201,7 +202,7 @@ proto.create_grammar = function() {
             }
         },
         waflparagraph: {
-            match: /^\{([\w-]+(?=[\:\ \}])(?:\s*:)?\s*[^\n}]*?\s*)\}[\ \t]*\n(?:\s*\n)?/,
+            match: /^(?:"[^"]+")?\{([\w-]+(?=[\:\ \}])(?:\s*:)?\x20*[^\n}]*?\x20*)\}[\ \t]*\n(?:\s*\n)?/,
             filter: function(node) {
                 node._wafl = node._label = node.text;
                 // node._function = node._wafl.replace(/[: ].*/, '');;
@@ -210,7 +211,7 @@ proto.create_grammar = function() {
             }
         },
         waflphrase: {
-            match: /(?:^|[\s\-])((?:"([^\n]+?)")?\{([\w-]+(?=[\:\ \}])(?:\s*:)?\s*[^\n]*?\s*)\}(?=[\W_]|$))/,
+            match: /(?:^|[\s\-])((?:"([^\n]+?)")?\{([\w-]+(?=[\:\ \}])(?:\s*:)?\x20*[^\n]*?\x20*)\}(?=[\W_]|$))/,
             filter: function(node) {
                 node._wafl = node[2];
                 node._label = node[1] || node._wafl;

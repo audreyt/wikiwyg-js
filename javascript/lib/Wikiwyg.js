@@ -74,7 +74,7 @@ Wikiwyg - Primary Wikiwyg base class
  =============================================================================*/
 
 // Constructor and class methods
-Class('Wikiwyg', function() {
+Class('Wikiwyg -nostrict', function() {
 
 var proto = this.prototype;
 
@@ -112,8 +112,10 @@ Wikiwyg.is_safari = (
 
 /* Safari 5+ is Gecko-compatible. */
 if ($.browser.safari && parseInt($.browser.version) > 500) {
-    Wikiwyg.is_gecko = true;
-    Wikiwyg.is_safari = false;
+    if (Wikiwyg.ua.indexOf('mobile') == -1) {
+        Wikiwyg.is_gecko = true;
+        Wikiwyg.is_safari = false;
+    }
 }
 
 Wikiwyg.is_opera = (
@@ -266,15 +268,21 @@ proto.displayMode = function() {
         });
 }
 
-proto.switchMode = function(new_mode_key) {
+proto.switchMode = function(new_mode_key, cb) {
     var new_mode = this.modeByName(new_mode_key);
     var old_mode = this.current_mode;
     var self = this;
-    jQuery("#st-edit-summary").hide();
-    new_mode.enableStarted();
-    old_mode.disableStarted();
-    old_mode.toHtml(
+
+    var method = 'toHtml';
+    if (/Preview/.test(new_mode.classname)) {
+        method = 'toNormalizedHtml';
+    }
+
+    old_mode[method](
         function(html) {
+            jQuery("#st-edit-summary").hide();
+            new_mode.enableStarted();
+            old_mode.disableStarted();
             self.previous_mode = old_mode;
             new_mode.fromHtml(html);
             old_mode.disableThis();
@@ -284,6 +292,8 @@ proto.switchMode = function(new_mode_key) {
             self.current_mode = new_mode;
 
             jQuery("#st-edit-summary").show();
+
+            if (cb) { cb(); }
         }
     );
 }
@@ -360,42 +370,52 @@ proto.preview_link_text = loc('Preview');
 proto.preview_link_more = loc('Edit More');
 
 proto.preview_link_action = function() {
-    var preview = this.modeButtonMap[WW_PREVIEW_MODE];
-    var current = this.current_mode;
-
-    preview.innerHTML = this.preview_link_more;
-    jQuery("#st-edit-mode-toolbar").hide();
-    this.showScrollbars();
-
     var self = this;
-    jQuery(preview)
-        .unbind('click')
-        .click(this.button_disabled_func());
-    this.enable_edit_more = function() {
+
+    if (this.isOffline()) {
+        alert(loc("The browser is currently offline; please connect to the internet and try again."));
+        return;
+    }
+
+    var preview = self.modeButtonMap[WW_PREVIEW_MODE];
+    var current = self.current_mode;
+
+    self.enable_edit_more = function() {
         jQuery(preview)
             .html(loc('Edit More'))
             .unbind('click')
             .click( function () {
-                if (jQuery("#contentRight").is(":visible")) 
-                    jQuery('#st-page-maincontent')
-                        .css({ 'margin-right': '240px'});
-                self.switchMode(current.classname);
-                self.preview_link_reset();
+                self.switchMode(current.classname, function(){
+                    if (jQuery("#contentRight").is(":visible")) 
+                        jQuery('#st-page-maincontent')
+                            .css({ 'margin-right': '240px'});
+                    self.preview_link_reset();
 
-                // This timeout is for IE so the iframe is ready - {bz: 1358}.
-                setTimeout(function() {
-                    self.resizeEditor();
-                    self.hideScrollbars();
-                }, 50);
+                    // This timeout is for IE so the iframe is ready - {bz: 1358}.
+                    setTimeout(function() {
+                        self.resizeEditor();
+                        self.hideScrollbars();
+                    }, 50);
+                });
 
                 return false;
             });
-    }
-    this.modeByName(WW_PREVIEW_MODE).div.innerHTML = "";
-    this.switchMode(WW_PREVIEW_MODE)
-    this.disable_button(current.classname);
+    };
 
-    jQuery('#st-page-maincontent').attr('marginRight', '0px');
+    this.modeByName(WW_PREVIEW_MODE).div.innerHTML = "";
+    this.switchMode(WW_PREVIEW_MODE, function(){
+        preview.innerHTML = self.preview_link_more;
+        jQuery("#st-edit-mode-toolbar").hide();
+        self.showScrollbars();
+
+        jQuery(preview)
+            .unbind('click')
+            .click(self.button_disabled_func());
+        self.enable_edit_more();
+        self.disable_button(current.classname);
+
+        jQuery('#st-page-maincontent').attr('marginRight', '0px');
+    });
     return false;
 }
 
@@ -431,14 +451,15 @@ proto.button_enabled_func = function(mode_name) {
             return false;
         }
         self.message.clear();
-        self.switchMode(mode_name);
-        for (var mode in self.modeButtonMap) {
-            if (mode != mode_name)
-                self.enable_button(mode);
-        }
-        self.preview_link_reset();
-        Cookie.set('first_wikiwyg_mode', mode_name);
-        self.setFirstModeByName(mode_name);
+        self.switchMode(mode_name, function() {
+            for (var mode in self.modeButtonMap) {
+                if (mode != mode_name)
+                    self.enable_button(mode);
+            }
+            self.preview_link_reset();
+            Cookie.set('first_wikiwyg_mode', mode_name);
+            self.setFirstModeByName(mode_name);
+        });
         return false;
     }
 }
@@ -547,9 +568,35 @@ proto.newpage_save = function(page_name, pagename_editfield) {
     return saved;
 }
 
+proto.isOffline = function () {
+    if (typeof navigator == 'object' && typeof navigator.onLine == 'boolean' && !navigator.onLine) {
+        return true;
+    }
+
+    // WebKit's navigator.onLine is unreliable when VMWare or Parallels is
+    // installed - https://bugs.webkit.org/show_bug.cgi?id=32327
+    // Do a GET on blank.html to determine onlineness instead.
+    var onLine = false;
+    $.ajax({
+        async: false,
+        type: 'GET',
+        url: '/static/html/blank.html?_=' + Math.random(),
+        timeout: 10 * 1000,
+        success: function(data) {
+            onLine = data;
+        }
+    });
+    return !onLine;
+}
+
 proto.saveContent = function() {
-    if (jQuery('#st-editing-tools-edit ul').is(':hidden')) {
+    if (jQuery('#st-save-button-link').is(':hidden')) {
         // Don't allow "Save" to be clicked while saving: {bz: 1718}
+        return;
+    }
+
+    if (this.isOffline()) {
+        alert(loc("The browser is currently offline; please connect to the internet and try again."));
         return;
     }
 
@@ -668,14 +715,25 @@ proto.saveNewPage = function() {
 }
 
 proto.saveChanges = function() {
-    this.disableLinkConfirmations();
+    var self = this;
+    self.disableLinkConfirmations();
 
     jQuery('#st-page-editing-summary')
         .val(this.edit_summary());
     var $signal_checkbox = jQuery('#st-edit-summary-signal-checkbox');
     jQuery('#st-page-editing-signal-summary')
         .val($signal_checkbox.length && ($signal_checkbox[0].checked ? '1' : '0'));
+    jQuery('#st-page-editing-signal-to')
+        .val( $('#st-edit-summary-signal-to').val() );
 
+    var originalWikitext = self.originalWikitext;
+    var on_error = function() {
+        self.enableLinkConfirmations();
+        self.originalWikitext = originalWikitext;
+        jQuery("#st-edit-summary").show();
+        jQuery('#st-editing-tools-edit ul').show();
+        jQuery('#saving-message').remove();
+    };
     var submit_changes = function(wikitext) {
         /*
         if ( Wikiwyg.is_safari ) {
@@ -687,6 +745,7 @@ proto.saveChanges = function() {
 
         var saver = function() {
             Socialtext.prepare_attachments_before_save();
+            Socialtext.set_save_error_resume_handler(on_error);
 
             jQuery('#st-page-editing-pagebody').val(wikitext);
             jQuery('#st-page-editing-form').trigger('submit');
@@ -706,7 +765,6 @@ proto.saveChanges = function() {
         submit_changes(wikitext);
         return;
     }
-    var self = this;
     this.current_mode.toHtml(
         function(html) {
             var wikitext_mode = self.modeByName(WW_ADVANCED_MODE);
@@ -714,7 +772,8 @@ proto.saveChanges = function() {
                 html,
                 function(wikitext) { submit_changes(wikitext) }
             );
-        }
+        },
+        on_error
     );
 }
 
@@ -774,6 +833,7 @@ proto.enableLinkConfirmations = function() {
     var self = this;
     window.onunload = function(ev) {
         self.signal_edit_cancel();
+        Socialtext.discardDraft('edit_cancel');
         Attachments.delete_new_attachments();
     }
 
@@ -818,10 +878,8 @@ proto.contentIsModified = function() {
     if (this.originalWikitext == null) {
         return true;
     }
-    // XXX This could be done more upstream...
-    var current_wikitext = this.get_current_wikitext().replace(
-        /\r/g, ''
-    );
+
+    var current_wikitext = this.get_current_wikitext();
 
     /* The initial clearing of "Replace this text with your own." shouldn't
      * count as modification -- {bz: 2232} */
@@ -837,7 +895,7 @@ proto.diffContent = function () {
         jQuery.showLightbox('There is no originalWikitext');
     }
     else if (this.contentIsModified()) {
-        var current_wikitext = this.get_current_wikitext().replace(/\r/g, '');
+        var current_wikitext = this.get_current_wikitext();
         jQuery.ajax({
             type: 'POST',
             url: location.pathname,
@@ -935,7 +993,7 @@ Wikiwyg.htmlUnescape = function(escaped) {
         "<div>" + 
         escaped.replace(/</g, '&lt;')
                .replace(/ /g, '&#160;')
-               .replace(/\n/g, _NewlineReplacementCharacter_) +
+               .replace(/\r?\n/g, _NewlineReplacementCharacter_) +
         "</div>"
     ).text().replace(/\xA0/g, ' ')
             .replace(new RegExp(_NewlineReplacementCharacter_, 'g'), '\n');
@@ -983,10 +1041,6 @@ String.prototype.times = function(n) {
     return n ? this + this.times(n-1) : "";
 }
 
-String.prototype.ucFirst = function () {
-    return this.substr(0,1).toUpperCase() + this.substr(1,this.length);
-}
-
 Wikiwyg.is_old_firefox = (
     Wikiwyg.ua.indexOf('firefox/1.0.7') != -1 &&
     Wikiwyg.ua.indexOf('safari') == -1 &&
@@ -1029,6 +1083,10 @@ this.addGlobal().setup_wikiwyg = function() {
 
         if (Wikiwyg.is_gecko) {
             jQuery("iframe#st-page-editing-wysiwyg").attr("scrolling", "auto");
+        }
+
+        if (Socialtext.show_signal_network_dropdown) {
+            Socialtext.show_signal_network_dropdown();
         }
     }
 
@@ -1108,12 +1166,13 @@ this.addGlobal().setup_wikiwyg = function() {
 
     ww.cancel_nlw_wikiwyg = function () {
         ww.confirmed = true;
+        Socialtext.discardDraft('edit_cancel');
         Attachments.delete_new_attachments();
         if (Socialtext.new_page) {
             window.location = '?action=homepage';
         }
-        else if (location.href.match(/caller_action=weblog_display;?/)) {
-            location.href = 'index.cgi?action=weblog_redirect;start=' +
+        else if (location.href.match(/caller_action=blog_display;?/)) {
+            location.href = 'index.cgi?action=blog_redirect;start=' +
                 encodeURIComponent(location.href);
             return false;
         }
@@ -1143,7 +1202,7 @@ this.addGlobal().setup_wikiwyg = function() {
         ww.is_editing = false;
         ww.showScrollbars();
 
-        jQuery('#st-edit-summary-text-area').val('');
+        jQuery('#st-edit-summary-text-area, #st-edit-summary-signal-to').val('');
         jQuery('#st-edit-summary-signal-checkbox').attr('checked', false);
 
         Socialtext.ui_expand_off();
@@ -1207,6 +1266,20 @@ this.addGlobal().setup_wikiwyg = function() {
                 Page.refreshPageContent();
 
             Attachments.reset_new_attachments();
+
+            Socialtext.maybeLoadDraft(function(draft) {
+                ww.modeByName(WW_ADVANCED_MODE).convertWikitextToHtml(
+                    draft.content,
+                    function(new_html) {
+                        Page.html = new_html;
+                    }
+                );
+            });
+
+            Socialtext.startAutoSave(function(){
+                if (!ww.contentIsModified()) { return; }
+                return ww.get_current_wikitext();
+            });
 
 // We used to use this line:
 //          myDiv.innerHTML = $('st-page-content').innerHTML;
@@ -1450,7 +1523,8 @@ this.addGlobal().setup_wikiwyg = function() {
     jQuery('#st-edit-mode-tagbutton').click(function() {
         jQuery.showLightbox({
             content:'#st-tagqueue-interface',
-            close:'#st-tagqueue-close'
+            close:'#st-tagqueue-close',
+            focus:'#st-tagqueue-field'
         });
         return false;
     });
@@ -1465,7 +1539,6 @@ this.addGlobal().setup_wikiwyg = function() {
         });
 
     var add_tag = function() {
-        var rand = (''+Math.random()).replace(/\./, '');
         var input_field = jQuery('#st-tagqueue-field');
         var tag = input_field.val();
         if (tag == '') return false;
@@ -1482,35 +1555,7 @@ this.addGlobal().setup_wikiwyg = function() {
 
         if ( skip ) { return false; }
 
-        jQuery("#st-page-editing-files")
-            .append(jQuery('<input type="hidden" name="add_tag" id="st-tagqueue-' + rand +'" />').val(tag));
-
-        jQuery('#st-tagqueue-list').show();
-
-        jQuery("#st-tagqueue-list")
-            .append(
-                jQuery('<span class="st-tagqueue-taglist-name" id="st-taglist-'+rand+'" />')
-                .text(
-                    (jQuery('.st-tagqueue-taglist-name').size() ? ', ' : '')
-                    + tag
-                )
-            );
-
-        jQuery("#st-taglist-" + rand)
-            .append(
-                jQuery('<a href="#" class="st-tagqueue-taglist-delete" />')
-                    .attr('title', loc("Remove [_1] from the queue", tag))
-                    .click(function () {
-                        jQuery('#st-taglist-'+rand).remove();
-                        jQuery('#st-tagqueue-'+rand).remove();
-                        if (!jQuery('.st-tagqueue-taglist-name').size())
-                            jQuery('#st-tagqueue-list').hide();
-                        return false;
-                    })
-                    .html(
-                        '<img src="/static/skin/common/images/delete.png" width="16" height="16" border="0" />'
-                    )
-            );
+        Socialtext.addNewTag(tag);
 
        return false;
     };
@@ -1628,6 +1673,25 @@ var proto = this.prototype;
 
 // Fix {bz: 2339} 'this.init is not a function'
 proto.init = function() {}
+
+// Turns HTML into Wikitext, then to HTML again
+proto.toNormalizedHtml = function(cb) {
+    var self = this;
+    self.toHtml(function(html){
+        var wikitext_mode = self.wikiwyg.modeByName('Wikiwyg.Wikitext');
+        wikitext_mode.convertHtmlToWikitext(
+            html,
+            function(wikitext) {
+                wikitext_mode.convertWikitextToHtml(
+                    wikitext,
+                    function(new_html) {
+                        cb(new_html);
+                    }
+                );
+            }
+        );
+    });
+}
 
 proto.enableThis = function() {
     this.div.style.display = 'block';
@@ -2033,7 +2097,7 @@ proto.set_add_a_link_error = function(msg) {
 }
 
 proto.create_link_wafl = function(label, workspace, pagename, section) {
-    var label_txt = label ? "\"" + label + "\"" : "";
+    var label_txt = label ? "\"" + label.replace(/"/g, '\uFF02') + "\"" : "";
     var wafl = label_txt + "{link:";
     if (workspace) { wafl += " " + workspace; }
     if (pagename) { wafl += " [" + pagename + "]"; }

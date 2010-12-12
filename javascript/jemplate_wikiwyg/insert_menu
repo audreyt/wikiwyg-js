@@ -10,7 +10,7 @@
        <li><a do="do_widget_file" onclick="return false;" href="#">A File Attached to This Page</a></li>
        <li><a do="do_widget_link2_section" onclick="return false;" href="#">A Section in This Page</a></li>
        <li><a do="do_widget_link2" onclick="return false;" href="#">A Different Wiki Page</a></li>
-       <li><a do="do_widget_weblog" onclick="return false;" href="#">A Person's Blog</a></li>
+       <li><a do="do_widget_blog" onclick="return false;" href="#">A Person's Blog</a></li>
        <li><a do="do_widget_tag" onclick="return false;" href="#">Pages Related to a Tag</a></li>
        <li><a do="do_widget_link2_hyperlink" onclick="return false;" href="#">A Page on The Web</a></li>
       </ul>
@@ -22,14 +22,13 @@
        <li><a do="do_widget_ss" onclick="return false;" href="#">A Spreadsheet Include</a></li>
        <li><a do="do_widget_tag_list" onclick="return false;" href="#">Tagged Pages</a></li>
        <li><a do="do_widget_recent_changes" onclick="return false;" href="#">Recent Changes</a></li>
-       <li><a do="do_widget_weblog_list" onclick="return false;" href="#">Blog Postings</a></li>
+       <li><a do="do_widget_blog_list" onclick="return false;" href="#">Blog Postings</a></li>
        <li><a do="do_widget_search" onclick="return false;" href="#">Wiki Search Results</a></li>
       </ul>
      </li>
      <li><a onclick="return false" href="#" class="daddy">From The Web...</a>
       <ul>
        <li><a do="do_widget_googlesearch" onclick="return false;" href="#">Google Search Results</a></li>
-       <li><a do="do_widget_technorati" onclick="return false;" href="#">Technorati Results</a></li>
        <li><a do="do_widget_fetchrss" onclick="return false;" href="#">RSS Feed Items</a></li>
        <li><a do="do_widget_fetchatom" onclick="return false;" href="#">Atom Feed Items</a></li>
       </ul>

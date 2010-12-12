@@ -1,0 +1,4826 @@
+@import url('lightbox.css');
+@import url('wiki.css');
+
+/*
+
+Socialtext
+Author: Mark Schuber :: Araucaria Design
+Date: 05/12/2008
+
+updated by reed@bertopro.com on 3/16/10 (March)
+10-03-16a
+*/
+
+/* CSS Reset Start */ 
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-weight: inherit;
+	font-style: inherit;
+	font-size: 100%;
+	font-family: inherit;
+	vertical-align: baseline;
+}
+
+/* remember to define focus styles! */
+:focus {
+	outline: 0;
+}
+body {
+	line-height: 1;
+	color: black;
+	background: white;
+}
+ol, ul {
+	list-style: none;
+}
+/* tables still need 'cellspacing="0"' in the markup */
+table {
+	border-collapse: separate;
+	border-spacing: 0;
+}
+caption, th, td {
+	text-align: left;
+	font-weight: normal;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: "";
+}
+blockquote, q {
+	quotes: "" "";
+}
+
+/* CSS Reset End */
+
+body {
+	text-align: center;
+	background: #0d5b9a url(../images/bg.png) repeat-x top left;
+	font-size: 11px;
+	color: #333333;
+	font-family: Verdana, Arial, sans-serif;
+}
+
+a {
+	color: #0c5a9a;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #33a8ff;
+	text-decoration: underline;
+}
+
+.wiki a {
+    text-decoration: underline;
+}
+
+div.clear {
+	clear: both;
+}
+
+div#mainWrap {
+        min-width: 947px;
+	width: 90%;
+	margin: 0 auto;
+	text-align: left;
+}
+
+/* header Start */
+div#header {
+	width: 100%;
+	height: 87px;
+}
+
+div#header div#logo {
+	float: left;
+	width: 201px;	
+	height: 36px;
+	position: relative;
+	top: 26px;
+}
+
+div#header div#logo a {
+	width: 201px;
+	height: 36px;
+	background: url(../images/logo.png) no-repeat top left;
+	display: block;
+	text-indent: -9999px;
+}
+
+div#header div#globalNav {
+	float: right;
+	margin-top: 13px;
+	width: 400px;
+}
+
+
+div#header div#globalNav ul {
+	float: right;
+}
+
+div#header div#globalNav ul li {
+	float: left;
+	border-right: #0c5a9a 1px dotted;
+	padding: 0 10px 0 10px;
+}
+
+div#header div#globalNav ul li.last {
+	padding-right: 0;
+	border-right: none;
+}
+
+div#header div#globalNav ul li a {
+	float: left;
+}
+
+div#header div#globalNav div {
+	clear: right;
+	float: right;
+	margin-top: 22px;
+}
+
+div#globalNav div input.searchButton, div#inlineSearch input.searchButton {
+	width: 29px;
+	height: 24px;
+	background: url(../images/searchButton.png) no-repeat top left;
+	border: none;
+	margin-left: 5px;
+	vertical-align: top;
+}
+
+div#globalNav div input.searchText {
+	width: 281px;
+	line-height: 16px;
+	font-size: 14px;
+	color: #999;
+}
+
+div#globalNav div label {
+	font-size: 12px;
+	color:#5b5a5a;
+	margin-right: 5px; 
+}
+/* header End */
+
+
+/* mainNav Start */
+div#mainNav {
+	width: 100%;
+	clear: left;
+	height: 34px;
+	background: url(../images/mainNavTile.png) repeat-x top left;
+}
+
+div#mainNav ul {
+	float: left;
+	width: auto;
+	}
+	
+div#mainNav ul li {
+	float: left;
+	}
+	
+div#homeLink {
+	float: left;
+	background: url(../images/mainNavLeft.png) no-repeat top left;
+	}
+div#inviteLink {
+	float: right;
+	}
+	
+	
+
+div#mainNav ul li a,div#homeLink a, div#inviteLink a{
+	float: left;
+	display: block;
+	line-height: 34px;
+	color: #fefefe;
+	font-size: 12px;
+	padding: 0 16px 0 16px;
+	background: url(../images/mainNavDivider.png) no-repeat center right;
+	}
+	
+div#mainNav ul li a:hover,div#homeLink a:hover {
+	color: #a6e4fc;
+	text-decoration: none;
+	}	
+
+div#mainNav ul li a.selected ,div#homeLink a.selected {
+	color: #a6e4fc;
+}	
+
+div#mainNav div#mainNavRight {
+	width: 10px;
+	height: 34px;
+	float: right;
+	background: url(../images/mainNavRight.png) no-repeat top right;
+}
+
+/* mainNav End */
+
+/* contentWrap Start */
+div#st-display-mode-container {
+	width: 100%;
+	margin-top: 4px;
+}	
+
+/* contentWrap End */
+
+/* tabs Start */
+	
+div#st-display-mode-container div#tabs {
+	height: 41px;
+	background: url(../images/tabTile.png) repeat-x top left;
+}	
+
+div.tableTabs {
+	height: 41px;
+	background: url(../images/tabsLeft.png) no-repeat top left;
+	float: left;
+}
+
+div.tableTabs ul {
+	float: left;
+	margin-left: 2px;
+}
+
+div.tableTabs ul li {
+	float: left;
+}
+
+div.tableTabs ul li.selected {
+	background: url(../images/tabOnRight.png) no-repeat bottom right;
+	margin-right: -2px;
+}
+
+div.tableTabs ul li a {
+	float: left;
+	line-height: 36px;
+	display: block;
+	padding: 0 14px 0 16px;
+	background: url(../images/tabDivider.png) no-repeat center right;
+}
+
+
+div.tableTabs ul li.selected a {
+	background: url(../images/tabOnLeft.png) no-repeat bottom left;
+	margin-left: -2px;
+	padding: 0 14px 0 14px;
+}
+
+div.tableTabs ul li.selected a.first {
+	background: url(../images/tabOnLeftFirst.png) no-repeat bottom left;
+}
+
+div.tableFilter {
+	height: 41px;
+	background: url(../images/tabsRight.png) no-repeat top right;
+	float: right;
+	width: auto;
+}
+
+div.tableFilter label {
+	float: left;
+	line-height: 36px;
+	margin-right: 10px;
+}
+
+div.tableFilter ul {
+	float: left;
+	margin-right: 5px;
+}
+
+div.tableFilter ul li {
+	float: left;
+	padding:0;
+	
+}
+
+div.tableFilter ul li.selected {
+	background: url(../images/filterOnLeft.png) no-repeat bottom left;
+	margin-left: -2px;
+}
+
+div.tableFilter ul li a {
+	float: left;
+	line-height: 36px;
+	display: block; 
+	padding: 0 14px 0 14px;
+	background: url(../images/dottedDivider.png) no-repeat center right;
+}
+
+div.tableFilter ul li a.last {
+	background: none;
+}
+
+div.tableFilter ul li.selected a {
+	background: url(../images/filterOnRight.png) no-repeat bottom right;
+	margin-right: -2px;
+}
+
+div.tableFilter ul li.selected a.first {
+	background: url(../images/filterOnRightLast.png) no-repeat bottom right;
+}
+	
+/* tabs End */
+
+/* controls Start */ 
+
+div#controls {
+	height: 41px;
+	background: url(../images/controlsTile.png) repeat-x top left;
+}
+div #controls.empty {
+        height: 8px !important;
+}
+
+body#contentPage div#controls,body#settingsPage div#controls,body#dashBoard div#controls, body#revisions div#controls,body#settingsPage div#controls, #socialcalc-header {
+	height: 44px;
+	background: url(../images/contentControlsTile.png) repeat-x top left;
+}
+
+body#blog div#controls {
+	height: 83px;
+	background: url(../images/dashControlsTile.png) repeat-x top left;
+}
+
+div #controls.empty div#st-editing-tools-edit {
+        height: 8px !important;
+}
+div#controls div#st-editing-tools-edit {
+	background: url(../images/controlsLeft.png) no-repeat top left;
+	float: left;
+	width: 60%;
+	height: 41px;
+}
+
+#st-page-lock-notification {
+    font-weight: bold;
+    padding: 4px 10px;
+    width: 300px;
+    line-height: auto;
+}
+
+#st-page-lock-notification img,
+#st-page-lock-admin img {
+    vertical-align: text-bottom !important;
+}
+
+#st-page-lock-admin {
+    float: left;
+    height: 41px;
+    line-height: 44px;
+}
+
+div#controls div#st-editing-tools-edit {
+       width: auto !important;
+       white-space: nowrap;
+}
+
+body#revisions div#controls div#st-editing-tools-edit, body#contentPage div#controls div#st-editing-tools-edit,body#dashBoard div#controls div#st-editing-tools-edit,body#settingsPage div#controls div#st-editing-tools-edit {
+	background: url(../images/contentControlsLeft.png) no-repeat top left;
+	height: 44px;
+	padding-left: 8px;
+}
+
+div#controls div#st-editing-tools-edit select {
+        margin-top: 10px;
+}
+
+div#controls div#st-editing-tools-edit h2 {
+	font-size: 14px;
+	color: #333;
+	line-height: 44px;
+	padding-left: 10px;
+        font-weight:bold;
+        margin:0!important;
+}
+
+body#listPage div#controls div#st-editing-tools-edit {
+	padding-left: 8px;
+}
+
+body#blog div#controls div#st-editing-tools-edit {
+	background: url(../images/dashControlsLeft.png) no-repeat top left;
+	height: 83px;
+	width: 50%;
+}
+
+
+div#controls div#st-editing-tools-edit ul {
+	float: left;
+	height: 41px;
+}
+
+div#controls div#st-editing-tools-edit ul#revision-tools {
+        min-width: 900px;
+}
+
+ul.buttonRight {
+	background: url(../images/controlsRightDivider.png) no-repeat 10px 10px;
+	padding-left: 10px;
+}
+
+div#controls div#st-editing-tools-edit ul li {
+	float: left;
+	line-height: 41px;
+}
+
+body#blog div#controls div#st-editing-tools-edit h1 {
+	font-size: 20px;
+	margin:21px 0 0 21px;
+}
+	
+body#dashBoard #st-wiki-title {
+	font-size: 20px;
+	margin: 7px 0 0 5px;
+        float: left;
+}
+body#dashBoard div#st-editing-tools-edit ul#quickLinks.description {
+	margin: 3px 0 0 5px;
+        height: 0;
+}
+body#dashBoard div#st-editing-tools-edit ul#quickLinks.description li {
+        line-height: 20px; 
+}
+
+
+body#blog div#mainWrap div#st-display-mode-container div#controls div#st-editing-tools-edit ul#quickLinks {
+       height: auto;
+}
+
+body#blog div#controls div#st-editing-tools-edit ul#quickLinks li {
+	line-height: normal;
+	padding: 0 10px 0 10px;
+	border-right: #8b8b8b 1px dotted;
+}	
+
+
+body#blog div#controls div#st-editing-tools-edit ul#quickLinks li.noBorder {
+	border-right: none;
+}
+
+body#blog div#controls div#st-editing-tools-edit ul#quickLinks li a {
+	display: inline;
+	line-height: normal;
+	position: static;
+	margin: 0;
+}	
+
+
+body#blog div#controls div#st-editing-tools-edit ul#quickLinks li.quickTitle {
+	border: none;
+	padding: 0 0 0 10px;
+}
+
+body#blog div#controls div#st-editing-tools-edit ul#quickLinks li img {
+	float: left;
+	margin-right: 5px;
+}
+
+body#dashBoard div#controls div#st-editing-tools-edit ul li,body#settingsPage div#controls div#st-editing-tools-edit ul li {
+	line-height: 44px;
+}
+
+body#contentPage div#controls div#st-editing-tools-edit ul li {
+	line-height: 22px;
+}
+
+div#controls div#st-editing-tools-edit ul li {
+	float: left;
+	position: relative;
+	top: 10px;
+	margin-left: 10px;
+}
+
+body#contentPage div#st-editing-tools-edit ul li a,body#dashBoard div#st-editing-tools-edit ul li a,body#settingsPage div#st-editing-tools-edit ul li a {
+}
+
+ul li a.genericBlueButton {
+	display: block;
+	color: #fff;
+	font-weight: bold;
+	height: 22px;
+	padding-right: 14px;
+	background: url(../images/genericBlueButton.png) no-repeat;
+	background-position: top left;
+	line-height:20px;
+	text-indent: 15px;
+}
+
+ul li a.genericBlueButton:hover {
+	background-position: bottom left;
+	text-decoration: none;
+}
+
+/* Add styles for the disabled flexButtonBlue */
+ul li.flexButtonBlue.disabled {
+    opacity: .4;
+    filter: alpha(opacity = 40);
+}
+ul li.flexButtonBlue.disabled:hover {
+    background-position: bottom right;
+}
+ul li.disabled a.genericBlueButton:hover {
+    background-position: top left;
+    cursor: default;
+}
+
+
+ul li.flexButton.editing a.editButton,
+ul li.flexButton.editing a.editButton:hover {
+        visibility: hidden;
+}
+ul li.flexButton.editing {
+        background: url(../images/ajax-loader.gif) no-repeat left;
+}
+
+ul li.flexButton.disabled a.genericOrangeButton, ul li.flexButton.disabled a.genericOrangeButton:hover {
+        visibility: hidden;
+}
+
+ul li.flexButton.loading {
+        background: url(../images/ajax-loader.gif) no-repeat right;
+}
+
+
+ul li a.genericOrangeButton {
+	display: block;
+	color: #fff;
+	font-weight: bold;
+	height: 22px;
+	padding-right: 14px;
+	background: url(../images/genericOrangeButton.png) no-repeat;
+	background-position: bottom left;
+	line-height:20px;
+	text-indent: 15px;
+}
+
+
+ul li a.genericOrangeButton:hover {
+	background-position: top left;
+	text-decoration: none;
+}
+
+.wiki-include-title-link {
+        float: left;
+}
+.smallEditButton {
+        line-height: 19px;
+        height: 19px;
+        width: 17px;
+        margin: 4px 0 0 8px;
+        float: left;
+	text-indent: -9999px;
+	background: url(../images/smallEditButton.png) no-repeat;
+}
+
+a.smallEditButton:hover {
+	text-decoration: none !important;
+}
+
+ul li a.addButton {
+	display: block;
+	color: #fff;
+	font-weight: bold;
+	height: 22px;
+	padding-right: 14px;
+	background: url(../images/addButton.png) no-repeat;
+	background-position: top left;
+	line-height:20px;
+	text-indent: 28px;
+}
+
+ul li a.addButton:hover {
+	background-position: bottom left;
+	text-decoration: none;
+}
+
+a.editButton {
+	display: block;
+	color: #fff;
+	font-weight: bold;
+	height: 22px;
+	padding-right: 14px;
+	background: url(../images/editButton.png) no-repeat;
+	background-position: bottom left;
+	line-height:20px;
+	text-indent: 28px;
+	/* text-indent: -9999px; */
+}
+
+body#dashBoard div.widget a.editButton {
+	float: right;
+	margin-right: 15px;
+}
+
+li.flexButton {
+	background: url(../images/flexButton.png) no-repeat;
+	background-position: bottom right;
+        white-space: nowrap;
+}
+
+
+li.flexButton:hover {
+	background: url(../images/flexButton.png) no-repeat;
+	background-position: top right;
+}
+
+li.flexButtonBlue {
+        line-height: 22px;
+	background: url(../images/flexButtonBlue.png) no-repeat;
+	background-position: bottom right;
+        white-space: nowrap;
+}
+
+li.flexButtonBlue:hover {
+	background: url(../images/flexButtonBlue.png) no-repeat;
+	background-position: top right;
+}
+
+.widget .widgetContent ul li.flexButtonGrey {
+    border-bottom: none;
+}
+
+li.flexButtonGrey {
+	background: url(../images/flexButtonGrey.png) no-repeat;
+	background-position: top right;
+        margin-left: 5px;
+        white-space: nowrap;
+}
+
+li.flexButtonGrey:hover {
+	background: url(../images/flexButtonGrey.png) no-repeat;
+	background-position: bottom right;
+}
+
+ul li a.greyButton {
+	display: block;
+	color: #fff;
+	font-weight: bold;
+	height: 22px;
+	padding-right: 14px;
+        margin-left: -5px;
+	background: url(../images/greyButton.png) no-repeat;
+	background-position: top left;
+	line-height:22px;
+	text-indent: 15px;
+        white-space: nowrap;
+}
+
+ul li a.greyButton:hover {
+	background: url(../images/greyButton.png) no-repeat;
+	background-position: bottom left;
+        text-decoration: none;
+}
+
+a.editButton {
+	display: block;
+	color: #fff;
+	font-weight: bold;
+	height: 22px;
+	padding-right: 14px;
+	background: url(../images/editButton.png) no-repeat;
+	background-position: bottom left;
+	line-height:20px;
+	text-indent: 28px;
+	/* text-indent: -9999px; */
+}
+
+a.editButton:hover {
+	background-position: top left;
+	text-decoration: none;
+}
+
+ul li a.commentButton {
+	display: block;
+	text-indent: 32px;
+	padding-right: 14px;
+	color: #fff;
+	height: 22px;
+	line-height:20px;
+	font-weight: bold;
+	background: url(../images/commentButton.png) no-repeat;
+	background-position: bottom left;
+}
+
+ul li a.commentButton:hover {
+	background-position: top left;
+	text-decoration: none;
+}
+
+
+ul li a.previewButton {
+	display: block;
+	text-indent: 32px;
+	padding-right: 14px;
+	color: #fff;
+	height: 22px;
+	line-height:20px;
+	font-weight: bold;
+	background: url(../images/commentButton.png) no-repeat;
+	background-position: bottom left;
+}
+
+ul li a.previewButton:hover {
+	background-position: top left;
+	text-decoration: none;
+}
+
+ul li a.addTagButton {
+	display: block;
+	width: 87px;
+	height: 22px;
+	background: url(../images/addTagButton.png) no-repeat;
+	background-position: top left;
+	text-indent: -9999px;
+}
+
+ul li a.addTagButton:hover {
+	background-position: top right;
+}
+
+div#controls div#controlsRight {
+	background: url(../images/controlsRight.png) no-repeat top right;
+	float: right;
+	width: 30%;
+}
+
+div#controls div#controlsRight {
+       width: 170px !important;
+       height: 100%;
+}
+
+body#revisions div#controls div#controlsRight {
+	background: url(../images/contentControlsRight.png) no-repeat top right;
+}
+
+body#dashBoard div#controls div#controlsRight,
+body#contentPage div#controls div#controlsRight,
+body#settingsPage div#controls div#controlsRight {
+	background: url(../images/contentControlsRight.png) no-repeat top right;
+	height: 44px;
+	width: auto !important;
+}
+div #controls.empty div#controlsRight {
+        height: 8px !important;
+}
+
+div#controlsRightEmpty {
+	background: url(../images/contentControlsRight.png) no-repeat top right;
+	height: 44px;
+	width: 10px;
+	float: right;
+}
+
+body#blog div#controls div#controlsRight {
+	background: url(../images/dashControlsRight.png) no-repeat top right;
+	height: 83px;
+	width: 50%;
+}
+
+body#blog div#controls div#controlsRight {
+       width: 500px !important;
+       height: 100%;
+}
+
+
+div#controlsRight div#frame {
+	float: right;
+	width: 65px;
+	height: 65px;
+	margin:10px 20px 0 0;
+	background: url(../images/frame.png) no-repeat top left;
+}
+
+* html div#controlsRight div#frame {
+       margin-right: 10px;
+}
+
+div#controlsRight span.welcome {
+	font-size: 12px;
+	display: block;
+	margin-top: 30px;
+	float: right;
+	padding-right: 10px;
+	line-height: 16px;
+}
+
+div#controlsRight div#frame img {
+	margin: 3px 0 0 3px;	
+}
+
+div#controls div#controlsRight ul {
+	float: right;
+	margin-right: 20px;
+}
+	
+body#contentPage div#controls div#controlsRight ul li {
+	float: left;
+	background: url(../images/controlsRightDivider.png) no-repeat center left;
+	line-height: 41px;
+	padding-left: 14px;
+	}
+	
+body#contentPage div#controls div#controlsRight ul li,body#dashBoard div#controls div#controlsRight ul li,body#settingsPage div#controls div#controlsRight ul li {
+	line-height: 44px;
+	} 	
+	
+body#contentPage div#controls div#controlsRight ul li a {
+	float: left;
+	color: #333;
+	font-weight: bold;
+	font-size: 9px;
+	}			
+
+div#controls div#controlsRight ul.blogControls {
+	float: right;
+	}
+
+div#controls div#controlsRight ul.blogControls li {
+	float: none;
+	background: none;
+	line-height: 18px;
+	padding-left: 0;
+	}
+	
+div#controls div#controlsRight ul.blogControls li a {
+	float: none;
+	color: #333;
+	font-weight: normal;
+	font-size: 9px;
+	}	
+		
+div#controls div#controlsRight div.goTo {
+	float: right;
+	clear: both;
+	margin: 15px 0 0 0;
+}	
+div#controls div#controlsRight .postByEmail {
+        padding-right: 28px;
+}
+
+div#controls div#controlsRight div.goTo a.newPostButton,div#controls div#controlsRight div.goTo span {
+	float: right;
+}	
+
+div#controls div#controlsRight div.goTo a.newPostButton {
+	margin-left: 10px;
+}
+
+div#controls div#controlsRight ul li a.export {
+	background: url(../images/exportIcon.png) no-repeat center left;
+	padding:0 10px 0 26px;
+        height: 38px;
+        line-height: 38px;
+}
+
+div#controls div#controlsRight ul li a.print {
+	background: url(../images/printIcon.png) no-repeat center left;
+	padding:0 10px 0 26px;
+}
+
+div#controls div#controlsRight ul li a.revision {
+	background: url(../images/revisionIcon.png) no-repeat center left;
+	padding:0 10px 0 28px;
+}
+
+div#controls div#controlsRight ul li a.signalthis {
+	background: url(../images/asset-icons/signal-16.png) no-repeat center left;
+	padding:0 10px 0 24px;
+}
+
+div#controls div#controlsRight ul li a.watch {
+	background: url(../images/watchIcon.png) no-repeat center left;
+	padding:0 10px 0 24px;
+}
+
+div#controls div#controlsRight ul li a.email {
+	background: url(../images/emailIcon.png) no-repeat center left;
+	padding:0 10px 0 26px;
+}
+
+div#controls div#controlsRight ul li a.tools {
+	background: url(../images/toolsIcon.png) no-repeat center left;
+	padding:0 10px 0 26px;
+}
+
+div#controls div#controlsRight ul li.last a.tools {
+	padding:0 0 0 26px;
+}
+
+body#contentPage div#controls div#controlsRight ul li a:hover {
+	color: #33a8ff;
+}
+	
+
+/* controls End */
+
+/* contentContainer Start */
+
+div#contentContainer {
+	border-left: #759fb1 1px solid; 
+	border-right: #759fb1 1px solid; 
+	background:#fff url(../images/contentContainerTile.png) repeat-x top left;
+	padding: 0 0 40px 20px;
+	clear: both;
+}
+
+
+div#contentContainer h2.tableTitle {
+	line-height: 40px;
+	font-size: 12px;
+	color: #858383;
+}
+
+div#contentContainer div#contentTitle {
+	width: 99%;
+	border-bottom: #dedede 2px solid;
+	height: 40px;
+}
+
+div#contentContainer div#contentTitle h2.tableTitle {
+	float: left;
+}
+
+h2.inlineTitle {
+	display: inline;
+}
+
+div.tableClear {
+	height: 20px;
+}
+
+a.hideTab {
+	float: right;
+	line-height: 20px;
+	color: #504f4f;
+	font-weight: bold;
+	display: block;
+	background: url(../images/arrowDown.png) no-repeat center left;
+	padding-left: 15px;
+	text-transform: uppercase;
+	font-size: 10px;
+	margin-top: 15px;
+}
+
+/* contentContainer End */
+
+/* contentColumns Start */
+	
+div#contentColumns	{
+	width: 100%;
+	clear: both;
+}
+
+div#contentColumns div#contentLeft	{
+	width: 73%;
+	float: left;
+}
+
+body#settingsPage div#contentColumns div#contentLeft	{
+	width: 20%;
+	float: left;
+}
+
+
+div#contentColumns div#contentLeft h3 {
+	font-size: 20px;
+	color: #0a94df;
+	line-height: 38px;
+	font-weight: normal;
+}
+
+body#dashBoard div#contentColumns div#contentLeft h4 {
+	font-size: 14px;
+	color: #0a94df;
+	line-height: 30px;
+	font-weight: normal;
+}
+
+body#dashBoard div#contentColumns div#contentLeft div.widgetHeader h4 {
+    color:#505156;
+    float:left;
+    font-size:14px;
+    font-weight:normal;
+    line-height:35px;
+}
+
+div#contentColumns div#contentLeft div.widgetContent div#myContent h4 {
+	float:left;
+	font-size:16px;
+	line-height:24px;
+	margin-left:16px;
+	color:#333;
+}
+
+div#contentColumns div#contentLeft h5 {
+	line-height: 30px;
+	font-size: 13px;
+}
+
+
+body#blog div#contentColumns div#contentLeft h3 {
+	margin-top: 20px;
+}
+
+div#contentColumns div#contentLeft p {
+	font-size: 11px;
+	color: #000000;
+	line-height: 18px;
+	margin-top: 20px;
+}
+
+body#dashBoard div#contentColumns div#contentLeft p {
+	line-height: 15px;
+
+}
+
+div#contentColumns div#contentLeft em.weblog_info {
+	font-size: 10px;
+	color: #000000;
+	line-height: 18px;
+	margin-top: 20px;
+	font-style: italic;
+}
+
+div#contentColumns div#contentLeft p strong {
+	font-weight: bold;
+}
+
+body#blog div#contentColumns div#contentLeft img {
+	margin-top: 20px;
+	border: #cfcfcf 6px solid;
+}
+
+div.messageBox {
+	background: #fcf2e3 url(../images/messageBoxTopLeft.png) no-repeat top left;
+}
+
+div.messageBox div.messageBoxRight {
+	background: url(../images/messageBoxTopRight.png) no-repeat top right;
+}
+
+
+div.messageBox div.messageBoxBottomRight {
+	background: url(../images/messageBoxBottomRight.png) no-repeat bottom right;
+}
+
+div.messageBox div.messageBoxBottomLeft {
+	background: url(../images/messageBoxBottomLeft.png) no-repeat bottom left;
+	padding: 0 16px 5px 16px;
+}
+
+div.messageBox div.messageBoxBottomLeft em {
+	font-style: italic;
+	color: #666666;
+	line-height: 30px;
+}
+
+div.messageBox div.messageBoxBottomLeft em a {
+	color: #2068a2;
+}
+
+div#contentColumns div#contentRight	{
+	width: 25%;
+	float: right;
+}
+
+body#contentPage div#contentColumns div#contentRight	{
+        padding-right: 15px;
+}
+
+body#dashBoard div#contentColumns div#contentRight	{
+	width: 30%;
+	float: right;
+	margin-right: 13px;
+}
+
+* html body#dashBoard div#contentColumns div#contentRight {
+       margin-right: 8px;
+}
+
+body#settingsPage div#contentColumns div#contentRight	{
+	width: 78%;
+	}
+
+
+body#settingsPage div#contentColumns div#contentRight form {
+	width: 97%;
+}
+
+div#contentRight form ul.formButtons {
+	float: left;
+	margin-top: 13px
+}
+
+div#contentRight form ul.formButtons li {
+	float: left;
+	margin-right: 10px;
+}
+
+div#contentRight form ul.formButtons li a {
+	float: left;
+}
+
+/* contentColumns Start */
+
+/* widget Start*/
+
+div.widget {
+	width: 90%;
+	margin: 10px 15px 0 0;
+	float: right;
+}
+
+body#blog div.widget,
+body#settingsPage div.widget,
+body#contentPage div.widget {
+        background: url(../images/widgetTop.png) no-repeat top left;
+}
+
+body#dashBoard div.widget.tan {
+	margin: 10px 0 0 0;
+	background:#fbf2e3 url(../images/widgetTanTop.png) no-repeat top left;
+}
+
+body#dashBoard div.widget.gray {
+	margin: 10px 0 0 0;
+	background:#fbf2e3 url(../images/widgetGrayTop.png) no-repeat top left;
+}
+
+body#dashBoard div.widget.regular {
+	background: url(../images/dashWidgetTop.png) no-repeat top left;
+	margin-right: 0px;
+}
+
+body#dashBoard div#contentColumns div#contentLeft div.widget,
+body#settingsPage div#contentColumns div#contentLeft div.widget {
+	float: left;
+	margin: 10px 0 0 0;
+	width: 100%; 
+}
+
+body#dashBoard div#contentColumns div#contentRight div.widget,
+body#settingsPage div#contentColumns div#contentRight div.widget {
+	width: 100%;
+}
+
+body#blog div.widget div.widgetHeader,
+body#settingsPage div.widget div.widgetHeader,
+body#contentPage div.widget div.widgetHeader {
+	height: 25px;
+	background: url(../images/widgetHeader.png) no-repeat top right;
+}
+
+
+body#dashBoard div.widget.tan div.widgetHeader {
+	height: 35px;
+	background: url(../images/widgetTanHeader.png) no-repeat top right;
+}
+
+body#dashBoard div.widget.gray div.widgetHeader {
+	height: 35px;
+	background: url(../images/widgetGrayHeader.png) no-repeat top right !important;
+}
+
+body#dashBoard div.widget.regular div.widgetHeader {
+	height: 35px;
+	background: url(../images/dashWidgetHeader.png) no-repeat top right;
+}
+
+div.widget div.widgetHeader h4 {
+        line-height: 25px;
+	font-size: 11px;
+	font-weight: bold;
+	margin-left: 18px;
+}
+
+body#settingsPage  div.widget div.widgetHeader h4 {
+        margin-left: 10px;
+	line-height: 25px;
+}
+
+body#dashBoard div.widget.tan div.widgetHeader h4,
+body#dashBoard div.widget.gray div.widgetHeader h4 {
+	margin-left: 12px;
+	color: #0c5a9c;
+	border-bottom: #dedede 2px solid;
+	width: 90%;
+} 
+
+
+body#dashBoard div.widget div.widgetHeader h4 img,
+body#settingsPage div.widget div.widgetHeader h4 img {
+	vertical-align: middle;
+	margin-right: 10px;
+}
+div.widget div.widgetHeader h4 a {
+	font-weight: normal;
+}
+
+div.widget div.widgetContent {
+	border-left: #dedede 1px solid;
+	background: url(../images/widgetRight.png) repeat-y top right;
+	padding: 5px 0 5px 0;
+}
+
+
+div.widgetContent p {
+	color: #333;
+	margin:0 18px 10px 18px;
+	clear: both;
+}
+
+
+
+body#dashBoard div.widgetContent p {
+	line-height: 15px;
+}
+
+body#dashBoard div.widget.tan div.widgetContent,
+body#dashBoard div.widget.gray div.widgetContent {
+        padding-left: 5px;
+        padding-right: 5px;
+	padding-bottom: 10px;
+}
+
+body#dashBoard div.widget.tan div.widgetContent p,
+body#dashBoard div.widget.gray div.widgetContent p {
+	clear:left;
+}
+
+
+div.widgetContent ul.dots li {
+	list-style: disc;
+	margin-left: 18px;
+}
+
+body#dashBoard div.widget div.widgetContent {
+	border-left: #c3c3c5 1px solid;
+	background: url(../images/dashWidgetRight.png) repeat-y top right;
+}
+
+body#dashBoard div.widget.gray div.widgetContent {
+	border-left: #f0f0f0 1px solid;
+	background: url(../images/widgetGrayRight.png) repeat-y top right;
+}
+
+body#settingsPage div.widget div.widgetContent h4 {
+    font-weight: bold;
+    margin: 0 10px;
+    color: #333;
+}
+
+body#settingsPage div.widget div.widgetContent ul {
+        margin: 4px 9px 10px;
+}
+
+div.widget div.widgetContent ul {
+	margin: 10px 0 0 18px;
+	clear: both;
+}
+
+div.widget div.widgetContent ul li {
+	line-height: 18px;
+}
+
+div.widgetContent ul.leftNavList li a {
+	color: #666;
+}
+
+div.widgetContent ul.leftNavList li a:hover {
+	color: #333;
+	text-decoration: underline;
+}
+
+body#settingsPage div.widget div.widgetContent ul li {
+	background: url(../images/navArrow.gif) no-repeat center left;
+	padding-left: 8px;
+}
+	
+div.widget div.widgetBottom {
+	background: url(../images/widgetBottom.png) no-repeat left bottom;
+	height: 10px;
+}
+
+body#dashBoard div.widget.tan div.widgetBottom {
+	background: url(../images/widgetTanBottom.png) no-repeat left bottom;
+	height: 10px;
+}
+
+body#dashBoard div.widget.gray div.widgetBottom {
+	background: url(../images/widgetGrayBottom.png) no-repeat left bottom;
+	height: 10px;
+}
+
+body#dashBoard div.widget div.widgetBottom {
+	background: url(../images/dashWidgetBottom.png) no-repeat left bottom;
+}
+
+div.widget div.widgetBottomRight {	
+	height: 10px;
+	background: url(../images/widgetBottomRight.png) no-repeat bottom right;
+}
+
+body#dashBoard div.widget.tan div.widgetBottomRight {	
+	height: 10px;
+	background: url(../images/widgetTanBottomRight.png) no-repeat bottom right;
+}
+
+body#dashBoard div.widget.gray div.widgetBottomRight {	
+	background: url(../images/widgetGrayBottomRight.png) no-repeat bottom right;
+        margin-right: 1px;
+}
+
+body#dashBoard div.widget div.widgetBottomRight {
+	background: url(../images/dashWidgetBottomRight.png) no-repeat bottom right;
+       margin-top: -3px;
+}
+
+div.widget ul.widgetButton {
+	margin-top: 10px;
+}
+
+div.widget ul.widgetButton li {
+	float: left;
+	margin-right: 10px;
+}
+
+div.subHeader h5 {
+	float: left;
+	font-size: 16px;
+	margin-left: 16px;	
+}
+
+body#dashBoard div.widget.tan div.subHeader h5,
+body#dashBoard div.widget.gray div.subHeader h5 {
+	font-size: 12px;
+	font-weight: bold;
+	color: #333;
+	line-height: 26px;
+}
+
+table.widgetTable {
+	width: 99%;
+}
+
+
+table.widgetTable td {
+	padding: 5px 10px 0 18px;
+	line-height: 20px;
+}
+
+table.widgetTable tr.rowOff td {
+	background: #f3f3f3;
+}
+
+table.widgetTable td a {
+	display: block;
+}
+
+table.widgetTable td span {
+	color: #989898;
+}
+
+table.widgetTable td span strong {
+	color: #333;
+}
+
+table.widgetTable td.right {
+	text-align: right;
+}
+
+
+div.dashNewPage {
+	float: right;
+	background: url(../images/dashWidgetDivider.png) no-repeat center left;
+	padding-left: 20px;
+}
+
+div.dashNewPage a {
+	display: block;
+	float: right;
+	line-height: 35px;
+	color: #333;
+	margin-right: 20px;
+	padding-left: 20px;
+	background: url(../images/newPageIcon.png) no-repeat center left;
+	
+}
+
+div.widgetContent div#profile,
+div.widgetContent div.profile {
+	width: 99%;
+	margin-left: 14px;
+	text-align: left;
+	line-height: 16px;
+	color: #666;
+	padding-top: 10px;
+}
+
+
+div.widgetContent div#profile dl.mainInfo,
+div.widgetContent div.profile dl.mainInfo {
+	float: left;
+	margin-left: 15px;
+	
+}
+
+div.widgetContent div#profile dl dt,
+div.widgetContent div.profile dl dt {
+	font-weight: bold;
+	font-size: 11px;
+	text-transform: uppercase;
+}
+
+
+div.widgetContent div#profile dl.mainInfo dt,
+div.widgetContent div.profile dl.mainInfo dt {
+	font-size: 13px;
+	text-transform: capitalize;
+	}
+	
+img.bigAvatar {
+	width: 62px;
+	height: 62px;
+	border: #c5c5c5 1px solid;
+	float: left;
+} 
+
+
+div.widget div.widgetContent div.peopleList {
+	width: 99%;
+	text-align: left;
+	margin-left: 0;
+	
+}
+
+div.widget div.widgetContent div.peopleList ul {
+	width: 100%;
+	margin-left:0px;
+}
+
+
+div.peopleList ul li {
+	width: 100%;
+	line-height: 43px;
+	color: #005295;
+}
+
+
+div.peopleList ul li.oddRow {
+	background: #F3F3F3;
+}
+
+
+div.peopleList ul li img {
+	margin-left: 14px;
+	position: relative;
+	top: 9px;
+	}
+
+div.peopleList ul li a {
+	margin-left: 14px;
+	line-height: 43px;
+}
+
+div.peopleList ul input {
+	margin-left: 17px;
+	vertical-align: middle;
+}
+
+
+div.widgetContent div.tagWidget {
+	width: 100%;
+	text-align: left;
+	margin-left: 14px;
+	width: 92%;
+}
+
+
+div.widgetContent div.tagWidget a { 
+	text-decoration: none;
+}
+
+div.widgetContent div.tagWidget a.cloudOne { 
+	font-size: 10px;
+}
+
+div.widgetContent div.tagWidget a.cloudTwo { 
+	font-size: 14px;
+}
+
+div.widgetContent div.tagWidget a.cloudThree { 
+	font-size: 20px;
+}
+div.widgetContent div.tagWidget a.cloudFour { 
+	font-size: 26px;
+}
+
+div.widgetContent div.workList {
+	width: 100%;
+	text-align: left;
+	margin: 0 auto;
+}
+
+
+div.widget div.widgetContent div.workList ul {
+	width: 99%;
+	margin-left: 0;
+}
+
+
+div.widgetContent div.workList ul li {
+	width: 100%;
+	line-height: 20px;
+	text-indent: 14px;
+}
+
+
+div.widgetContent div.workList ul li.oddRow {
+	background: #f3f3f3;
+}
+
+
+
+
+/* widget End*/
+
+/* my content widget Start */
+
+div.widgetContent div#myContent h4 {
+	
+	
+	float:left;
+font-size:16px;
+line-height: 24px;
+margin-left:16px;
+}
+
+div#myContent div.commentInfo {
+	margin-top: 10px;
+}
+
+
+div#myContent div.commentInfo img {
+	float: left;
+	clear: none;
+	margin: 5px 0 0 17px;
+
+}
+
+div#myContent div.commentInfo ul {
+	float: left;
+	clear: none;
+	margin: 0 0 0 5px;
+} 
+
+div.widgetContent div.border {
+	width: 97%;
+	border-bottom: #cacaca 1px dotted;
+	clear: both; 
+	margin: 0 auto 10px;
+	height: 10px;
+	
+}
+
+div.widgetContent div#calendarControl {
+	text-align: center;
+}
+
+div.widgetContent div#calendarControl ul {
+	margin-top: 10px;
+	width: 100%;
+	float: left;
+	margin-left: 14px;
+}
+
+div.widgetContent div#calendarControl ul li.previous {
+	float: left;
+}
+
+div.widgetContent div#calendarControl ul li.previous a {
+	background: url(../images/previousArrow.png) no-repeat center left;
+	padding-left: 15px;
+}
+
+div.widgetContent div#calendarControl ul li.next {
+	float: right;
+	margin-right: 34px;
+}
+
+div.widgetContent div#calendarControl ul li.next a {
+	background: url(../images/nextArrow.png) no-repeat center right;
+	padding-right: 15px;
+}
+
+        div.widgetHeader a.fixed, div.widgetHeader a.unfixed {
+		width: 15px;
+		height: 15px;
+		display: block;
+		margin-right: 4px;
+		position: relative;
+		top: 12px;
+		float: right;
+		text-indent: -9999px;
+        }
+
+	div.widgetHeader a.fixed {
+		background: url(../images/lockedIcon.png) no-repeat top left;
+	}
+
+	div.widgetHeader a.unfixed {
+		background: url(../images/unlockedIcon.png) no-repeat top left;
+	}
+	
+	div.widgetHeader a.settings {
+		background: url(../images/settingsIcon.png) no-repeat top left;
+		width: 15px;
+		height: 15px;
+		display: block;
+		margin-right: 4px;
+		position: relative;
+		top: 12px;
+		float: right;
+		text-indent: -9999px;
+	}
+	
+	div.widgetHeader a.minimize {
+		background: url(../images/minIcon.png) no-repeat top left;
+		width: 15px;
+		height: 15px;
+		display: block;
+		margin-right: 4px;
+		position: relative;
+		top: 12px;
+		float: right;
+		text-indent: -9999px;
+	}
+	
+	div.widgetHeader a.close {
+		background: url(../images/closeIcon.png) no-repeat top left;
+		width: 15px;
+		height: 15px;
+		display: block;
+		margin-right: 15px;
+		-margin-right: 8px; /* IE6 */
+		position: relative;
+		top: 12px;
+		float: right;
+		text-indent: -9999px;
+	}
+
+
+
+/* my content widget End */
+
+/* dataTable Start */
+
+table.dataTable {
+	width: 99%;
+}
+
+
+table.dataTable th {
+	background: #d0e6f6;
+	border-right: #fff 3px solid;
+	padding:10px 10px 10px 6px;
+	color: #005295;
+	font-weight: bold;
+	padding-right: 15px;
+	
+}
+
+
+table.dataTable th a {
+	color: #005295;
+	font-weight: bold;
+	background: url(../images/tableArrow.png) no-repeat center left;
+	padding-left: 17px;
+	}
+
+table.dataTable th.toggle {
+	color: #333;
+	border-right: none;
+}
+
+
+table.dataTable th.toggle a {
+	background: none;
+	padding-left: 0;
+}
+
+table.dataTable th.sort {
+	width: 1%;
+	white-space: nowrap;
+	color: #333;
+}
+
+table.dataTable td {
+	vertical-align: middle;
+	padding-left: 8px;
+        padding-top: 8px;
+        padding-bottom: 6px;
+}
+
+
+table.dataTable td em {
+	font-size: 10px;
+	color: #666;
+	font-style: italic;
+}
+
+
+table.dataTable td em {
+	
+}
+
+
+table.dataTable td a.titleLink {
+	font-size: 14px;
+	margin-right: 10px;
+}
+
+table.dataTable td img {
+	margin: 5px 20px 5px 0;
+	float: left;
+	border: #afafaf 2px solid;
+}
+
+table.dataTable td img.icon {
+	margin: 14px 5px 0 0;
+	float: left;
+	border:none;
+	vertical-align: bottom;
+}
+
+table.dataTable td img.smallAvatar {
+	margin: 6px 5px 0 0;
+	float: none;
+	border: #afafaf 1px solid;
+	width: 20px;
+	height: 20px;
+}
+
+
+table.dataTable td.person a {
+	position: relative;
+	top: 21px;	
+}
+
+
+table.dataTable td.peopleInfo ul {
+	margin-top: 5px;
+}
+
+table.dataTable td.peopleInfo ul li {
+	line-height: 20px;
+
+}
+
+table.dataTable td.profileUpdate {
+	white-space: nowrap;
+	padding-right: 18px;
+	color: #666;
+	font-style: italic;
+}
+
+table.dataTable tr.oddRow td {
+	background: #f3f3f3;
+}	
+
+table.dataTable td span.summary {
+	display: block;
+	line-height: 18px;
+}
+
+
+span.keyword {
+	background: #fffa97;
+}
+
+table.dataTable tr:hover td,table.dataTable tr.oddRow:hover td {
+	background:#d0e6f6;
+}
+
+
+table.dataTable th.selectColumn {
+	width: 1%;
+	padding:0 15px 0 15px;
+	text-align: center;
+}
+
+
+/* dataTable End */
+
+
+/* forms Start */
+
+dl.form dt label {
+	line-height: 30px;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+dl.form {
+	width: 97%;
+	clear: both;
+}
+
+dl.form p {
+	margin: 1em 0;
+}
+
+dl.form strong {
+	font-weight: bold;
+}
+
+dl.form dd {
+	color: #000000;
+	line-height: 30px;
+	clear: both;
+}
+
+dl.form dd.noMargin {
+	margin-left: 0;
+}
+
+dl.form dd textarea {
+	width: 80%;
+	height: 100px;
+	font-size: 11px;
+	font-family: Verdana, Arial, sans-serif;
+	color:#333333;
+	line-height: 18px;
+}
+
+
+dl.form dd label {
+	font-weight: bold;
+	text-align: right;
+	display:block;
+	width: 200px;
+	float: left;
+	margin-right: 10px;
+}
+
+dl.form em {
+	font-style: italic;
+}
+
+/* forms End */
+
+
+/* bottomButtons Start */
+
+div#bottomButtons {
+	border-top: #dedede 2px solid;
+	width: 98%;
+	margin-top: 10px;
+}
+
+div#bottomButtons ul {
+	float: left;
+}
+
+div#bottomButtons ul li {
+	float: left;
+	margin-right: 10px;
+	position: relative;
+	top: 10px;
+}
+
+div#bottomButtons ul li a {
+	float: left;
+}
+
+div#bottomButtons ul.buttonRight {
+	background: url(../images/controlsRightDivider.png) no-repeat center left;
+	height: 37px;
+	padding-left: 10px;
+}
+
+
+/* bottomButtons End */
+
+/* footer Start */
+
+div#footer {
+	clear: both;
+	background: url(../images/footerTile.png) repeat-x top left;
+	height: 40px;
+}	
+
+div#footerLinks {
+	width: 45%;
+	float: left;
+	height: 40px;
+	background: url(../images/footerLeft.png) no-repeat top left;
+}
+
+div#footerLinks ul {
+	float: left;
+}
+
+div#footerLinks ul li {
+	float: left;
+	padding: 0 10px 0 10px;
+	background: url(../images/footerDivider.png) no-repeat center left;
+}
+
+div#footerLinks ul li a {
+	float: left;
+	color: #fff;
+	line-height: 40px;
+}
+
+div#footerLinks ul li a:hover {
+	color: #ffe744;
+}
+
+div#footerLinks ul li.first {
+	background: none;
+}
+
+div#footerGlobal {
+	float: right;
+	width: 45%;
+	height: 40px;
+	background: url(../images/footerRight.png) no-repeat top right;
+}
+
+div#footerGlobal ul {
+	float: right;
+}
+
+div#footerGlobal ul li {
+	float: left;
+	padding: 0 10px 0 10px;
+	background: url(../images/footerDivider.png) no-repeat center left;
+}
+
+div#footerGlobal ul li a {
+	float: left;
+	color: #fff;
+	line-height: 40px;
+}
+
+div#footerGlobal ul li a:hover {
+	color: #ffe744;
+}
+
+div#footerGlobal ul li.first {
+	background: none;
+}
+	
+/* footer End */
+
+
+
+
+
+/* content list Styles Start */
+
+ul.contentList {
+	list-style: disc;
+	margin-left: 18px;
+}
+
+
+ul.contentList li {
+	line-height: 20px;
+}
+
+div#contentColumns div#contentLeft ul.contentList li p {
+	margin-bottom: 10px;
+	margin-top: 0px;
+}
+
+ul.contentList li img {
+	margin-right: 4px;
+	vertical-align: text-bottom;
+}
+
+ul.contentList ul {
+	list-style: circle;
+	margin-left: 28px;
+}
+
+ul.contentList strong {
+	font-weight: bold;	
+}
+
+
+/* content list Styles End */
+
+/* overloads */
+
+.spacer {
+    clear: both;
+    height: 0px;
+    margin: 0;
+    padding: 0;
+}
+
+html body {
+    line-height: normal;
+}
+
+body#blog div#controls div#controlsRight, div#st-editing-tools-edit {
+    width: auto !important;
+}
+
+div#contentColumns div#contentLeft {
+    overflow: auto !important;
+}
+
+/* {bz: 1459}: Safari needs overflow-y:hidden to hide the vertical scrollbar */
+body div#contentColumns div#contentLeft {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+}
+
+body div#contentColumns div#contentLeft.overflowVisible {
+    overflow: visible !important;
+}
+
+div#contentColumns.hidebox #contentLeft {
+    width: 97%;
+}
+
+div#contentColumns #contentRight {
+    background-color: inherit;
+}
+
+div#contentColumns.hidebox #contentRight {
+    display: none;
+}
+
+div#contentColumns.showbox #contentRight {
+    display: block;
+}
+
+#st-wikinav-profile a {
+    float: none !important;
+}
+
+div#header div#globalNav {
+    padding: 8px 0px;
+    margin: 0px;
+    width: auto !important;
+    white-space: nowrap;
+}
+
+div#controls div#controlsRight ul li a.watch.on {
+       background: url(../images/watchingIcon.png) no-repeat center left;
+}
+
+td.listview-watchlist {
+    width: 200px;
+}
+
+td.listview-watchlist a.watch.on {
+       background: url(../images/watchingIcon.png) no-repeat center left;
+}
+
+td.listview-watchlist a.watch:hover {
+    color: #33A8FF;
+}
+
+td.listview-watchlist a.watch {
+    background: url(../images/watchIcon.png) no-repeat center left;
+    color: #333333;
+    float: right;
+    display: block;
+    font-weight: bold;
+    text-decoration: none;
+    padding: 0 10px 0 28px;
+    margin: 5px;
+}
+
+
+/* Hacks to get around there not being an avatar on the araucaria version */
+body#dashBoard div#controls div#frame {
+    float: left;
+    margin: 7px 0 0 20px;
+    background:none;
+}
+body#dashBoard div#controls div#frame img {
+    margin: 3px 3px 0 0;
+}
+body#dashBoard div#controls .welcome {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 16px;
+    float: left;
+    padding-left: 10px;
+}
+
+div#contentContainer {
+    padding: 0 0 0px 20px;
+}
+
+table.dataTable td img.pageType {
+    border: none;
+    margin: 5px;
+}
+ 
+table.dataTable td img.avatar {
+    float: none;
+    margin: 5px;
+    vertical-align: middle;
+}
+
+table.dataTable {
+    width:98%;
+}
+
+table.dataTable .date {
+    white-space: nowrap;
+}
+
+table.dataTable span.person {
+    white-space: nowrap;
+}
+
+table.dataTable .summary strong {
+    font-weight:bold;
+    background:#ffc;
+    padding:1px 2px;
+}
+
+div#bottomButtons {
+    width: 100%;
+}
+
+div#bottomButtons ul.buttonRight {
+    background: auto;
+    height: auto;
+    padding-left: auto;
+}
+div#bottomButtons img.avatar {
+    vertical-align: middle;
+}
+ 
+div#bottomButtons div#pageAttribution {
+    background: url(../images/controlsRightDivider.png) no-repeat center left;
+    margin: 5px 5px 0 180px;
+    padding: 5px;
+}
+
+body#blog div#controls div#st-editing-tools-edit h1,
+div#contentContainer h2.tableTitle {
+    font-size:2em;
+    font-weight:normal;
+    letter-spacing:1px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding-bottom: 2px;
+}
+
+div#contentContainer h2.tableTitle {
+    width: 90%;
+}
+
+div#contentContainer h2.tableTitle.wrap {
+    white-space: normal;
+}
+
+div#controls div#st-editing-tools-edit {
+    max-width: 80%;
+    display: block;
+}
+
+body#blog div#controls div#controlsRight {
+    max-width: 20%;
+}
+
+div#controls div#st-editing-tools-edit {
+    max-width: 80%;
+}
+
+
+div.goTo {
+    white-space: nowrap;
+}
+
+/* Done overloads */
+
+#globalNav form {
+    text-align: right;
+}
+
+ul.normal {
+    list-style: disc;
+    list-style-position: inside;
+}
+
+ul.normal ul {
+    list-style: circle;
+    list-style-position: inside;
+    padding-left: 10px;
+}
+
+ul.normal ul ul {
+    list-style: square;
+    list-style-position: inside;
+    padding-left: 20px;
+}
+
+#st-email-lightbox th {
+    padding-right: 10px;
+    vertical-align: middle;
+}
+
+#st-email-lightbox input {
+    margin-left: 0px;
+}
+
+#st-email-lightbox .email_input {
+    width: 280px;
+}
+
+#st-email-lightbox .email_input_button {
+    width: 116px;
+}
+
+#st-email-lightbox .email_input_textarea {
+    width: 440px;
+}
+
+#wikiwyg_wikitext_textarea {
+    background-color: #FFFFDD !important;
+}
+
+/* Additional Settings styles */
+#settingsPage td {
+    padding: 4px;
+}
+
+#settingsPage th {
+    padding: 4px;
+    font-weight: bold;
+}
+
+dl.invite dd, #settingsPage dd {
+    line-height: 1.2em;
+    margin-bottom: 4px;
+}
+
+/* Additional People Profiles styles */
+ul li a.followPersonButton {
+    line-height: 16px;
+    height: 28px;
+    background: url(../images/followIcon.png) no-repeat top left;
+    padding-left: 25px;
+    color:#333333;
+    float:left;
+    font-size:9px;
+    font-weight:bold;
+}
+
+body#dashBoard div#lastsignal {
+    font-size: 14px;
+    color: #666;
+    padding: 10px 20px 10px 10px; 
+    margin: 0;
+    display: none;
+    text-align:center;
+    background:#FFFFFF url(../images/contentContainerTile.png) repeat-x scroll left top;
+    border-left: 1px solid #759FB1;
+    border-right: 1px solid #759FB1;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Wafl Boxes */
+
+#st-page-content .wafl_container td,
+#st-page-preview .wafl_container td {
+    border: none;
+    font-size: 1em;
+}
+/* there's wafl_box defs in wiki.css & screen.css */
+.wafl_box {
+    background: #ffffff none repeat scroll 0%;
+    border: 1px solid #AAAAAA;
+    color: #000000;
+    padding: 10px;
+}
+
+.wafl_box .wiki {
+    margin: 0px;
+    border: none;
+}
+
+.wafl_title, .fetchrss_title {
+    font-weight: bold;
+    color: #000000;
+    text-align: left;
+    font-size: 1em;
+}
+
+.wafl_box ul {
+    list-style-type: disc;
+    padding-right: 10px;
+}
+
+/* Include page styles */
+
+.wiki-include-edit-link {
+    font-size: 10px;
+    font-weight: normal;
+}
+
+.wiki-include-page {
+    border-left: 1px solid #80a9f3;
+    padding-left: 5px;
+    padding-right: 10px;
+    margin-left: 12px;
+}
+
+.wiki-include-title {
+    font-size: 19px;
+    font-weight: bold;
+    margin-left: 6px;
+    background: none;
+}
+
+.wiki-include-title a {
+    text-decoration: none;
+    color: blue;
+}
+
+.wiki-include-title a:hover {
+    text-decoration: underline;
+}
+
+.wiki-include-content {
+    margin-left: 6px;
+}
+
+/* Footer */
+
+#st-socialtext-attribution {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    text-align: center;
+}
+
+#st-socialtext-attribution img {
+    border: none;
+}
+
+#st-footer {
+    clear: both;
+    margin-top: -7px;
+    font-size: 0.7em;
+    font-family: Georgia, serif;
+    font-style: italic;
+}
+
+#st-edit-actions-below-fold {
+    position: relative;
+    float: left;
+    padding-left: 20px;
+    margin-top: 4px;
+    width: 80px;
+}
+
+#st-page-details {
+    text-align: center;
+    margin-left: 18px;
+    margin-right: 18px;
+    padding-top: 4px;
+}
+
+html>body #st-page-details {
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.st-page-details-feed-icon {
+    border: none;
+}
+
+#st-footer-actions {
+    position: relative;
+    float: right;
+    text-align: right;
+    width: 50px;
+    padding-right: 20px;
+    margin-top: 4px;
+}
+
+/* Wikiwyg */
+#st-page-editing-form {
+    clear: both;
+}
+
+#st-page-editing-wysiwyg {
+    padding-top: 3px;
+}
+
+#wysiwyg-editable-div .wiki {
+    margin:0; padding:0;
+}
+
+#wysiwyg-editable-div ol,
+#wysiwyg-editable-div ul,
+#wysiwyg-editable-div p {
+  margin-top:0;
+  margin-bottom:0;
+}
+
+/* Edit widget drop down menu css */
+#st-editing-insert-menu {
+    list-style: none;
+    line-height: 1em;
+    margin-top: 0px;
+    padding: 4px 0 0 0;
+}
+
+#st-editing-insert-menu ul {
+    background: #eee;
+    border: solid #888;
+    border-width: 1px;
+    list-style: none;
+    line-height: 1;
+    font-weight: bold;
+    padding: 0;
+}
+
+#st-editing-insert-menu a,
+#st-editing-insert-menu a:active,
+#st-editing-insert-menu a:link {
+    display: block;
+    width: 11.7em;
+    color: #000;
+    text-decoration: none;
+    padding: 0.25em;
+    line-height: 1em;
+}
+
+#st-editing-insert-menu a.daddy {
+    background: url("../images/rightarrow.gif") center right no-repeat;
+}
+
+#st-page-editing-widget-menu {
+    margin: 0;
+    font-size: 9pt;
+    font-weight: bold;
+    font-family: Helvetica,Arial,sans-serif;
+    width: 60px;
+    float: left;
+}
+
+#st-editing-insert-menu li a {
+    background: transparent url('../../s2/images/arrow-down.gif') 40px 3px no-repeat;
+}
+
+#st-editing-insert-menu li li a {
+  background-image: none;
+}
+
+
+#st-editing-insert-menu li {
+    float: left;
+    padding: 0;
+    width: 8em;
+    text-decoration: none;
+}
+
+#st-editing-insert-menu li ul {
+    float: left;
+    position: absolute;
+    z-index: 1500;
+    left: -999em;
+    height: auto;
+    width: 12.5em;
+    w\idth: 12.5em;
+    font-weight: normal;
+    border-width: 1;
+    margin: 0;
+}
+
+#st-editing-insert-menu li li {
+    padding-right: 0;
+    width: 12.5em;
+}
+
+#st-editing-insert-menu li ul a {
+    width: 11.7em;
+    w\idth: 11.7em;
+}
+
+#st-editing-insert-menu li ul ul {
+    margin: -1.75em 0 0 12.5em;
+}
+
+#st-editing-insert-menu li:hover ul ul,
+#st-editing-insert-menu li:hover ul ul ul,
+#st-editing-insert-menu li.sfhover ul ul,
+#st-editing-insert-menu li.sfhover ul ul ul {
+        left: -999em;
+}
+
+#st-editing-insert-menu li:hover ul,
+#st-editing-insert-menu li li:hover ul,
+#st-editing-insert-menu li li li:hover ul,
+#st-editing-insert-menu li.sfhover ul,
+#st-editing-insert-menu li li.sfhover ul,
+#st-editing-insert-menu li li li.sfhover ul {
+        left: auto;
+}
+
+#st-editing-insert-menu li:hover,
+#st-editing-insert-menu li.sfhover {
+        background: #ccc;
+}
+
+#st-editing-insert-menu>li {
+    width: 60px;
+}
+
+
+/* Listview Tools */
+
+#listPage #controlsRight {
+    z-index: 300;
+    font-size: 10px;
+    float: right;
+    margin: 0px 0px 0px 0px;
+    color: #000;
+    vertical-align: bottom;
+    position: relative;
+}
+
+#st-listtools a {
+    text-decoration: none;
+    color: black;
+    padding-left: 17px;
+}
+
+#st-listtools span {
+    color: inherit;
+    padding-left: 17px;
+    vertical-align: top;
+    text-align: right;
+}
+
+#controlsRight li {
+    position: relative;
+    list-style: none;
+    margin: 0;
+    padding-right: 5px;
+    float: left;
+}
+
+body#listView #controlsRight ul li {
+    font-size: 14px;
+}
+
+#controlsRight ul ul li:hover {
+    background: #BFE2FF;
+}
+
+div.controlsInline ul li a {
+    float: left;
+    color: #333;
+    font-weight: bold;
+    font-size: 9px;
+}
+
+div.controlsInline ul li a.watch {
+    background: url(../images/watchIcon.png) no-repeat center left;
+    padding: 0 10px 0 28px;
+}
+
+ul.buttonRight li a, #controlsRight li a, .controlsInline li a {
+    display: block;
+    text-decoration: none;
+}
+
+#controlsRight>ul a {
+    width: auto;
+}
+
+ul.buttonRight ul, #controlsRight ul ul {
+    position: absolute;
+    width: auto;
+    display: none;
+}
+
+ul.buttonRight ul.level2, #controlsRight ul.level2 {
+    z-index: 300;
+    margin: 0;
+    padding: 0;
+    background: white;
+    border: 1px solid #CCC;
+    border-width: 0 1px;
+}
+
+ul.buttonRight ul li {
+    line-height: 1.5em !important;
+    width: auto;
+    clear: both;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-right: 5px;
+}
+
+#controlsRight ul ul li {
+    line-height: 1.5em !important;
+    width: 10.6em;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+#controlsRight li.first {
+    border-top: 1px solid #CCC;
+}
+
+#controlsRight li.separator {
+    border-bottom: 1px solid #CCC;
+}
+
+ul.buttonRight ul li a, #controlsRight ul ul li a {
+    border-bottom: 1px solid #CCC;
+    padding-left: 19px;
+    padding-right: 3px;
+    margin-right: 3px;
+    border: 0px;
+}
+
+ul.buttonRight li.submenu li.submenu:hover, #controlsRight li.submenu li.submenu:hover {
+    z-index: 300;
+    background-color: #BFE2FF;
+}
+
+ul.buttonRight li.submenu ul.level2 {
+    position: absolute;
+    height: 65px !important;
+    border-width: 1px;
+    margin-top: -10px;
+    margin-left: 10px;
+}
+
+ul.buttonRight a.newPageButtonMenu {
+    background-position: top left !important;
+}
+
+ul.buttonRight li.submenu:hover ul.level2, #controlsRight ul.level1 li.submenu:hover ul.level2 {
+    display: block;
+}
+
+ul.buttonRight li.submenu a:hover {
+    color:#33A8FF;
+}
+
+ul.buttonRight li.submenu a {
+    color:#333333;
+    float:left;
+    font-size:9px;
+    font-weight:bold;
+}
+
+#controlsRight ul.level2 {
+    top: 1.3em;
+    left: -4.2em;
+}
+
+body#listView #controlsRight ul ul li {
+    font-size: 12px;
+}
+
+body#contentPage #controlsRight ul.level2 {
+    top: 2em;
+}
+
+#st-listview-submit-pdfexport {
+    background: url("../images/pdficon_small.gif") left center no-repeat;
+}
+
+#st-listview-submit-rtfexport {
+    background: url("../images/page_word.png") left center no-repeat;
+}
+
+.additional-info {
+    margin-left: 1.5em;
+    padding-bottom: 5px;
+}
+
+#loading-message, #saving-message {
+    padding: 15px;
+}
+
+/*
+ * XXX: Hack around the fact that we don't have buttons for these elements yet
+ */
+a#st-mode-wysiwyg-button,
+a#st-mode-wikitext-button {
+    top: 0 !important;
+    padding-left: 10px !important;
+    margin-left: 0px !important;
+}
+a#st-edit-tips {
+    top: 0 !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+
+/* Loading... message */
+div#bootstrap-loader {
+    float: left;
+    float:left;
+    position:relative;
+    padding:11px;
+    display:none
+}
+
+/* pagetools : the top right New Page, Print, Email, and Tools items at top right */
+
+#wikiwyg_toolbar {
+    display: none;
+    float: none;
+    border-bottom:1px solid #fff;
+}
+.wikiwyg_button {
+    border: 1px solid #F3F3F3;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    vertical-align: bottom;
+    margin-top: 4px;
+}
+.wikiwyg_button:hover {
+    border: 1px outset;
+}
+.wikiwyg_button:active {
+    border: 1px inset;
+}
+.wikiwyg_button.disabled {
+    cursor: default;
+}
+.wikiwyg_button.disabled:hover {
+    border: 1px solid #F3F3F3;
+}
+.wikiwyg_button.disabled:active {
+    border: 1px solid #F3F3F3;
+}
+.disabled .wikiwyg_button {
+    cursor: default;
+}
+.disabled .wikiwyg_button:hover {
+    border: 1px solid #F3F3F3;
+}
+.disabled .wikiwyg_button:active {
+    border: 1px solid #F3F3F3;
+}
+
+#st-page-editing-uploadbutton {
+    font-size: 9pt;
+    margin: 0;
+    font-weight: bold;
+    z-index: 1500;
+    float: left;
+    width: 9em;
+}
+#st-page-editing-tagbutton {
+    float: left;
+    width: 90px;
+    z-index: 1500;
+    margin: 0;
+    font-size: 9pt;
+    font-weight: bold;
+}
+
+#st-editing-prefix-container {
+    padding: 0px;
+    margin: 0px;
+}
+
+#st-editing-prefix-container a.button {
+    display:block;
+    padding: 1px 5px;
+    margin: 2px 0 0 0 ;
+    color: #000;
+    line-height: 20px;
+    vertical-align: middle;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+#st-editing-prefix-container a.button:hover {
+    background:#ccc;
+}
+
+/* Listview selectors */
+
+.query-results-row-title {
+    display: block;
+    float: left;
+    margin: 0;
+    padding: 0;
+    width: 90%;
+}
+
+.query-results-titles .query-results-row-title {
+    line-height: 35px;
+}
+
+.query-results-titles img {
+    display: block;
+    padding-top: 12px;
+}
+
+.query-results-row-title img {
+    float: left;
+}
+
+.query-results-row-title .avatar {
+    display: inline;
+    float: none;
+    padding: 0;
+}
+
+.query-results-row-title a {
+    font-weight: bold;
+    display: inline;
+    font-size:120%;
+    padding-left:8px;
+    line-height:21px;
+}
+
+.query-results-row-title-attached-to a,
+.query-results-row-workspace a,
+.person a {
+    padding-left:0;
+    font-size:100%;
+    font-weight:normal;
+}
+
+/* 
+ * Override the default location of a person's link when looking at tabular
+ * data.
+ */
+td.person a {
+    top: 0px !important;
+}
+.query-results-row-summary strong {
+    background:#ffd;
+    padding:2px;
+}
+
+.query-results-row-title .query-results-row-summary {
+    display: block;
+    margin-left: 24px;
+}
+
+.query-results-row-revisions {
+    font-style: italic;
+    font-size: 90%;
+    white-space: nowrap;
+    color: gray;
+}
+
+.query-results-row-title .query-results-row-revisions a {
+    display: inline;
+    margin: 0;
+    font-size:12px;
+    line-height:100%;
+    padding:0;
+}
+
+.query-results-content {
+    font-size: 85%;
+}
+ 
+.query-results-row {
+    margin: 0.5em 0 0 0;
+    padding: 0;
+    clear: both;
+}
+ 
+.st-listview-select {
+    float: left;
+    display: block;
+    margin: 0;
+    padding: 0;
+    width: 2em;
+}
+
+.query-results-titles .st-listview-select {
+    padding-top: 12px;
+}
+
+.query-results-row-last-edited-by {
+    text-align: right;
+    font-style: italic;
+    color: #666;
+    white-space: nowrap;
+    clear: left;
+}
+
+.query-results-row-title .query-results-row-last-edited-by {
+    clear: none;
+}
+
+.query-results-row-last-edited-by .query-results-row-uploaded-by,
+.query-results-row-title .query-results-row-uploaded-by {
+    margin: 0;
+    padding: 0;
+    font-style: italic;
+    color: gray;
+    text-align: right;
+}
+
+.query-results-row-date {
+    margin: 0;
+    padding: 0;
+}
+
+.query-results-row a {
+    color: #00f;
+}
+
+.query-results-header-row {
+    border: 1px #ccc solid;
+    background: #f8f8f8;
+    padding: 4px 0;
+    height: 1.4em;
+    margin:0;
+}
+
+.query-results-row-watchlist {
+    float: right;
+}
+
+.query-results-row-title-attached-to {
+    margin:0;
+    padding:0;
+}
+/* END list-view selectors */
+ 
+#select-all {
+    display: block;
+    float:left;
+    margin:0;
+    padding:0 0.25em 0 0;
+    border-right:1px dashed #999;
+}
+
+#show-titles-or-summaries {
+    display: inline;
+    margin:0 0 0 0.75em;
+    padding:0;
+    line-height:20px;
+}
+
+#show-titles-or-summaries a.selected {
+    font-weight:bold;
+    text-decoration:none;
+    color:black;
+}
+
+#sort-by-picker {
+    height: 22px;
+    display:block;
+    float:right;
+    padding-right:1em;
+}
+
+#sort-by-picker select {
+    border: 1px #666 solid;
+    padding: 1px 2px;
+    margin:0;
+}
+
+#sort-picker {
+    padding:0;
+    margin:0;
+}
+
+#files-operations {
+    clear: left;
+}
+
+/* Revision comparison */
+
+#st-page-title {
+    padding-bottom: 12px;
+}
+
+#revision-compare-table {
+    border-collapse:collapse;
+}
+
+.st-revision-compare-old {
+    background-color: #ff6666;
+    text-decoration: line-through;
+}
+
+.st-revision-compare-new {
+    background-color: #66ff66;
+}
+
+.revision-compare-table-header div {
+    padding-bottom: 10px
+}
+
+.revision-chunk-before,
+.revision-chunk-after {
+    padding:3px 10px;
+    overflow:hidden;
+    width:50%;
+    border-top:1px #ccc solid;
+}
+
+.revision-chunk-before {
+    padding-right:20px;
+}
+
+.revision-chunk-after {
+    padding-left:20px;
+}
+
+
+#st-revision-tags {
+    padding-top: 20px;
+}
+
+body#contentPage div#st-editing-tools-edit ul#revision-tools li a {
+    top: 0px;
+}
+
+/* 
+ * Override default behaviour when we don't have to contend with the
+ * sideboxes.
+ */
+#st-revision-display #contentColumns #st-page-maincontent {
+    float: none;
+    width: auto;
+}
+
+/* Same as: div.widget div.widgetContent .wiki em */
+div#contentColumns div#st-page-maincontent em {
+	font-style: italic;
+}
+
+/* Same as: div.widget div.widgetContent .wiki p strong */
+div#contentColumns div#st-page-maincontent p strong {
+	font-weight: bold;
+}
+
+div#st-ref-card .buttons {
+    margin-top: 0px;
+    position: absolute;
+    right: 25px;
+    top: 10px;
+}
+
+.st-refcard-table, .st-refcard-table table, .st-refcard-table th, .st-refcard-table td {
+        border-color: #999;
+        border-style: solid;
+}
+
+.st-refcard-table.st-refcard-table table,  {
+        border-width: 1px;
+}
+
+.st-refcard-table, .st-refcard-table table, .st-refcard-table th, .st-refcard-table td {
+        margin: 0;
+        border-width: 1px;
+        background-color: #EEE;
+}
+
+div#st-display-mode-container.st-content-no-controls {
+        margin-top: 0px;
+}
+
+div#st-display-mode-container.st-content-no-controls div#contentContainer {
+        padding-top: 15px;
+        padding-bottom: 15px;
+}
+
+
+/*
+li#st-wikinav-register-header a, li#st-wikinav-register-footer a {
+    font-weight:bold; 
+    text-decoration:underline;
+    color:#3366cc;
+}
+*/
+
+/* mainNav Dropdown menus styles */
+
+div#mainNav ul.level2 li img {
+    float: left;
+    margin: 1px;
+}
+div#mainNav ul.level2 li a:hover {
+    color: #33A8FF;
+}
+
+/* Order matters with the two following styles. Second one overrides the first
+ * for ul elems with BOTH level2 and has_icons classes
+ */
+div#mainNav ul.level2 li {
+    color: #0C5A9A;
+    display: block; 
+    text-decoration: none; 
+    font-size: 10px;
+    line-height: 20px;
+    text-align: left;
+    width: 100%;
+    border-bottom: 1px solid black;
+}
+
+div#mainNav li.scrollingNav {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+div#mainNav li.scrollingNav ul {
+    float: none;
+}
+
+div#mainNav li.last {
+    border-bottom: none !important;
+}
+
+div#mainNav li.has_icons li {
+    line-height: 30px;
+    height: 30px;
+}
+
+
+div#mainNav ul.level2 li a {
+    color: #0C5A9A;
+    font-size: 10px;
+    line-height: 20px;
+    height: 20px;
+    padding: 0px 0px 0px 3px;
+    background: none;
+}
+
+div#mainNav ul.level2 li.dropaction a.label,
+div#mainNav ul.level2 li.dropaction a.label:hover {
+    color: #333333;
+}
+
+div#mainNav ul.level2 li.dropaction a,
+div#mainNav ul.level2 li.notinstallednotice a {
+    font-weight: bold;
+    line-height: 20px;
+    font-size: 10px;
+}
+
+div#mainNav ul.level2 li.notinstallednotice a
+{
+    line-height: 1;
+    padding: 0px;
+    display: inline;
+    float: none;
+}
+
+div#mainNav li {
+    position: relative;
+    list-style: none; 
+    margin: 0;
+    float: left;
+}
+
+div#mainNav>ul a {
+    width: auto; 
+}
+
+/* Order matters with the two following styles. Second one overrides the first
+ * for ul elems with BOTH level2 and has_icons classes
+ */
+div#mainNav ul ul.level2 {
+    position: absolute;
+    width: 18em;
+    display: none;
+    border: 1px solid #313a3d;
+}
+
+div#mainNav ul.level1 li.submenu.hover ul.level2,
+div#mainNav ul.level1 li.submenu:hover ul.level2 {
+    display: block; 
+}
+div#mainNav ul.level1 li.submenu.hover,
+div#mainNav ul.level1 li.submenu:hover {
+    z-index: 2000;
+}
+
+div#mainNav ul.level2 {
+    top: 3.0em; 
+    left: -1px;
+    background: white;
+    overflow: hidden;
+}
+
+/* WTF is the dropdownTick doing on the li element in styles.css? */
+div#mainNav ul.level1>li>a { 
+    background: url(../images/dropdownTick.png) no-repeat center right;
+}
+
+div#mainNav ul.level1 li a.nodropdown {
+    background: none;
+    padding-right: 0;
+}
+
+div#mainNav ul.level1>li { 
+    padding-right: 15px;
+    background: url(../images/mainNavDivider.png) no-repeat center right;
+}
+
+div#mainNav .emptynotice, div#mainNav .notinstallednotice {
+    line-height: 13px !important;
+    padding-left: 10px;
+    border-bottom: none !important;
+    width: 18em !important;
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+}
+div#mainNav .product-name {
+    font-weight: bold;
+}
+
+div#mainNav .product-name {
+    font-weight: bold;
+}
+/* alterations to main nav bar to account for new workspace nav bar
+------------------------------------------------------------ */
+div#header {
+    height:60px;
+    min-height:60px;
+}
+div#header div#globalNav div {
+    margin-top:10px;
+}
+div#header div#logo {
+    top:13px;
+}
+div#st-display-mode-container {
+    margin-top:0;
+}
+div#mainNav {
+    margin-bottom:8px;
+    margin-top:0;
+    clear:both;
+}
+/* Workspace submenu 
+------------------------------------------------------------ */
+#workspaceContainer {
+    margin:0 1em 0 1em;
+    padding:0;
+    background:#ccc url(../images/wsTile.png) repeat-x scroll left top;
+}
+#workspaceNav {
+    margin:0.8em 0 0 0;
+    padding:6px 1em 3px 1em;
+    border-bottom:none;
+    background:transparent url(../images/wsLeft.png) no-repeat scroll left top;
+    position:relative;
+}
+#workspaceNav ul {
+    list-style-type:none;
+    margin:0;
+    padding:0;
+}
+#workspaceNav ul li {
+    display:inline;
+    padding:0;
+}
+#workspaceNav .here {
+    font-weight:bold;
+}
+#workspaceNav ul li a, #workspaceNav ul li span {
+    background: transparent url(../images/wsDivider.png) no-repeat scroll right center;
+    padding:0 14px 0 7px;
+}
+#workspaceNav ul li a:hover {
+    color:#333;
+}
+#newPageButton {
+    position:absolute;
+    right:0;
+    top:0;
+    padding:6px 12px 3px 12px;
+    background:transparent url(../images/wsRight.png) no-repeat scroll right top;
+    font-weight:bold;
+}
+#newPageButton.disabled {
+    background-image: url(../images/wsRightDisabled.png);
+}
+
+
+
+div#workspaceNav ul.level2 {
+    position: absolute;
+    width: 17em;
+    display: none;
+    border: 1px solid #313a3d;
+    top: -2.5em; 
+    left: -8em;
+    background: white;
+    padding-top: 5px;
+    padding-bottom: 5px;
+
+}
+
+div#workspaceNav li.submenu.hover ul.level2,
+div#workspaceNav li.submenu:hover ul.level2 {
+    display: block; 
+}
+div#workspaceNav li.submenu.hover,
+div#workspaceNav li.submenu:hover {
+    z-index: 4000;
+}
+
+div#workspaceNav ul.level2 li {
+    display: block;
+    z-index: 4000;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+div#workspaceNav ul.level2 li a {
+    background: none;
+    color: #333333;
+}
+
+div#workspaceNav ul.level2 li a:hover {
+    text-decoration: none;
+    color: #33A8FF;
+}
+
+html body div#st-page-editing-toolbar-container {
+}
+
+body#simple-html {
+    background: none;
+    background-color: auto;
+    text-align: left;
+}
+
+body#simple-html h3 {
+    font-weight: bold;
+    font-size: large;
+    padding-top: 20px;
+}
+
+/* Comment insertion */
+.commentWrapper {
+    height: 200px;
+}
+.comment {
+    display: none;
+}
+.comment textarea {
+    background-color: #FFFFDD;
+    border:1px solid black;
+    width: 95%;
+    height: 100px;
+}
+.comment .formButtons li {
+    float: left;
+    margin-right: 10px;
+}
+
+td.st-homepage-simplelist-left {
+    padding-right: 10px;
+}
+
+td.st-homepage-simplelist-right {
+    text-align: right;
+}
+
+span.person img.avatar {
+    border: 1px solid #AFAFAF !important;
+    margin-top: 2px !important;
+}
+
+div.summary {
+    display: block;
+    margin: 5px 0 0 20px;
+}
+
+div.edit_summary {
+    display: block;
+    margin: 5px 0 0 20px;
+    font-weight:bold;
+    line-height: 18px;
+}
+
+
+div.byline {
+   display: block;
+   font-style: italic;
+   margin-left: 20px;
+   color: #666;
+   margin-top: 5px;
+}
+
+span.last-updated-by strong,
+span.originally-created-by strong,
+span.revision-count strong {
+    font-weight: bold;
+}
+
+span.last-updated-by,
+span.originally-created-by,
+span.revision-count {
+    white-space: nowrap;
+}
+
+span.byline-separator {
+    border-right: 1px #999 solid;
+    margin-right: 0px;
+}
+
+span.originally-created-by {
+    margin-left: 5px;
+    padding-left: 5px;
+}
+
+
+a.incipient {
+    text-decoration: none;
+    border-bottom: 1px dashed;
+}
+
+body div#controls div#st-editing-tools-edit ul li a.disabled {
+    color: black;
+    font-weight: bold;
+}
+
+.widget .widgetContent ul {
+    margin:10px 9px 0 9px;
+}
+.widget .widgetContent ul li {
+    border-bottom:1px #e8e8e8 solid;
+}
+.widget .widgetContent td input.text {
+    width: 140px;
+}
+
+.widget .widgetContent .fixedSetting {
+    height: 20px;
+    font-style: italic;
+}
+
+/* People list classes
+-------------------------------------------------------------- */
+
+td.peoplelist-picture-td {       
+        width: 70px;     
+}    
+     
+td.peoplelist-desc-td {      
+        width: 100%;
+}
+
+td.peoplelist-acct-td {
+    line-height: normal !important;
+    padding-right: 10px;
+}
+
+.form-users_invite a.saveButton, a.inviteButton {
+	display: block;
+	width: 59px;
+	height: 22px;
+	background: url(../images/inviteButton.png) no-repeat;
+	background-position: top right;
+	text-indent: -9999px;
+}
+
+.form-users_invite a.saveButton:hover, a.inviteButton:hover {
+	background-position: top left;
+}
+
+
+.form-users_search a.saveButton {
+        width: 29px;
+        height: 24px;
+        background: url(../images/searchButton.png) no-repeat top left;
+        border: none;
+        margin-left: 5px;
+        vertical-align: top;
+        text-indent: -9999px;
+}
+
+/* Profile overrides
+-------------------------------------------------------------- */
+
+body#dashBoard .widget.tan {
+    background-color:#fff ! important;
+}
+
+body#dashBoard .widget.gray {
+    background-color:#fff ! important;
+}
+
+/* Login page */
+.authentication div#contentContainer {
+    padding-top: 10px;
+}
+body#loginPage form#st-login-form {
+    line-height: 30px;
+}
+
+/* Workspace List (which also appears on Login page) */
+body#workspaceListPage div#contentColumns, .authentication div#contentColumns {
+    padding: 5px 0;
+}
+body#workspaceListPage div#contentColumns div#contentLeft, body#loginPage div#contentColumns div#contentLeft {
+    width: 40%;
+}
+body#workspaceListPage div#contentColumns div#contentRight, body#loginPage div#contentColumns div#contentRight {
+    width: 58%;
+    float: left;
+    padding-left: 10px;
+    border-left: 2px dashed #dedede;
+}
+body#workspaceListPage div#controls, .authentication div#controls {
+    height: 44px;
+    background: url(../images/contentControlsTile.png) repeat-x top left;
+}
+body#workspaceListPage div#controls div#st-editing-tools-edit, .authentication div#controls div#st-editing-tools-edit {
+    background: url(../images/contentControlsLeft.png) no-repeat top left;
+    height: 44px;
+    padding-left: 8px;
+}
+body#workspaceListPage div#controls div#controlsRight, .authentication div#controls div#controlsRight {
+    background: url(../images/contentControlsRight.png) no-repeat top right;
+    height: 44px;
+}
+
+/* Errors and Messages */
+body#settingsPage .error,
+div#contentContainer div#errors-and-messages,
+div#st-system-status {
+    margin: 0 20px 5px 0;
+    padding: 10px;
+    background-color: #fbffbe;
+    border: 1px solid #dedede;
+    font-weight: bold;
+    text-align: center;
+}
+
+body#settingsPage .error {
+    margin-top: 10px;
+}
+
+/* Extraneous settings pages with odd markup
+------------------------------------------------------------ */
+form div.message {
+    clear:both;
+    margin:1em 0;
+    background:#ffe;
+}
+div.workspace-entry-header {
+    font-size:150%;
+    font-weight:bold;
+    margin:1em 0;
+}
+div.workspace-entry {
+    margin:1em 0;
+}
+div.workspace-entry-p {
+    margin:1em 0;
+    line-height:1.2;
+}
+div.workspace-entry textarea {
+    width:90%;
+}
+div.workspace-subentry {
+    font-weight:bold;
+    margin:1em 0;
+}
+div.settings-comment {
+    margin:1em 0 1em 1em;
+    color:#666;
+}
+div.users-invite-message {
+    margin:1em 0;
+    padding:1em;
+    border:1px #ccc solid;
+    background:#f8f8f8;
+}
+div.users-invite-message p {
+    margin:1em 0;
+    line-height:1.2;
+}
+
+/* Blog Stylings
+------------------------------------------------------------ */
+div.st-weblog-entrynav {
+    margin-top:1em;
+    padding-bottom:1em;
+    font-size:inherit;
+    height:1em;
+    border-bottom:1px #ccc solid;
+}
+span.st-weblog-previousentries {
+    float:right;
+}
+span.st-weblog-previousentries:after {
+    content:"  »";
+}
+span.st-weblog-nextentries {
+    float:left;
+}
+span.st-weblog-nextentries:before {
+    content:"«  ";
+}
+
+/* Widget styles */
+.widgetHeaderButtons {
+    text-align: right;
+    float: right;
+}
+
+body#dashBoard .widget .widgetHeaderTitle img {
+    margin-right: 10px;
+    vertical-align: bottom;
+}
+
+body#dashBoard .tan .widgetHeaderTitle {
+    color: #0C5A9C;
+}
+
+body#dashBoard .widget .widgetHeaderTitle {
+    position: absolute;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 10px 3px 0 15px;
+}
+
+body#dashBoard .widget .widgetHeader {
+    white-space: nowrap;
+    overflow: hidden;
+
+    color: #505156;
+    font-weight: normal;
+    font-size: 14px;
+}
+
+.widgetContent {
+    text-align: left;
+}
+
+.widgetContent iframe {
+    border: 0;
+    margin: 0 2% !important;
+    padding: 0 !important;
+    width: 95%;
+}
+
+.widgetContent .signals .mainInput iframe,
+.widgetContent .event_list .replies iframe {
+    margin-left: 2px !important;
+    margin-right: 0px !important;
+    width: 98% !important;
+}
+
+.widgetContent form table {
+    margin: 0 5px;
+}
+
+div.widget {
+    background-color:#fff ! important;
+}
+
+div#controls div#st-editing-tools-edit #page-control-category-selector {
+    margin-top:-5px;
+}
+
+/* Micro-tweakage for {bz: 1443} */
+table.pagelist {
+    table-layout: fixed;
+}
+
+table.pagelist td {
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+table.pagelist.dataTable th div.selectall{
+    float: left;
+    padding-right: 10px;
+    vertical-align: middle;
+}
+
+table.pagelist.dataTable th div.sort {
+    float: right;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+table.pagelist.dataTable th {
+    padding-right: 0px;
+    padding-left: 8px;
+    vertical-align: middle;
+}
+
+table.widgetUserPrefs {
+    width: 95%;
+}
+
+table.widgetUserPrefs td.widgetUserPrefsButtons {
+    text-align: center;
+    padding-top: 5px;
+}
+
+table.widgetUserPrefs th {
+    width: 25%;
+}
+
+table.widgetUserPrefs select {
+    width: 95%;
+}
+
+#st-tags-field {
+    width: 50%;
+    margin:10px;
+    display:none;
+    float: left;
+    margin-right: 0px;
+}
+
+#st-tags-listing a.tag_name {
+    display: block;
+    padding-top: 2px;
+    float: left;
+    max-width: 90%;
+    clear: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+div.pagination-container {
+    margin: 0 auto;
+    width: 43em;
+    font-weight: bold;
+}
+
+div.pagination-container .paging-back {
+    min-width: 15em;
+    text-align: right;
+    float: left;
+}
+div.pagination-container .paging-numbers {
+    min-width: 13em;
+    text-align: center;
+    float: left;
+}
+div.pagination-container .paging-forward {
+    min-width: 15em;
+    text-align: left;
+    float: left;
+}
+
+#statistics-attribution {
+    white-space: nowrap;
+}
+
+
+/* See {bz: 1597}. If we have initial hint text some day, it should be gray. */
+body div#globalNav div input.searchText {
+        color: black;
+}
+
+.collapsed {
+    display: none;
+}
+
+#st-edit-mode-container #controlsRight {
+    max-width: 20px !important;
+}
+#st-edit-mode-container #controlsRight ul.level1 {
+    max-width: 20px !important;
+}
+
+.table-options {
+    width: 100%;
+}
+
+.table-options td {
+}
+
+.table-options .options {
+}
+
+.row.options {
+}
+
+.column.options {
+}
+
+.row-col-label {
+    vertical-align: middle !important;
+    text-align: right;
+    width: 50%;
+}
+
+.table-create input {
+    padding-top: -5px;
+}
+
+.table-create .error, .table-options .error {
+    display: block;
+    color: #FF0000;
+    margin-bottom: 0px;
+}
+
+.table-create, .table-options .buttons {
+    margin-top: 5px;
+}
+
+.table-create .cancel {
+    text-align: right;
+}
+.table-create .header {
+    font-weight: bold;
+    font-size: larger;
+    padding-bottom: 10px;
+}
+
+.col-number, .row-number {
+    font-weight: bold;
+    font-size: larger;
+    text-align: right;
+}
+
+.row-col-label {
+    font-weight: bold;
+}
+
+.row-col-label.two {
+    padding-bottom: 5px;
+}
+
+#st-create-content-lightbox #choose-page-spreadsheet, #st-create-content-lightbox #create-options {
+    width: 400px;
+    padding-left: 64px;
+}
+
+#st-create-content-lightbox #choose-page-spreadsheet .choice {
+    width: 200px;
+    border-style: solid;
+    float: left;
+}
+
+#st-create-content-lightbox #template-option {
+    padding: 0px 0px 0px 8px;
+    margin: 8px 0px 0px 24px;
+    border-style: solid;
+    border-color: gray;
+    border-width: 0px 0px 0px 8px;
+    float: left;
+}
+
+body#dashBoard #st-editing-tools-edit #lastsignal {
+    position: static;
+    display: block;
+    float:left;
+    line-height: 40px;
+    font-size:14px;
+    margin-left:9px;
+    padding-left:24px;
+    font-weight:bold;
+    background-image:url(../images/asset-icons/signal-16.png);
+    background-repeat:no-repeat;
+    background-position:0 12px;
+    width:65%;
+    overflow:hidden;
+    color:#666;
+    white-space:nowrap;
+}
+
+.other_buttons, .table_buttons { }
+
+#wikiwyg_toolbar img.disabled,
+.table_buttons.disabled {
+    opacity: 0.3;
+}
+
+#st-edit-mode-container.preview {
+    position: static;
+    width: 100%;
+}
+#st-edit-mode-container.expanded {
+    background: #fff;
+    position: absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+}
+
+/* toolbar refactor */
+#st-page-editing-button-toolbar {
+    width: 198px;
+    float: right;
+}
+
+#st-page-editing-toolbar {
+    margin-right: 198px;
+}
+
+#wikiwyg_toolbar .other_buttons,
+#wikiwyg_toolbar .table_buttons {
+    float: left;
+}
+#st-edit-mode-toolbar {
+    clear: both;
+    margin-top: 5px;
+}
+
+#st-editing-prefix-container #st-page-editing-tagbutton {
+    width: auto;
+}
+
+#st-page-editing-toolbar {
+    margin-right: 10em;
+}
+
+.notice {
+    background-color: #FFFEDF;
+    border: 1px solid #759FB1;
+    padding: 4px;
+    text-align: center;
+    display: none;
+}
+
+.notice .error {
+    color: #D00;
+}
+
+.notice pre.error {
+    text-align: left;
+    margin: auto;
+    width: 50%;
+}
+
+ul li.flexButtonBlue a.addButton {
+    background: url(../images/addFlexButtonBlue.png) no-repeat;
+}
+
+ul li.flexButtonBlue a.addButton:hover {
+    background-position: bottom left;
+}
+
+#st-edit-summary {
+    float: left;
+    height: 44px;
+    line-height:44px;
+    margin-left: 10px;
+}
+
+#st-edit-summary form .field {
+    float: left;
+}
+
+#st-edit-summary form .field label {
+    display: block;
+    color: #aaa;
+    font-style: italic;
+    background:#fff;
+    height: 1.4em;
+    line-height:1.4em;
+    margin: 1.4em 0 -2.8em 0;
+    width: 190px;
+    padding: 0 5px
+}
+
+#st-edit-summary form .field input {
+    width: 200px;
+    background: #fff;
+}
+
+#st-edit-summary form .field input.default {
+    background: transparent;
+}
+
+#st-edit-summary form .field input.default.focus,
+#st-edit-summary form .field input.focus {
+    background: #fff;
+}
+
+#st-edit-summary .signal {
+    float: left;
+    white-space: nowrap;
+}
+#st-edit-summary .signal label:focus {
+    outline: none;
+}
+
+#st-edit-summary .preview {
+    padding: 4px 0px 4px 0px;
+}
+
+#st-edit-summary .minor {
+    text-align: right;
+    float: right;
+    width: 150px;
+}
+
+#st-page-title .st-edit-summary,
+#st-page-title .st-revision-tags {
+    border: solid black;
+    border-width: 0px 0px 1px;
+    width: 95%;
+    padding-top: 4px;
+    padding-bottom: 6px;
+    font-size: 12px;
+}
+
+#st-page-title .st-edit-summary .text {
+    margin-left: 33px;
+}
+
+#st-page-title .st-edit-summary .person img {
+    float: left;
+    vertical-align: top;
+    margin-right: 4px;
+}
+
+#lightbox .edit-summary-explanation {
+    text-align: left;
+    padding: 10px;
+}
+
+#lightbox .edit-summary-explanation p {
+    margin-bottom: 1em;
+}
+
+#lightbox .edit-summary-explanation .title-area {
+    font-size: 120%;
+    font-weight: bold;
+    float: left;
+}
+
+#lightbox .edit-summary-explanation .close-area {
+    float: right;
+}
+
+div#contentContainer ul.editModeSwitcher {
+    float:left;
+    width: 140px;
+    margin-right: 15px;
+    height: 40px;
+    line-height: 40px;
+}
+
+div#contentContainer ul.editModeSwitcher li {
+    display:inline;
+}
+
+div#contentContainer ul.editModeSwitcher li a.disabled {
+    color: black;
+    font-weight: bold;
+}
+
+body#contentPage div#controls div#controlsRight ul li a#st-edit-pagetools-expand {
+    display: block;
+    background-image: url(../images/expand-icon.png);
+    width: 16px !important;
+    height: 16px;
+    overflow: hidden;
+    margin: 13px 0;
+}
+
+body#contentPage div#controls div#controlsRight ul li a#st-edit-pagetools-expand.contract {
+    background-image: url(../images/contract-icon.png);
+}
+
+div#contentWarning {
+    text-align: center;
+    padding: 3px;
+    background: #ffff80;
+    color: #000;
+}
+
+div#contentWarning a {
+    text-decoration: underline;
+}
+
+div#contentWarning .emphasis {
+    font-style: italic;
+}
+
+.person-business-card {
+    padding: 0px 5px;
+    height: 61px;
+}
+
+.person-business-card .avatar {
+    float: left;
+    padding: 0px 10px;
+}
+
+.person-business-card .realName {
+    display: block;
+    font-weight: bold;
+}
+
+.person-business-card .person-email {
+    display: block;
+}
+
+.loginButtons {
+    margin: 10px 0;
+    clear: none;
+}
+
+div.hidesubmit {
+    border: none;
+    width: 0px;
+    height: 0px;
+    overflow: hidden;
+}
+
+#st-attachment-listing li {
+    padding: 0 5px;
+}
+
+#st-attachment-listing .fileInfo,
+#st-attachment-listing .fileInfo a {
+    color: #CCC;
+    font-style: italic;
+}
+#st-attachment-listing .fileInfo a {
+    text-decoration: underline;
+}
+
+#st-attachment-listing li.hover,
+#st-attachment-listing li:hover {
+    background-color: #FFFCE0;
+}
+
+#st-attachment-listing li.hover .fileInfo,
+#st-attachment-listing li:hover .fileInfo {
+    color: #888;
+}
+
+#st-attachment-listing li.hover .fileInfo a,
+#st-attachment-listing li:hover .fileInfo a {
+    color: #0C5A9A;
+}
+
+#st-attachment-delete-confirm,
+#st-edit-warning-help-inline,
+#st-edit-check {
+    text-align: left;
+    margin-top: 0;
+}
+
+#st-attachment-delete-confirm h3,
+#st-edit-warning-help-inline h3,
+#st-edit-check h3 {
+    font-size: 1.8em;
+    line-height: 1.8em;
+    border-bottom: 2px solid;
+}
+
+#st-attachment-delete-confirm p,
+#st-edit-warning-help-inline p,
+#st-edit-check p {
+    margin: 1.2em 0;
+}
+
+#st-attachment-delete-confirm .buttons,
+#st-self-join-workspaceinterface .buttons,
+#st-edit-warning-help-inline .buttons,
+#st-edit-check .buttons {
+    float: right;
+    margin-bottom: 20px;
+}
+
+#st-attachment-delete-confirm .buttons:after,
+#st-self-join-workspaceinterface .buttons:after,
+#st-edit-warning-help-inline .buttons:after,
+#st-edit-check .buttons:after  {
+    content: '.';
+    visibility: 'hidden';
+    clear: both;
+}
+
+#st-attachment-delete-confirm .buttons .flexButton,
+#st-self-join-workspaceinterface .buttons .flexButton,
+#st-edit-warning-help-inline .buttons .flexButton,
+#st-edit-check .buttons .flexButton {
+    height: 22px;
+    line-height: 22px;
+    display: block;
+    float: left;
+    margin-right: 15px;
+}
+
+#st-attachment-delete-confirm .buttons .flexButton a,
+#st-self-join-workspaceinterface .buttons .flexButton a,
+#st-edit-warning-help-inline .buttons .flexButton a,
+#st-edit-check .buttons .flexButton a {
+    color: #fff;
+    text-indent: 15px;
+    padding-right: 14px;
+    line-height: 20px;
+    height: 22px;
+    display: block;
+    float:left;
+    font-weight: bold;
+    background: transparent url(../images/genericOrangeButton.png) no-repeat scroll left bottom;
+}
+
+.lookahead-prompt {
+    color: #808080;
+}
+
+body#dashBoard #mainWrap {
+    width: 98%;
+}
+
+body#dashBoard .widgetColumn {
+    float: left;
+    min-height: 300px;
+    -height: 300px; /* For IE6 */
+}
+
+body#dashBoard #contentContainer {
+    padding: 0 0 0 1%;
+}
+
+body#dashBoard .placeholder {
+    border: 2px dashed rgb(170,170,170);
+    margin: 0;
+    margin-top: 10px;
+}
+
+div.widget,
+body#dashBoard .placeholder {
+    float: none;
+    width: 100%;
+}
+
+body#dashBoard div.widget {
+    background-color: white !important;
+}
+
+body#dashBoard .widget.regular .widgetHeader {
+    cursor: move;
+}
+
+body#dashBoard ul.stuck .widget.regular .widgetHeader,
+body#dashBoard .widget.tan .widgetHeader,
+body#dashBoard .widget.gray .widgetHeader {
+    cursor: default;
+}
+
+body#dashBoard .widget.gray .widgetHeader h4 {
+    color: #ABC1E2 !important;
+}
+
+body#dashBoard .hidden {
+    display: none; 
+}
+
+body#dashBoard #st-editing-tools-edit img.avatar {
+    margin-top: 9px;
+}
+
+body#dashBoard #st-editing-tools-edit span {
+    position: relative;
+    font-size: 150%;
+    top: -7px;
+}
+
+body#dashBoard div#controls div#controlsRight {
+    width: auto !important;
+}
+
+body#dashBoard div#controls div#controlsRight ul {
+    margin-top: 11px;
+}
+
+.container #col0 {
+    padding-right: 1%;
+}
+.container #col1 {
+    padding-right: 1%;
+}
+
+.container .formButtons {
+    width: 100%;
+    clear: both;
+}
+.container .flexButtonBlue {
+    float: right;
+    margin: 4px;
+}
+
+.widget.borderless .widgetHeader {
+    display: none;
+}
+
+.widget.borderless {
+    background: none !important;
+    border-left: none !important;
+    padding: 0 !important;
+    margin: 10px 0 0 !important;
+}
+
+.widget.borderless div.widget,
+.widget.borderless div.widgetContent,
+.widget.borderless div.widgetBottom,
+.widget.borderless div.widgetBottomRight {
+    background: none !important;
+    border-left: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+/* End of Container stuff */
+
+/* Search Results */
+
+#tooManyResults {
+  margin:1em 0 4em 0;
+}
+
+/* Gadget Gallery */
+.galleryTitle {
+    font-weight: bold;
+    border-bottom: 1px solid black;
+    width: 50%;
+    float: left;
+    padding: 10px 0 5px 0;
+    font-size: 10pt;
+}
+
+.galleryTitle span {
+    margin-left: 140px;
+}
+
+.gallerySection {
+    width: 50%;
+    float: left;
+}
+
+.galleryWidget {
+    margin: 10px 0 20px 0;
+}
+
+.galleryWidget .thumbnail {
+    width: 120px;
+    height: 60px;
+    float: left;
+    margin: 0 10px;
+}
+
+.galleryWidget .title {
+    font-weight: bold;
+}
+
+.galleryWidget .description {
+    padding: 5px 0;
+}
+
+.galleryWidget .description,
+.galleryWidget .widgetButton {
+    margin-left: 140px;
+}
+
+.galleryWidget.removed {
+    opacity: .5;
+    filter: alpha(opacity = 50);
+}
+
+.avatarPopup {
+    position: absolute;
+    display: none;
+    font-size: 90%;
+    z-index: 1000;
+    -width: 300px;
+}
+
+.avatarPopup .top, .avatarPopup .bottom {
+    height: 19px;
+    width: 100%;
+}
+
+.avatarPopup .fn {
+    font-weight: bold;
+}
+
+.avatarPopup .inner {
+    background: #FFF;
+    border: 1px solid black;
+    padding: 6px;
+    text-align: left;
+    float: left;
+}
+
+.avatarPopup .inner .vcard {
+    min-height: 62px;
+}
+
+.avatarPopup img.avatarPhoto {
+    float: left;
+    padding: 5px;
+}
+
+.avatarPopup .userinfo {
+    margin-left: 72px;
+}
+
+.avatarPopup .userinfo.web {
+    display: none; /* not a requirement to show web stuff in the popup */
+}
+
+.avatarPopup .vcard .photo {
+    float: left;
+}
+
+.avatarPopup .userinfo img {
+    vertical-align: middle !important;
+}
+
+.avatarPopup ul {
+    list-style-type: none !important;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+.avatarPopup .follow {
+    text-align: left;
+    border-top: 1px solid #CCCBCC;
+    margin-top: 5px;
+    padding: 5px;
+    height: 13px;
+}
+
+.avatarPopup .followPersonButton,
+.avatarPopup .followPersonButton:hover {
+    color: #000;
+    text-decoration: none;
+    height: 18px;
+    float: left;
+}
+
+/* logic for showing the avatar popup under the avatar */
+.avatarPopup .top {
+    display: none;
+}
+.avatarPopup .inner {
+    border-bottom: none;
+}
+
+.avatarPopup.underneath .top {
+    display: block;
+}
+.avatarPopup.underneath .bottom {
+    display: none;
+}
+.avatarPopup.underneath .inner {
+    border-bottom: 1px solid black;
+    border-top: none;
+}
+
+table.st-ss th span {
+    display: none !important;
+}
+
+.groupsTitle,
+.exploreTitle {
+    position: static;
+    margin-top: 18px;
+    margin-left: 5px;
+}
+
+.exploreTitle .prefix,
+.groupsTitle .prefix {
+    background:#999;
+    color:#fff;
+    text-transform: uppercase;
+    margin-right:1em;
+    font-size: 10pt;
+    padding: 1px 5px;
+}
+
+body#dashBoard #st-editing-tools-edit span.help,
+body#dashBoard #st-editing-tools-edit span.prefix {
+    font-size: 100%;
+    top: -9px;
+}
+
+#createGroupButtons {
+    height: 30px;
+    width: 98%;
+    padding-top: 10px;
+    text-align: right;
+}
+
+#createGroupButtons .spinner {
+    margin-right: 70px;
+    margin-top: 6px;
+}
+
+.red_error { color: #e22 }
+
+/*
+ * Dropdowns
+ */
+ul#network-list, ul#signal_network-list {
+    width: 150px;
+}
+
+ul.dropdownOptions {
+    position: absolute;
+    display: none;
+    z-index: 3500; /* above the signalthis iframe */
+    display: block;
+    background-color: #FFF;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    width: 100px;
+    border: 1px solid black;
+    border-top: none;
+}
+ul.dropdownOptions li {
+    display: block;
+    list-style: none;
+    margin: 0;
+    padding: 3px;
+    border-top: 1px solid black;
+    overflow: hidden;
+}
+
+ul.dropdownOptions a {
+    color: #0E93D8;
+    white-space: nowrap;
+
+    /* Styles that are inherited in widgets: */
+    font-size: 11px;
+    font-family: arial, helvetica, sans-serif;
+}
+
+/* Hovered option */
+ul.dropdownOptions li:hover, ul.dropdownOptions li.hover {
+    background-color: #F4F0CB;
+}
+ul.dropdownOptions li:hover a, ul.dropdownOptions li.hover a {
+    text-decoration: underline;
+}
+
+/* Selected option */
+ul.dropdownOptions li.selected {
+    background-color: #F4F0CB;
+}
+
+/* Disabled option */
+ul.dropdownOptions li.disabled {
+    background-color: #FFF;
+}
+
+/* Disabled option's link */
+ul.dropdownOptions li.disabled a {
+    color: #CCC;
+    cursor: default;
+    text-decoration: none;
+}
+
+ul.dropdownOptions li.disabled a:hover {
+    text-decoration: none;
+}
+
+/* Activities widget popups */
+.attachmentPopup, .weblinkPopup, .wikilinkPopup {
+    position: absolute;
+    background-color: #fff;
+    z-index: 3000;
+    margin: 1px 5% 0px 5%;
+    padding: 5px;
+    text-align: left;
+    border: 1px solid black;
+}
+
+.attachmentPopup a.btn, .weblinkPopup a.btn, .wikilinkPopup a.btn {
+    text-decoration: none;
+    color: #000;
+    background-color: #EEE;
+    padding: 3px 6px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #666 #444 #444 #666;
+}
+.attachmentPopup a.btn:hover,
+.weblinkPopup a.btn:hover,
+.wikilinkPopup a.btn:hover {
+    background: #EEEECC;
+}
+
+.weblinkPopup, .wikilinkPopup {
+    width: 70%;
+    left: 60;
+}
+
+* html .weblinkPopup,
+* html .wikilinkPopup {
+    width: 100%;
+}
+
+.attachmentPopup {
+    width: 90%;
+    left: 0;
+}
+
+.attachmentPopup .hint {
+    font-style: italic;
+}
+.attachmentPopup .list {
+    background-color: #fff;
+}
+.attachmentPopup .loader {
+    float: right;
+}
+
+.weblinkPopup .input,
+.wikilinkPopup .input {
+    margin: 5px 0px;
+    text-align: right;
+}
+
+.weblinkPopup input,
+.wikilinkPopup input {
+    width: 40%;
+}
+
+.wikilinkPopup .buttons,
+.weblinkPopup .buttons {
+    padding: 3px;
+    text-align: right;
+}
+
+* html .wikilinkPopup .buttons,
+* html .weblinkPopup .buttons {
+    top: 18px;
+    padding: 6px;
+}
+
+.attachmentPopup .done {
+    float: right;
+    padding: 5px 3px;
+    margin-left: 5px;
+}
+.attachmentPopup .message, .attachmentPopup .error {
+    display: none;
+}
+
+/**
+ * Network dropdown
+ */
+#st-edit-summary #signal_network .value {
+    vertical-align: top;
+    height: 30px;
+    overflow: hidden;
+    display: inline-block;
+    white-space: nowrap;
+
+
+    *width: 105px; /* IE 6+7 */
+    +width: 85px; /* IE 6 */
+
+    *margin-left: -4px; /* IE 6+7 */
+    *margin-top: -9px; /* IE 6+7 */
+}
+
+#st-comment-signal_network .value {
+    width: 200px;
+
+    margin-top: 2px;
+
+    *height: 16px; /* IE 6+7 */
+    *margin-top: 7px; /* IE 6+7 */
+}
+
+#st-edit-summary #signal_network .dropdownOptions,
+#st-comment-signal_network .dropdownOptions {
+    margin-top: -15px;
+    margin-left: 11em;
+}
+
+#st-edit-summary #signal_network .dropdownOptions li,
+#st-comment-signal_network .dropdownOptions li {
+    line-height: 16px;
+}
+
+/* Social bookmarking tabs */
+#exploreTabs {
+    border-bottom: 1px solid #676767;
+    height: 26px;
+    padding-top: 5px;
+}
+#exploreTabs ul {
+    position: relative;
+    padding-left: 27%;
+}
+#exploreTabs .tab {
+    float: left;
+    margin-left: 8px;
+    position: relative;
+
+    text-align: center;
+    background-color:#DDDDDD;
+    border: 1px solid #AAAAAA;
+    border-bottom: 1px solid #676767;
+    color: #000000;
+    cursor: pointer;
+    padding: 5px 0;
+    height: 15px;
+
+    /* Rounded cornders */
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+#exploreTabs #attachment,
+#exploreTabs #wikilink,
+#exploreTabs #weblink {
+    padding-left: 15px;
+}
+#exploreTabs #attachment.selected,
+#exploreTabs #wikilink.selected,
+#exploreTabs #weblink.selected {
+    padding-left: 20px;
+}
+
+#exploreTabs #everything {
+    width: 75px;
+}
+#exploreTabs #attachment {
+    background: #ddd url(../../../plugin/signals/share/images/attachment.gif) no-repeat 2px 2px;
+    width: 90px;
+}
+#exploreTabs #wikilink {
+    background: #ddd url(../../../plugin/signals/share/images/wikilink.gif) no-repeat 2px 2px;
+    width: 115px;
+}
+#exploreTabs #weblink {
+    background: #ddd url(../../../plugin/signals/share/images/weblink.gif) no-repeat 2px 2px;
+    width: 80px;
+}
+#exploreTabs #attachment.selected,
+#exploreTabs #wikilink.selected,
+#exploreTabs #weblink.selected,
+#exploreTabs .selected {
+    background-color: #FFF;
+    border: 1px solid #676767;
+    border-bottom: 1px solid #FFF;
+    color: #3366CC;
+    cursor: default;
+    font-weight: bold;
+}
+#exploreTabs #exploreSort {
+    margin-right: 4%;
+    margin-top: 2px;
+    float: right;
+}
+#exploreTopTags {
+    background-color: #fffce0;
+    border-top: 1px solid #929292;
+    border-bottom: 1px solid #929292;
+    margin-bottom: 10px;
+    padding: 4px 0;
+}
+
+#st-signal-this-frame {
+    min-height: 97px;
+    -height: 97px; /* For IE6 */
+}
+
+#st-signal-this-frame .loader {
+    margin-top: 45px;
+}

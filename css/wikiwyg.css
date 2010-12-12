@@ -1,0 +1,96 @@
+body {
+    text-align: left;
+    background: none;
+    background-color: #FFFFDD;
+    zoom: 1;
+}
+
+.wiki a {
+    color: #0C5A9A !important;
+}
+.wiki a.incipient {
+    color: #25a800 !important;
+}
+
+body.wiki {
+    padding: 0 !important;
+    line-height: normal !important;
+    font-size: 11px !important;
+    overflow: auto !important;
+}
+
+table {
+    border: 1px solid black;
+}
+
+table.borderless,
+table.borderless th,
+table.borderless td {
+    border: 1px dotted #555 !important;
+}
+
+ol, ul {
+    padding-left: 25px;
+}
+
+ol {
+    list-style: decimal outside none;
+}
+
+ul {
+    list-style: disc outside none;
+}
+
+ul ul, ol ul {
+    list-style-type: circle;
+}
+
+ol ol ul, ol ul ul, ul ol ul, ul ul ul {
+    list-style-type: square;
+}
+
+li {
+    padding: 3px 0px;
+}
+
+td {
+    border: 1px solid black;
+    padding: 1px;
+    font-size: 80%;
+}
+
+
+/* Same as in common/css/common.css, but with !important to override our own screen.css settings. */
+#wysiwyg-editable-div ol,
+#wysiwyg-editable-div ul,
+#wysiwyg-editable-div p {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+table .current-cell {
+    background: red;
+}
+
+.clearHandler {
+    font-style: italic;
+    color: #666666;
+}
+
+body.signals {
+    background-color: white;
+    margin: 3px;
+}
+
+body.signals .wiki, body.socialcalc .wiki {
+    padding: 0 !important;
+    font-size: 100% !important;
+}
+
+body.signals img, body.socialcalc img {
+    vertical-align: middle;
+}
+
+body.signals a {
+    text-decoration: underline;
+}

@@ -1,0 +1,291 @@
+
+div#buttomButtons div#pageAttribution {
+    margin: 5px 5px 0 190px;
+    padding: 5px;
+}
+
+/* Begin fix {bz: 957} */
+html div#contentLeft {
+    overflow: hidden;
+}
+
+html body#contentPage div#controls div#controlsRight,
+html body#settingsPage div#controls div#controlsRight {
+    width: auto !important;
+    margin-bottom: -10px !important;
+}
+
+/* IE6-only fix for {bz: 1424} - Force alignment to the right */
+html body#workSpace div#controls div#controlsRight {
+    -width: 10px !important;
+    white-space: nowrap;
+}
+
+/* IE6-only fix for {bz: 1743} - Force wrapping of Tools menu items */
+html body#dashBoard div#controls div#controlsRight.peoplelist {
+    -width: 200px !important;
+}
+
+html body#dashBoard div#controls div#controlsRight ul.profile-links li a,
+html body#dashBoard div#controls div#controlsRight ul.dashboard-links li a {
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+html body#dashBoard div#controls div#controlsRight ul.profile-links li a {
+    height: 15px;
+}
+
+#st-edit-mode-container {
+    position: static;
+    width: 100%;
+}
+
+#st-edit-mode-container.expanded {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+
+html body div#st-edit-mode-container div#controls div#controlsRight {
+    width: 10px !important;
+}
+
+html div#mainWrap,
+html body#dashBoard div#mainWrap {
+    width: expression( (document.body.clientWidth * 0.9 > 950) ? '90%' : '950px' );
+}
+
+/* End fix {bz: 957} */
+
+/* Fix {bz: 1498 } and {bz: 1519} */
+#workspaceNav {
+    padding:6px 1em 5px 1em;
+}
+#newPageButton {
+    padding:6px 12px 5px 12px;
+}
+* html #newPageButton {
+    right: 10px;
+}
+/* End fix {bz: 1498 } and {bz: 1519} */
+
+body {
+    behavior: url(/static/skin/s3/javascript/csshover.htc);
+}
+
+* html #st-attachments-attach-attachinterface-overlay {
+    filter: alpha(opacity=70);
+}
+
+* html .popup-overlay {
+    filter: alpha(opacity=70);
+}
+
+
+body.st-popup {
+    behavior: url(/static/skin/s3/javascript/csshover.htc);
+}
+
+#st-refcard {
+    behavior: url(/static/skin/s3/javascript/csshover.htc);
+}
+
+#wikiwyg_wikitext_textarea,
+#wysiwyg-editable-div {
+    padding: 5px;
+}
+
+div#st-pagetools ul.level2 {
+    left: -6.0em !important;
+    width: 14em !important;
+    top: 17px !important;
+}
+
+div#st-pagetools ul li {
+    padding-top: 4px !important;
+}
+
+div#st-pagetools ul ul li {
+    width: 14em !important;
+}
+
+#st-page-editing-widget-menu {
+    overflow:hidden;
+}
+
+/* This selector makes for about 2px of blank space on the right side of the
+ * popup because IE sucks, we should look in to fixing this. Adding an
+ * expression that checks for a scrollbar may fix this.
+ */
+div#mainNav ul.level2 li {
+    width: 20em; 
+}
+
+/* Stupid IE6 that doesn't understand '>' */
+* html div#mainNav ul.level1 li a {
+    background: url(../images/dropdownTick.png) no-repeat center right;
+}
+
+* html div#mainNav ul.level2 li a {
+    background-image: none;
+}
+
+* html div#mainNav ul.level1 li {
+    padding-right: 15px;
+    background: url(../images/mainNavDivider.png) no-repeat center right;
+}
+
+* html div#mainNav ul.level2 li {
+    padding-right: 0px;
+    background: none;
+}
+
+/* IE6-specific parts of {bz: 1338} */
+
+body#workSpace div#controls div#st-editing-tools-edit h1,
+body#blog div#controls div#st-editing-tools-edit h1,
+div#contentContainer h2.tableTitle {
+        -width: 100% !important;
+}
+
+body#workSpace div#controls div#st-editing-tools-edit,
+body#blog div#controls div#st-editing-tools-edit {
+        -width: 80% !important;
+}
+
+body#blog div#controls div#controlsRight {
+        -width: 10% !important;
+}
+
+div#contentContainer h2.tableTitle {
+        -width: 85% !important;
+}
+
+div.postByEmail {
+        -display: block;
+        -text-align: right !important;
+        -width: 100% !important.
+}
+
+/* End IE6-specific hack */
+
+html ul.buttonRight ul.level2 {
+    left: expression( jQuery('#st-pagetools-newpage').offset().left - 10 );
+    top: expression( jQuery('#st-pagetools-newpage').offset().top + 30 );
+}
+
+div#mainNav ul.level1 li.submenu:hover {
+    display: block;
+}
+
+
+/* This fixes the widget bottoms in IE7 */
+div.widget { margin-left: 1px; }
+html>body#dashBoard div.widget div.widgetBottomRight,
+html>body#contentPage div.widget div.widgetBottomRight,
+html>body#settingsPage div.widget div.widgetBottomRight {
+        margin-top: 0;
+        margin-left: 0;
+}
+/* This fixes a gap in the widget bottoms in IE6 */
+* html body#dashBoard div.widget div.widgetBottom {
+        margin-left: 2px;
+}
+* html body#settingsPage div.widget div.widgetBottom {
+        margin-left: 1px;
+}
+html>body#contentPage div.widget div.widgetBottom {
+        margin-left: -1px;
+}
+
+#page-control-category-selector {
+    margin-top:0px;
+}
+
+/* Micro-tweakage for {bz: 1443} */
+table.pagelist.dataTable th div.sort,
+table.pagelist.dataTable th div.selectall {
+        -margin-top: 5px;
+}
+
+/* Micro-tweakage for {bz: 1473} */
+#st-tags-listing a.tag_name {
+    -width: expression(
+        ((this.clientWidth > 190) || this.style.width == '90%')
+            ? '90%' : 'auto' 
+    )
+}
+
+/* Micro-tweakge for {bz: 1450} */
+html #st-editing-prefix-container {
+    -margin-bottom: 0px !important;
+    -height: 22px;
+    -overflow: hidden;
+}
+
+#st-edit-mode-container #controlsRight ul.level1 {
+    margin-left: -30px;
+}
+
+div.pagination-container .paging-back {
+    -width: 15em;
+}
+div.pagination-container .paging-numbers {
+    -width: 13em;
+}
+div.pagination-container .paging-forward {
+    -width: 15em;
+}
+
+#mainWrap.expanded {
+    width: auto;
+    width: 100%;
+}
+
+.table_buttons.disabled {
+    filter: alpha(opacity = 30);
+}
+
+#quickLinks form {
+    margin-top: -3px;
+    padding: 0;
+}
+
+#quickLinks form span {
+    vertical-align: middle;
+}
+#quickLinks form select {
+    vertical-align: middle;
+    margin: 0;
+    padding: 0;
+    font-size: 0.9em;
+    z-index: 10;
+}
+
+#controlsRight ul.level2 {
+    width: 11em;
+}
+
+#st-edit-check .buttons .flexButton a.continue {
+    width: 83px;
+}
+
+#st-edit-check .buttons .flexButton a.close {
+    width: 130px;
+}
+
+/* We're not sure why we need this, but we do, to get right column 62% */
+* html .container.signals #col1 {
+    width: 62%;
+}
+
+/* Purely a hack to counter {bz: 2930} */
+div#contentContainer {
+    border-bottom: 1px solid transparent;
+}
+
+#st-page-content .wiki br.st-last-br, #st-revision-display .wiki br.st-last-br {
+    line-height: 2.4em;
+}

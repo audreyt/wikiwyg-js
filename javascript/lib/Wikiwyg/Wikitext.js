@@ -143,8 +143,8 @@ proto.find_right = function(t, selection_end, matcher) {
 
 proto.get_lines = function() {
     var t = this.area;
-    var selection_start = t.selectionStart;
-    var selection_end = t.selectionEnd;
+    var selection_start = this.getSelectionStart();
+    var selection_end = this.getSelectionEnd();
 
     if (selection_start == null) {
         selection_start = selection_end;
@@ -171,7 +171,7 @@ proto.get_lines = function() {
 
     this.selection_start = this.find_left(our_text, selection_start, /[\r\n]/);
     this.selection_end = this.find_right(our_text, selection_end, /[\r\n]/);
-    t.setSelectionRange(selection_start, selection_end);
+    this.setSelectionRange(selection_start, selection_end);
     t.focus();
 
     this.start = our_text.substr(0,this.selection_start);
@@ -201,8 +201,8 @@ proto.get_words = function() {
     }
 
     var t = this.area;
-    var selection_start = t.selectionStart;
-    var selection_end = t.selectionEnd;
+    var selection_start = this.getSelectionStart();
+    var selection_end = this.getSelectionEnd();
 
     if (selection_start == null) {
         selection_start = selection_end;
@@ -234,7 +234,7 @@ proto.get_words = function() {
     this.selection_end =
         this.find_right(our_text, selection_end, Wikiwyg.Wikitext.phrase_end_re);
 
-    t.setSelectionRange(this.selection_start, this.selection_end);
+    this.setSelectionRange(this.selection_start, this.selection_end);
     t.focus();
 
     this.start = our_text.substr(0,this.selection_start);
@@ -303,8 +303,8 @@ proto.insert_text_at_cursor = function(text, opts) {
         return false;
     }
 
-    var selection_start = t.selectionStart;
-    var selection_end = t.selectionEnd;
+    var selection_start = this.getSelectionStart();
+    var selection_end = this.getSelectionEnd();
 
     if (selection_start == null) {
         selection_start = selection_end;
@@ -319,7 +319,7 @@ proto.insert_text_at_cursor = function(text, opts) {
 
     this.area.focus();
     var end = selection_end + text.length;
-    this.area.setSelectionRange(end, end);
+    this.setSelectionRange(end, end);
 }
 
 proto.insert_text = function (text) {
@@ -328,7 +328,7 @@ proto.insert_text = function (text) {
 
 proto.set_text_and_selection = function(text, start, end) {
     this.area.value = text;
-    this.area.setSelectionRange(start, end);
+    this.setSelectionRange(start, end);
 }
 
 proto.add_markup_words = function(markup_start, markup_finish, example) {
@@ -410,7 +410,7 @@ proto.add_markup_lines = function(markup_start) {
 
     // Here we cancel the selection and allow the user to keep typing
     // (instead of replacing the freshly-inserted-markup by typing.)
-    this.area.selectionStart = this.area.selectionEnd;
+    this.setSelectionRange(this.getSelectionEnd(), this.getSelectionEnd());
 
     this.area.focus();
 }
@@ -451,7 +451,7 @@ proto.bound_markup_lines = function(markup_array) {
 
     // Here we cancel the selection and allow the user to keep typing
     // (instead of replacing the freshly-inserted-markup by typing.)
-    this.area.selectionStart = this.area.selectionEnd;
+    this.setSelectionRange(this.getSelectionEnd(), this.getSelectionEnd());
 
     this.area.focus();
 }
@@ -582,8 +582,8 @@ proto.get_selection_text = function() {
     }
 
     var t = this.area;
-    var selection_start = t.selectionStart;
-    var selection_end   = t.selectionEnd;
+    var selection_start = this.getSelectionStart();
+    var selection_end   = this.getSelectionEnd();
 
     if (selection_start != null) {
         return t.value.substr(selection_start, selection_end - selection_start);
@@ -652,8 +652,8 @@ proto.kill_linkedness = function(str) {
 proto.markup_line_alone = function(markup_array) {
     var t = this.area;
     var scroll_top = t.scrollTop;
-    var selection_start = t.selectionStart;
-    var selection_end = t.selectionEnd;
+    var selection_start = this.getSelectionStart();
+    var selection_end = this.getSelectionEnd();
     if (selection_start == null) {
         selection_start = selection_end;
     }
@@ -661,7 +661,7 @@ proto.markup_line_alone = function(markup_array) {
     var text = t.value;
     this.selection_start = this.find_right(text, selection_start, /\r?\n/);
     this.selection_end = this.selection_start;
-    t.setSelectionRange(this.selection_start, this.selection_start);
+    this.setSelectionRange(this.selection_start, this.selection_start);
     t.focus();
 
     var markup = markup_array[1];
@@ -1039,6 +1039,19 @@ proto.looks_like_a_url = function(string) {
     return string.match(/^(http|https|ftp|irc|mailto|file):/);
 }
 
+proto.setSelectionRange = function (startPos, endPos) {
+    this.area.setSelectionRange(startPos, endPos);
+}
+
+proto.getSelectionStart = function () {
+    return this.area.selectionStart;
+}
+
+proto.getSelectionEnd = function () {
+    return this.area.selectionEnd;
+}
+
+
 /*==============================================================================
 Support for Internet Explorer in Wikiwyg.Wikitext
  =============================================================================*/
@@ -1055,10 +1068,93 @@ proto.initializeObject = function() {
     this.initialize_object();
     if (!this.config.javascriptLocation)
         throw new Error("Missing javascriptLocation config option!");
-    this.area.addBehavior(this.config.javascriptLocation + "Selection.htc");
+
     jQuery(this.area).bind('beforedeactivate', function () {
         self.old_range = document.selection.createRange();
     });
+}
+
+var selectionStart = 0;
+var selectionEnd = 0;
+
+proto.setSelectionRange = function (startPos, endPos) {
+    var element = this.area;
+    var objRange = element.createTextRange();
+    objRange.collapse(true);
+    objRange.move("character", startPos);
+
+    charLength = endPos - startPos;
+    for (var i=1; i<=charLength; i++)
+        objRange.expand("character");
+
+    objRange.select();
+}
+
+proto.getSelectionStart = function() {
+    this.getSelectionRange("start");
+    return selectionStart;
+}
+
+proto.getSelectionEnd = function() {
+    var element = this.area;
+    this.getSelectionRange("end");
+    element.value = element.value.replace(/\x01/g, '');
+    return selectionEnd;
+}
+
+proto.getSelectionRange = function (type) {
+    var element = this.area;
+    var sRange = element.document.selection.createRange();
+    if (sRange.text.length == 0) {
+        var pos = element.value.indexOf('\x01');
+        if (pos == -1) {
+            element.focus();
+            sRange = element.document.selection.createRange();
+            sRange.text = '\x01';
+            element.focus();
+            selectionStart = null;
+            selectionEnd = null;
+        }
+        else {
+            element.value = element.value.replace(/\x01/, '');
+            selectionStart = pos;
+            selectionEnd = pos;
+        }
+        return;
+    }
+
+    var sRange2 = sRange.duplicate();
+    var iRange = element.document.body.createTextRange();
+    iRange.moveToElementText(element);
+    var coord = 0;
+    var fin = 0;
+
+    while (fin == 0) {
+        len = iRange.text.length;
+        move = Math.floor(len / 2);
+        _move = iRange.moveStart("character", move);
+        where = iRange.compareEndPoints("StartToStart", sRange2);
+        if (where == 1) {
+            iRange.moveStart("character", -_move);
+            iRange.moveEnd("character", -len+move);
+        }
+        else if (where == -1) {
+            coord = coord + move;
+        }
+        else {
+            coord = coord + move;
+            fin = 1;
+        }
+        if (move == 0) {
+            while (iRange.compareEndPoints("StartToStart", sRange2) < 0) {
+                iRange.moveStart("character", 1);
+                coord++;
+            }
+            fin = 2;
+        }
+    }
+    selectionStart = coord;
+    selectionEnd = coord + (sRange.text.replace(/\r/g, "")).length;
 }
 
 } // end of global if
@@ -1095,7 +1191,7 @@ proto.contain_widget_image = function(element) {
         var e = element.childNodes[ii]
         if ( e.nodeType == 1 ) {
             if ( e.nodeName == 'IMG' ) {
-                if ( e.getAttribute("widget") )
+                if ( /^st-widget-/.test(e.getAttribute('alt')) )
                     return true;
             }
         }
@@ -1197,9 +1293,13 @@ proto.enableThis = function() {
 
 }
 
-proto.toHtml = function(func) {
+proto.toNormalizedHtml = function(func) {
+    return this.toHtml(func);
+}
+
+proto.toHtml = function(func, onError) {
     var wikitext = this.wikiwyg.current_wikitext = this.canonicalText();
-    this.convertWikitextToHtml(wikitext, func);
+    this.convertWikitextToHtml(wikitext, func, onError);
 }
 
 proto.fromHtml = function(html) {
@@ -1232,7 +1332,7 @@ proto.do_www = Wikiwyg.Wikitext.make_do('www');
 proto.do_attach = Wikiwyg.Wikitext.make_do('attach');
 proto.do_image = Wikiwyg.Wikitext.make_do('image');
 
-proto.convertWikitextToHtml = function(wikitext, func) {
+proto.convertWikitextToHtml = function(wikitext, func, onError) {
     // TODO: This could be as simple as:
     //    func((new Document.Parser.Wikitext()).parse(wikitext, new Document.Emitter.HTML()));
     // But we need to ensure newer wikitext features, such has (sortable) tables,
@@ -1242,7 +1342,8 @@ proto.convertWikitextToHtml = function(wikitext, func) {
     var postdata = 'action=wikiwyg_wikitext_to_html;content=' +
         encodeURIComponent(wikitext);
 
-    var post = jQuery.ajax({
+    var isSuccess = false;
+    jQuery.ajax({
         url: uri,
         async: false,
         type: 'POST',
@@ -1250,10 +1351,19 @@ proto.convertWikitextToHtml = function(wikitext, func) {
             action: 'wikiwyg_wikitext_to_html',
             page_name: jQuery('#st-newpage-pagename-edit, #st-page-editing-pagename').val(),
             content: wikitext
+        },
+        success: function(_data, _status, xhr) {
+            if (xhr.responseText && /\S/.test(xhr.responseText)) {
+                isSuccess = true;
+                func(xhr.responseText);
+            }
         }
     });
 
-    func(post.responseText);
+    if (!isSuccess) {
+        alert(loc("Operation failed due to server error; please try again later."));
+        if (onError) { onError(xhr); }
+    }
 }
 
 proto.href_is_really_a_wiki_link = function(href) {
@@ -1380,6 +1490,7 @@ proto.build_msoffice_list = function(top) {
 proto.convert_html_to_wikitext = function(html, isWholeDocument) {
     var self = this;
     if (html == '') return '';
+    html = html.replace(/^\s*<div(?:\s*\/|><\/div)>/, '');
     html = this.strip_msword_gunk(html);
 
     (function ($) {
@@ -1427,6 +1538,11 @@ proto.convert_html_to_wikitext = function(html, isWholeDocument) {
             }
         } while (foundVisualBR);
 
+        // {bz: 4738}: Don't run _format_one_line on top-level tables, HRs and PREs.
+        $(dom).find('td, hr, pre')
+            .parents('span, a, h1, h2, h3, h4, h5, h6, b, strong, i, em, strike, del, s, tt, code, kbd, samp, var, u')
+            .addClass('_st_format_div');
+
         $(dom).find('._st_walked').removeClass('_st_walked');
 
         // This needs to be done by hand for IE.
@@ -1437,7 +1553,7 @@ proto.convert_html_to_wikitext = function(html, isWholeDocument) {
             for (var i = 0, l = elems.length; i < l; i++) {
                 if (elems[i].className != 'wiki') continue;
                 var div = document.createElement('div');
-                div.innerHTML = elems[i].innerHTML + '<br>\n';
+                div.innerHTML = elems[i].innerHTML;
                 elems[i].parentNode.replaceChild(
                     div,
                     elems[i]
@@ -1450,7 +1566,13 @@ proto.convert_html_to_wikitext = function(html, isWholeDocument) {
 
             $dom
             .find("div.wiki").each(function() { 
-                $(this).replaceWith( $(this).html() + "<br>\n" );
+                var html = $(this).html();
+                if (/<br\b[^>]*>\s*$/i.test(html)) {
+                    $(this).replaceWith( html );
+                }
+                else {
+                    $(this).replaceWith( html + '<br />');
+                }
             });
 
         // Try to find an user-pasted paragraph. With extra gecko-introduced \n
@@ -1551,10 +1673,9 @@ proto.convert_html_to_wikitext = function(html, isWholeDocument) {
 //     if (String(location).match(/\?.*dump$/))
 //         throw yyy(dom_copy);
 
-    var wikitext = this.walk(dom).replace(/[\xa0\s\n]*$/, '\n');
+    return this.walk(dom).replace(/[\xa0\s\n]*$/, '\n').replace(/\r/g, '');
 //     if (String(location).match(/\?.*dump2$/))
 //         throw yyy(copyDom(dom));
-    return wikitext;
 }
 
 proto.walk = function(elem) {
@@ -1597,6 +1718,12 @@ proto.walk = function(elem) {
         var method = 'format_' + part.nodeName.toLowerCase();
         if (method != 'format_blockquote' && part.is_indented)
             method = 'format_indent';
+
+        // {bz: 4738}: Don't run _format_one_line on top-level TABLEs, HRs and PREs.
+        if (/\b_st_format_div\b/.test(part.className)) {
+            method = 'format_div';
+        }
+
 //         window.XXX_method = method = method.replace(/#/, '');
         method = method.replace(/#/, '');
         try {
@@ -1611,14 +1738,15 @@ proto.walk = function(elem) {
                 continue;
             }
 
-            if (this.wikitext) {
+            if (this.wikitext && this.wikitext != '\n') {
                 for (var node = part; node; node = node.firstChild) {
                     if (node.top_level_block) {
                         // *** Hotspot - Optimizing by hand. ***
-                        // this.wikitext = this.wikitext.replace(/ *\n*$/, '\n\n');
+                        // this.wikitext = this.wikitext.replace(/ *\n?\n?$/, '\n\n');
                         var len = this.wikitext.length;
 
-                        while (this.wikitext.charAt(len-1) == '\n') len--;
+                        if (this.wikitext.charAt(len-1) == '\n') len--;
+                        if (this.wikitext.charAt(len-1) == '\n') len--;
                         while (this.wikitext.charAt(len-1) == ' ') len--;
 
                         if (len == this.wikitext.length) {
@@ -1636,8 +1764,10 @@ proto.walk = function(elem) {
                     }
                 }
             }
+
             if (part.widget_on_widget) {
-                this.wikitext = this.wikitext.replace(/\n*$/, '\n');
+// This isn't required anymore after [Story: Preserve white space].
+//                this.wikitext = this.wikitext.replace(/\n*$/, '\n');
             }
 
             this.assert_trailing_space(part, text);
@@ -1664,13 +1794,14 @@ proto.walk = function(elem) {
 
     this.depth--;
     if (!(this.wikitext.length && this.wikitext.match(/\S/))) return '';
-    return this.wikitext.replace(/\n+$/, '\n');
+    return this.wikitext;
 }
 
 proto.assert_trailing_space = function(part, text) {
     if ((! part.requires_preceding_space) && (
             (! part.previousSibling) 
          || (! part.previousSibling.requires_trailing_space)
+         || (part.nodeName == 'BR') // BR now counts as trailing space
         )
     ) return;
 
@@ -1737,11 +1868,20 @@ proto.no_descend = function(elem) {
 
 proto.check_start_of_block = function(elem) {
     var prev = elem.previousSibling;
+    var next = elem.nextSibling;
 
     if (this.wikitext &&
         prev &&
         prev.top_level_block &&
-        ! this.wikitext.match(/\n\n$/)
+        ! /\n\n$/.test(this.wikitext) &&
+        ! ((elem.nodeType == 3) && (!/\S/.test(elem.nodeValue)) &&
+            /* If we are on an empty text node, and the BRs following us makes
+             * up for "\n\n" required by start-of-block, don't add another \n.*/
+            (next && next.nodeName == 'BR') && (
+                /\n$/.test(this.wikitext)
+                || next.nextSibling && next.nextSibling.nodeName == 'BR'
+            )
+        )
     ) this.wikitext += '\n';
 }
 
@@ -1851,12 +1991,13 @@ proto.format_p = function(elem) {
     // formatter print a P with a single space. Should fix that some day.
     if (text == ' ') return;
 
-    return text.replace(/\s*$/, '\n');
+    return text + '\n';
 }
 
 proto.format_img = function(elem) {
-    var widget = elem.getAttribute('widget');
-    if (widget) {
+    var widget = elem.getAttribute('alt');
+    if (/^st-widget-/.test(widget)) {
+        widget = widget.replace(/^st-widget-/, '');
         if (Wikiwyg.is_ie) widget = Wikiwyg.htmlUnescape( widget );
         if (widget.match(/^\.\w+\n/))
             elem.top_level_block = true;
@@ -2063,7 +2204,7 @@ proto.format_td = function(elem) {
     if (elem.wikitext.match(/\n/) ||
         (elem.firstChild && elem.firstChild.top_level_block)
     ) {
-        elem.wikitext = elem.wikitext.replace(/\s?$/, ' ');
+        elem.wikitext = elem.wikitext.replace(/\s?\n?$/, ' ');
         return '| ' + elem.wikitext;
     }
     else {
@@ -2106,7 +2247,7 @@ for (var i = 1; i <= 6; i++) {
 proto.format_pre = function(elem) {
     var data = Wikiwyg.htmlUnescape(elem.innerHTML);
     data = data.replace(/<br>/g, '\n')
-               .replace(/\n$/, '')
+               .replace(/\r?\n$/, '')
                .replace(/^&nbsp;$/, '\n');
     elem.top_level_block = true;
     return '.pre\n' + data + '\n.pre\n';
@@ -2293,12 +2434,11 @@ proto.format_br = function(elem) {
 
     if (Wikiwyg.is_ie) 
        this.wikitext = this.wikitext.replace(/\xA0/, "");
-    return (this.wikitext && !this.wikitext.match(/\n\n$/)) ? '\n' : '';
+    return '\n';
 }
 
 proto.format_hr = function(elem) {
     if (this.has_parent(elem, 'LI')) return '';
-    elem.top_level_block = true;
     return '----\n';
 }
 
@@ -2350,12 +2490,18 @@ proto.has_parent = function(elem, name) {
                 }
             }
 
+            // Do not markup empty text: {bz: 4677}
+            if (!(/\S/.test(wikitext))) {
+                return wikitext;
+            }
+
             // Finally, move whitespace outward so only non-whitespace
             // characters are put into markup.
             // Example: "x<b> y </b>z" becomes "x *y* z".
             return wikitext
                 .replace(/^(\s*)/, "$1" + markup_open)
-                .replace(/(\s*)$/, markup_close + "$1");
+                .replace(/(\s*)$/, markup_close + "$1")
+                .replace(/\n/g, ' ');
         }
     }
 

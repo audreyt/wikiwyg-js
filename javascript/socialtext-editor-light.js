@@ -271,7 +271,7 @@ Wikiwyg - Primary Wikiwyg base class
  =============================================================================*/
 
 // Constructor and class methods
-Class('Wikiwyg', function() {
+Class('Wikiwyg -nostrict', function() {
 
 var proto = this.prototype;
 
@@ -309,8 +309,10 @@ Wikiwyg.is_safari = (
 
 /* Safari 5+ is Gecko-compatible. */
 if ($.browser.safari && parseInt($.browser.version) > 500) {
-    Wikiwyg.is_gecko = true;
-    Wikiwyg.is_safari = false;
+    if (Wikiwyg.ua.indexOf('mobile') == -1) {
+        Wikiwyg.is_gecko = true;
+        Wikiwyg.is_safari = false;
+    }
 }
 
 Wikiwyg.is_opera = (
@@ -463,15 +465,21 @@ proto.displayMode = function() {
         });
 }
 
-proto.switchMode = function(new_mode_key) {
+proto.switchMode = function(new_mode_key, cb) {
     var new_mode = this.modeByName(new_mode_key);
     var old_mode = this.current_mode;
     var self = this;
-    jQuery("#st-edit-summary").hide();
-    new_mode.enableStarted();
-    old_mode.disableStarted();
-    old_mode.toHtml(
+
+    var method = 'toHtml';
+    if (/Preview/.test(new_mode.classname)) {
+        method = 'toNormalizedHtml';
+    }
+
+    old_mode[method](
         function(html) {
+            jQuery("#st-edit-summary").hide();
+            new_mode.enableStarted();
+            old_mode.disableStarted();
             self.previous_mode = old_mode;
             new_mode.fromHtml(html);
             old_mode.disableThis();
@@ -481,6 +489,8 @@ proto.switchMode = function(new_mode_key) {
             self.current_mode = new_mode;
 
             jQuery("#st-edit-summary").show();
+
+            if (cb) { cb(); }
         }
     );
 }
@@ -557,42 +567,52 @@ proto.preview_link_text = loc('Preview');
 proto.preview_link_more = loc('Edit More');
 
 proto.preview_link_action = function() {
-    var preview = this.modeButtonMap[WW_PREVIEW_MODE];
-    var current = this.current_mode;
-
-    preview.innerHTML = this.preview_link_more;
-    jQuery("#st-edit-mode-toolbar").hide();
-    this.showScrollbars();
-
     var self = this;
-    jQuery(preview)
-        .unbind('click')
-        .click(this.button_disabled_func());
-    this.enable_edit_more = function() {
+
+    if (this.isOffline()) {
+        alert(loc("The browser is currently offline; please connect to the internet and try again."));
+        return;
+    }
+
+    var preview = self.modeButtonMap[WW_PREVIEW_MODE];
+    var current = self.current_mode;
+
+    self.enable_edit_more = function() {
         jQuery(preview)
             .html(loc('Edit More'))
             .unbind('click')
             .click( function () {
-                if (jQuery("#contentRight").is(":visible")) 
-                    jQuery('#st-page-maincontent')
-                        .css({ 'margin-right': '240px'});
-                self.switchMode(current.classname);
-                self.preview_link_reset();
+                self.switchMode(current.classname, function(){
+                    if (jQuery("#contentRight").is(":visible")) 
+                        jQuery('#st-page-maincontent')
+                            .css({ 'margin-right': '240px'});
+                    self.preview_link_reset();
 
-                // This timeout is for IE so the iframe is ready - {bz: 1358}.
-                setTimeout(function() {
-                    self.resizeEditor();
-                    self.hideScrollbars();
-                }, 50);
+                    // This timeout is for IE so the iframe is ready - {bz: 1358}.
+                    setTimeout(function() {
+                        self.resizeEditor();
+                        self.hideScrollbars();
+                    }, 50);
+                });
 
                 return false;
             });
-    }
-    this.modeByName(WW_PREVIEW_MODE).div.innerHTML = "";
-    this.switchMode(WW_PREVIEW_MODE)
-    this.disable_button(current.classname);
+    };
 
-    jQuery('#st-page-maincontent').attr('marginRight', '0px');
+    this.modeByName(WW_PREVIEW_MODE).div.innerHTML = "";
+    this.switchMode(WW_PREVIEW_MODE, function(){
+        preview.innerHTML = self.preview_link_more;
+        jQuery("#st-edit-mode-toolbar").hide();
+        self.showScrollbars();
+
+        jQuery(preview)
+            .unbind('click')
+            .click(self.button_disabled_func());
+        self.enable_edit_more();
+        self.disable_button(current.classname);
+
+        jQuery('#st-page-maincontent').attr('marginRight', '0px');
+    });
     return false;
 }
 
@@ -628,14 +648,15 @@ proto.button_enabled_func = function(mode_name) {
             return false;
         }
         self.message.clear();
-        self.switchMode(mode_name);
-        for (var mode in self.modeButtonMap) {
-            if (mode != mode_name)
-                self.enable_button(mode);
-        }
-        self.preview_link_reset();
-        Cookie.set('first_wikiwyg_mode', mode_name);
-        self.setFirstModeByName(mode_name);
+        self.switchMode(mode_name, function() {
+            for (var mode in self.modeButtonMap) {
+                if (mode != mode_name)
+                    self.enable_button(mode);
+            }
+            self.preview_link_reset();
+            Cookie.set('first_wikiwyg_mode', mode_name);
+            self.setFirstModeByName(mode_name);
+        });
         return false;
     }
 }
@@ -744,9 +765,35 @@ proto.newpage_save = function(page_name, pagename_editfield) {
     return saved;
 }
 
+proto.isOffline = function () {
+    if (typeof navigator == 'object' && typeof navigator.onLine == 'boolean' && !navigator.onLine) {
+        return true;
+    }
+
+    // WebKit's navigator.onLine is unreliable when VMWare or Parallels is
+    // installed - https://bugs.webkit.org/show_bug.cgi?id=32327
+    // Do a GET on blank.html to determine onlineness instead.
+    var onLine = false;
+    $.ajax({
+        async: false,
+        type: 'GET',
+        url: '/static/html/blank.html?_=' + Math.random(),
+        timeout: 10 * 1000,
+        success: function(data) {
+            onLine = data;
+        }
+    });
+    return !onLine;
+}
+
 proto.saveContent = function() {
-    if (jQuery('#st-editing-tools-edit ul').is(':hidden')) {
+    if (jQuery('#st-save-button-link').is(':hidden')) {
         // Don't allow "Save" to be clicked while saving: {bz: 1718}
+        return;
+    }
+
+    if (this.isOffline()) {
+        alert(loc("The browser is currently offline; please connect to the internet and try again."));
         return;
     }
 
@@ -865,14 +912,25 @@ proto.saveNewPage = function() {
 }
 
 proto.saveChanges = function() {
-    this.disableLinkConfirmations();
+    var self = this;
+    self.disableLinkConfirmations();
 
     jQuery('#st-page-editing-summary')
         .val(this.edit_summary());
     var $signal_checkbox = jQuery('#st-edit-summary-signal-checkbox');
     jQuery('#st-page-editing-signal-summary')
         .val($signal_checkbox.length && ($signal_checkbox[0].checked ? '1' : '0'));
+    jQuery('#st-page-editing-signal-to')
+        .val( $('#st-edit-summary-signal-to').val() );
 
+    var originalWikitext = self.originalWikitext;
+    var on_error = function() {
+        self.enableLinkConfirmations();
+        self.originalWikitext = originalWikitext;
+        jQuery("#st-edit-summary").show();
+        jQuery('#st-editing-tools-edit ul').show();
+        jQuery('#saving-message').remove();
+    };
     var submit_changes = function(wikitext) {
         /*
         if ( Wikiwyg.is_safari ) {
@@ -884,6 +942,7 @@ proto.saveChanges = function() {
 
         var saver = function() {
             Socialtext.prepare_attachments_before_save();
+            Socialtext.set_save_error_resume_handler(on_error);
 
             jQuery('#st-page-editing-pagebody').val(wikitext);
             jQuery('#st-page-editing-form').trigger('submit');
@@ -903,7 +962,6 @@ proto.saveChanges = function() {
         submit_changes(wikitext);
         return;
     }
-    var self = this;
     this.current_mode.toHtml(
         function(html) {
             var wikitext_mode = self.modeByName(WW_ADVANCED_MODE);
@@ -911,7 +969,8 @@ proto.saveChanges = function() {
                 html,
                 function(wikitext) { submit_changes(wikitext) }
             );
-        }
+        },
+        on_error
     );
 }
 
@@ -971,6 +1030,7 @@ proto.enableLinkConfirmations = function() {
     var self = this;
     window.onunload = function(ev) {
         self.signal_edit_cancel();
+        Socialtext.discardDraft('edit_cancel');
         Attachments.delete_new_attachments();
     }
 
@@ -1015,10 +1075,8 @@ proto.contentIsModified = function() {
     if (this.originalWikitext == null) {
         return true;
     }
-    // XXX This could be done more upstream...
-    var current_wikitext = this.get_current_wikitext().replace(
-        /\r/g, ''
-    );
+
+    var current_wikitext = this.get_current_wikitext();
 
     /* The initial clearing of "Replace this text with your own." shouldn't
      * count as modification -- {bz: 2232} */
@@ -1034,7 +1092,7 @@ proto.diffContent = function () {
         jQuery.showLightbox('There is no originalWikitext');
     }
     else if (this.contentIsModified()) {
-        var current_wikitext = this.get_current_wikitext().replace(/\r/g, '');
+        var current_wikitext = this.get_current_wikitext();
         jQuery.ajax({
             type: 'POST',
             url: location.pathname,
@@ -1132,7 +1190,7 @@ Wikiwyg.htmlUnescape = function(escaped) {
         "<div>" + 
         escaped.replace(/</g, '&lt;')
                .replace(/ /g, '&#160;')
-               .replace(/\n/g, _NewlineReplacementCharacter_) +
+               .replace(/\r?\n/g, _NewlineReplacementCharacter_) +
         "</div>"
     ).text().replace(/\xA0/g, ' ')
             .replace(new RegExp(_NewlineReplacementCharacter_, 'g'), '\n');
@@ -1180,10 +1238,6 @@ String.prototype.times = function(n) {
     return n ? this + this.times(n-1) : "";
 }
 
-String.prototype.ucFirst = function () {
-    return this.substr(0,1).toUpperCase() + this.substr(1,this.length);
-}
-
 Wikiwyg.is_old_firefox = (
     Wikiwyg.ua.indexOf('firefox/1.0.7') != -1 &&
     Wikiwyg.ua.indexOf('safari') == -1 &&
@@ -1226,6 +1280,10 @@ this.addGlobal().setup_wikiwyg = function() {
 
         if (Wikiwyg.is_gecko) {
             jQuery("iframe#st-page-editing-wysiwyg").attr("scrolling", "auto");
+        }
+
+        if (Socialtext.show_signal_network_dropdown) {
+            Socialtext.show_signal_network_dropdown();
         }
     }
 
@@ -1305,12 +1363,13 @@ this.addGlobal().setup_wikiwyg = function() {
 
     ww.cancel_nlw_wikiwyg = function () {
         ww.confirmed = true;
+        Socialtext.discardDraft('edit_cancel');
         Attachments.delete_new_attachments();
         if (Socialtext.new_page) {
             window.location = '?action=homepage';
         }
-        else if (location.href.match(/caller_action=weblog_display;?/)) {
-            location.href = 'index.cgi?action=weblog_redirect;start=' +
+        else if (location.href.match(/caller_action=blog_display;?/)) {
+            location.href = 'index.cgi?action=blog_redirect;start=' +
                 encodeURIComponent(location.href);
             return false;
         }
@@ -1340,7 +1399,7 @@ this.addGlobal().setup_wikiwyg = function() {
         ww.is_editing = false;
         ww.showScrollbars();
 
-        jQuery('#st-edit-summary-text-area').val('');
+        jQuery('#st-edit-summary-text-area, #st-edit-summary-signal-to').val('');
         jQuery('#st-edit-summary-signal-checkbox').attr('checked', false);
 
         Socialtext.ui_expand_off();
@@ -1404,6 +1463,20 @@ this.addGlobal().setup_wikiwyg = function() {
                 Page.refreshPageContent();
 
             Attachments.reset_new_attachments();
+
+            Socialtext.maybeLoadDraft(function(draft) {
+                ww.modeByName(WW_ADVANCED_MODE).convertWikitextToHtml(
+                    draft.content,
+                    function(new_html) {
+                        Page.html = new_html;
+                    }
+                );
+            });
+
+            Socialtext.startAutoSave(function(){
+                if (!ww.contentIsModified()) { return; }
+                return ww.get_current_wikitext();
+            });
 
 // We used to use this line:
 //          myDiv.innerHTML = $('st-page-content').innerHTML;
@@ -1647,7 +1720,8 @@ this.addGlobal().setup_wikiwyg = function() {
     jQuery('#st-edit-mode-tagbutton').click(function() {
         jQuery.showLightbox({
             content:'#st-tagqueue-interface',
-            close:'#st-tagqueue-close'
+            close:'#st-tagqueue-close',
+            focus:'#st-tagqueue-field'
         });
         return false;
     });
@@ -1662,7 +1736,6 @@ this.addGlobal().setup_wikiwyg = function() {
         });
 
     var add_tag = function() {
-        var rand = (''+Math.random()).replace(/\./, '');
         var input_field = jQuery('#st-tagqueue-field');
         var tag = input_field.val();
         if (tag == '') return false;
@@ -1679,35 +1752,7 @@ this.addGlobal().setup_wikiwyg = function() {
 
         if ( skip ) { return false; }
 
-        jQuery("#st-page-editing-files")
-            .append(jQuery('<input type="hidden" name="add_tag" id="st-tagqueue-' + rand +'" />').val(tag));
-
-        jQuery('#st-tagqueue-list').show();
-
-        jQuery("#st-tagqueue-list")
-            .append(
-                jQuery('<span class="st-tagqueue-taglist-name" id="st-taglist-'+rand+'" />')
-                .text(
-                    (jQuery('.st-tagqueue-taglist-name').size() ? ', ' : '')
-                    + tag
-                )
-            );
-
-        jQuery("#st-taglist-" + rand)
-            .append(
-                jQuery('<a href="#" class="st-tagqueue-taglist-delete" />')
-                    .attr('title', loc("Remove [_1] from the queue", tag))
-                    .click(function () {
-                        jQuery('#st-taglist-'+rand).remove();
-                        jQuery('#st-tagqueue-'+rand).remove();
-                        if (!jQuery('.st-tagqueue-taglist-name').size())
-                            jQuery('#st-tagqueue-list').hide();
-                        return false;
-                    })
-                    .html(
-                        '<img src="/static/skin/common/images/delete.png" width="16" height="16" border="0" />'
-                    )
-            );
+        Socialtext.addNewTag(tag);
 
        return false;
     };
@@ -1825,6 +1870,25 @@ var proto = this.prototype;
 
 // Fix {bz: 2339} 'this.init is not a function'
 proto.init = function() {}
+
+// Turns HTML into Wikitext, then to HTML again
+proto.toNormalizedHtml = function(cb) {
+    var self = this;
+    self.toHtml(function(html){
+        var wikitext_mode = self.wikiwyg.modeByName('Wikiwyg.Wikitext');
+        wikitext_mode.convertHtmlToWikitext(
+            html,
+            function(wikitext) {
+                wikitext_mode.convertWikitextToHtml(
+                    wikitext,
+                    function(new_html) {
+                        cb(new_html);
+                    }
+                );
+            }
+        );
+    });
+}
 
 proto.enableThis = function() {
     this.div.style.display = 'block';
@@ -2230,7 +2294,7 @@ proto.set_add_a_link_error = function(msg) {
 }
 
 proto.create_link_wafl = function(label, workspace, pagename, section) {
-    var label_txt = label ? "\"" + label + "\"" : "";
+    var label_txt = label ? "\"" + label.replace(/"/g, '\uFF02') + "\"" : "";
     var wafl = label_txt + "{link:";
     if (workspace) { wafl += " " + workspace; }
     if (pagename) { wafl += " [" + pagename + "]"; }
@@ -2243,8 +2307,8 @@ proto.create_link_wafl = function(label, workspace, pagename, section) {
 
 ;
 // BEGIN Widgets.js
-Wikiwyg.Widgets =
-{"widgets":["link2","link2_hyperlink","link2_section","image","file","toc","include","section","recent_changes","hashtag","tag","tag_list","weblog","weblog_list","fetchrss","fetchatom","search","googlesoap","googlesearch","technorati","aim","yahoo","skype","user","date","asis","new_form_page","ss"],"api_for_title":{"workspace_id":"/data/workspaces/:workspace_id"},"match":{"skype_id":"^(\\S+)$","workspace_id":"^[a-z0-9_\\-]+$","user_email":"^([a-zA-Z0-9_\\+\\.\\-\\&\\!\\%\\+\\$\\*\\^\\']+\\@(([a-zA-Z0-9\\-])+\\.)+([a-zA-Z0-9:]{2,4})+)$","yahoo_id":"^(\\S+)$","aim_id":"^(\\S+)$","date_string":"^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.*)$"},"fields":{"search_term":"Search term","tag_name":"Tag name","image_name":"Image name","form_name":"Form name","date_string":"YYYY-MM-DD&nbsp;HH:MM:SS","weblog_name":"Weblog name","section_name":"Section name","file_name":"File name","form_text":"Link text","user_email":"User\\'s email","page_title":"Page title","workspace_id":"Workspace","skype_id":"Skype name","relative_url":"Relative URL","spreadsheet_title":"Spreadsheet title","rss_url":"RSS feed URL","atom_url":"Atom feed URL","spreadsheet_cell":"Spreadsheet cell","asis_content":"Unformatted content","label":"Link text","aim_id":"AIM screen name","yahoo_id":"Yahoo! ID"},"synonyms":{"callto":"skype","category_list":"tag_list","callme":"skype","ymsgr":"yahoo","category":"tag"},"regexps":{"workspace-value":"^(?:(\\S+);)?\\s*(.*?)?\\s*$","three-part-link":"^(\\S*)?\\s*\\[([^\\]]*)\\]\\s*(.*?)?\\s*$"},"widget":{"search":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","search_term"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"gold4","required":["search_term"],"desc":"Display the search results for the given phrase within a workspace. Use this form to edit the properties for the search.","id":"search","image_text":[{"text":"search: %search_term","field":"default"}],"labels":{"seach_term":"Search for","workspace_id":"In"},"more_desc":"Optional properties include the name of the workspace to search, whether to search in the page title, text or tags, and whether to display full results or just page titles.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{search: <%workspace_id> %search_term}","fields":["search_term","workspace_id"],"title":{"default":"Search for '$search_term'. Click to edit.","full":"Display result for searching '$search_term'. Click to edit."},"label":"Search Results"},"date":{"more_desc":"There are no optional properties for a date display.","pattern":"{date: %date_string}","color":"royalblue","desc":"Display the given date and time in the individually-set time zone for each reader. Use this form to edit the date and time to be displayed","title":"Display '$date_string' in reader's time zone. Click to edit.","label":"Date in Local Time","id":"date","image_text":[{"text":"date: %date_string","field":"default"}],"field":"date_string"},"tag_list":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","tag_name"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"darkviolet","required":["tag_name"],"desc":"Display a list of the most recently changed pages in a workspace that have a specific tag. By default only the page title is displayed. Use this form to edit the list properties.","id":"tag_list","image_text":[{"text":"tag list: %tag_name","field":"default"}],"labels":{"workspace_id":"Pages in"},"more_desc":"Optional properties include specifying which workspace to use and whether to display page titles or whole pages.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{tag_list: <%workspace_id> %tag_name}","fields":["tag_name","workspace_id"],"title":{"default":"Pages with the '$tag_name' tag. Click to edit.","full":"Display pages with the '$tag_name' tag. Click to edit."},"label":"Tag List"},"file":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio"},"parse":{"fields":["workspace_id","page_title","file_name"],"regexp":"?three-part-link","no_match":"file_name"},"pdfields":["workspace_id","page_title","label"],"color":"brown","required":["file_name"],"desc":"Display a link to a file attached to a page. Use this form to edit the properities of the link.","id":"file","image_text":[{"text":"file: %label","field":"label"},{"text":"file: %file_name","field":"default"}],"labels":{"workspace_id":"Page in","file_name":"Attachment filename","page_title":"File attached to"},"more_desc":"Optional properties include specifying a different page for the attachment, and link text.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"\"%label\"{file: %workspace_id [%page_title] %file_name}","fields":["file_name","workspace_id","page_title","label"],"title":"Link to file '$file_name'. Click to edit.","label":"Attachment Link"},"hashtag":{"pattern":"{hashtag: %tag}","color":"green","required":["tag"],"fields":["tag"],"title":"Link to tag '$tag'. Click to edit.","label":"Signal Tag Link","id":"hashtag","image_text":[{"text":"#%tag","field":"tag"}]},"ss":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio"},"parse":{"regexp":"?three-part-link"},"pdfields":[],"color":"pink","required":["spreadsheet_title"],"desc":"Display the contents of a spreadsheet within the current page. Use this form to edit the properties for the spreadsheet include.","id":"ss","image_text":[{"text":"ss: %spreadsheet_title (%spreadsheet_cell)","field":"default"}],"labels":{"workspace_id":"Other spreadsheet in"},"more_desc":"There are no optional properties for spreadsheet include.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"{ss: %workspace_id [%spreadsheet_title] %spreadsheet_cell}","fields":["workspace_id","spreadsheet_title","spreadsheet_cell"],"title":"Include the page '$spreadsheete_title'. Click to edit.","label":"Spreadsheet Include"},"irc":{"color":"darkorange","title":"IRC link. Edit in Wiki Text mode.","id":"irc","uneditable":"true"},"http":{"color":"darkorange","title":"Relative HTTP link. Edit in Wiki Text mode.","id":"http","uneditable":"true"},"link2_hyperlink":{"more_desc":"Optional properties include the text to display for the link.","hide_in_menu":"true","primary_field":"url","pdfields":["label","url"],"color":"blue","pattern":"\"%label\"{link: %workspace_id [%page_title] %section_name}","required":["url"],"fields":["label","url"],"desc":"Use this form to edit the properties of the link to a web page.","title":"Link to '$url'. Click to edit.","id":"link2_hyperlink","label":"Link to a Web Page","labels":{"url":"Link destination","label":"Linked text"}},"user":{"more_desc":"There are no optional properties for a user name.","pattern":"{user: %user_email}","color":"darkgoldenrod","required":["user_email"],"desc":"Display the full name for the given email address or user name. Use this form to edit the properties of the user name.","title":"User mention. Click to edit.","label":"User Name","id":"user","image_text":[{"text":"user: %user_email","field":"default"}],"field":"user_email"},"tag":{"more_desc":"Optional properties include link text, and the name of a different workspace for the tags.","input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","tag_name"],"regexp":"?workspace-value","no_match":"tag_name"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["label","workspace_id"],"color":"green","pattern":"\"%label\"{tag: %workspace_id; %tag_name}","required":["tag_name"],"fields":["tag_name","label","workspace_id"],"desc":"Display a link to a list of pages with a specific tag. Use this form to edit the properties of the link.","id":"tag","label":"Tag Link","title":"Link to tag '$tag_name'. Click to edit.","image_text":[{"text":"tag: %label","field":"label"},{"text":"tag: %tag_name","field":"tag_name"}],"labels":{"workspace_id":"Search"}},"yahoo":{"more_desc":"There are no optional properties for a Yahoo! link.","pattern":"yahoo:%yahoo_id","required":["yahoo_id"],"desc":"Display a link to a Yahoo! instant message ID. The icon will show whether the person is online. Clicking the link will start an IM conversation with the person if your IM client is properly configured. Use this form to edit the properties of the link.","markup":["bound_phrase","yahoo:",""],"title":"Instant message to '$yahoo_id' using Yahoo! Click to edit.","label":"Yahoo! IM Link","id":"yahoo","image_text":[{"text":"Yahoo! IM: %yahoo_id","field":"default"}],"field":"yahoo_id"},"googlesoap":{"more_desc":"There are no optional properties for an Google search.","color":"saddlebrown","pattern":"{googlesoap: %search_term}","desc":"Display the results from a Google search. Use this form to edit the properties for the search.","id":"googlesoap","label":"Google Search","title":"Search Google for '$search_term'. Click to edit.","labels":{"search_term":"Search for"},"image_text":[{"text":"Google: %search_term","field":"default"}],"field":"search_term"},"new_form_page":{"more_desc":"There are no optional properties for a new form page.","parse":{"regexp":"^\\s*(\\S+)\\s+(.+)\\s*$"},"on_menu":"false","color":"maroon","pattern":"{new_form_page: %form_name %form_text}","fields":["form_name","form_text"],"required":["form_name","form_text"],"desc":"Select a form and generates a new form page.","id":"new_form_page","label":"New Form Page","title":"Use $form_name to generate a form. Click to edit.","image_text":[{"text":"form: %form_name","field":"default"}]},"sharepoint":{"color":"red","title":"Sharepoint link. Edit in Wiki Text mode.","id":"sharepoint","uneditable":"true"},"skype":{"more_desc":"There are no optional properties for a Skype link.","pattern":"skype:%skype_id","required":["skype_id"],"desc":"Display a link to a Skype name. Clicking the link will start a Skype call with the person if your Skype client is properly configured. Use this form to edit the properties of the link.","markup":["bound_phrase","skype:",""],"title":"Call '$skype_id' using Skype. Click to edit.","label":"Skype Link","id":"skype","image_text":[{"text":"Skype: %skype_id","field":"default"}],"field":"skype_id"},"https":{"color":"darkorange","title":"HTTP relative link. Edit in Wiki Text mode.","id":"https","uneditable":"true"},"recent_changes":{"more_desc":"Optionally, specify that the page contents should be displayed.","input":{"workspace_id":"radio"},"parse":{"regexp":"^\\s*(.*?)?\\s*$"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","color":"gold","pattern":"{recent_changes: %workspace_id}","fields":["workspace_id"],"desc":"Display a list of pages recently changed in a workspace. By default only the page titles are displayed. Use this form to edit the list properties.","id":"recent_changes","label":"What\\'s New","title":{"default":"What's new in the '$workspace_id' workspace. Click to edit.","full":"Display what's new in the '$workspace_id' workspace. Click to edit."},"image_text":[{"text":"recent changes: %workspace_id","field":"workspace_id"},{"text":"recent changes","field":"default"}],"labels":{"workspace_id":"Workspace"}},"include":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio"},"parse":{"regexp":"^(\\S*)?\\s*\\[([^\\]]*)\\]\\s*$"},"pdfields":[],"color":"darkblue","required":["page_title"],"desc":"Display the contents of another page within the current page. Use this form to edit the properties for the page include.","id":"include","image_text":[{"text":"include: %page_title","field":"default"}],"labels":{"workspace_id":"Other page in"},"more_desc":"There are no optional properties for page include.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"{include: %workspace_id [%page_title]}","fields":["workspace_id","page_title"],"title":"Include the page '$page_title'. Click to edit.","label":"Page Include"},"googlesearch":{"more_desc":"There are no optional properties for an Google search.","color":"saddlebrown","pattern":"{googlesearch: %search_term}","desc":"Display the results from a Google search. Use this form to edit the properties for the search.","id":"googlesearch","label":"Google Search","title":"Search Google for '$search_term'. Click to edit.","labels":{"search_term":"Search for"},"image_text":[{"text":"Google: %search_term","field":"default"}],"field":"search_term"},"section":{"more_desc":"There are no optional properties for a section marker.","pattern":"{section: %section_name}","color":"darkred","desc":"Add a section marker at the current cursor location. You can link to a section marker using a \"Section Link\". Use this form to edit the properties for the section marker.","title":"Section marker '$section_name'. Click to edit.","label":"Section Marker","id":"section","image_text":[{"text":"section: %section_name","field":"default"}],"field":"section_name"},"weblog_list":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","weblog_name"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"forestgreen","required":["weblog_name"],"desc":"Display a list of the most recent entries from a weblog in a workspace. By default only the weblog entry names are displayed. Use this form to edit the list properties.","id":"weblog_list","image_text":[{"text":"weblog list: %weblog_name","field":"default"}],"labels":{"workspace_id":"in"},"more_desc":"Optional parameters include specifying which workspace to use and whether to display page titles or whole pages.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{weblog_list: <%workspace_id> %weblog_name}","fields":["workspace_id","weblog_name"],"title":{"default":"Include the weblog '$weblog_name'. Click to edit.","full":"Display the weblog '$weblog_name'. Click to edit."},"label":"Weblog List"},"ftp":{"color":"darkorange","title":"FTP link. Edit in Wiki Text mode.","id":"ftp","uneditable":"true"},"html":{"color":"indianred","title":"Raw HTML section. Edit in Wiki Text mode.","id":"html","uneditable":"true"},"technorati":{"more_desc":"There are no optional properties for a Technorati search.","color":"darkmagenta","pattern":"{technorati: %search_term}","desc":"Display the results for a Technorati search. Use this form to edit the properties for the search.","id":"technorati","label":"Technorati Search","title":"Search Technorati for '$search_term'. Click to edit.","labels":{"search_term":"Search for"},"image_text":[{"text":"Technorati: %search_term","field":"default"}],"field":"search_term"},"unknown":{"color":"darkslategrey","title":"Unknown widget '$unknown_id'. Edit in Wiki Text mode.","id":"unknown","uneditable":"true"},"toc":{"more_desc":"Optionally, specify which page\\'s headers and sections to use for the table of contents.","checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio"},"parse":{"regexp":"^(\\S*)?\\s*\\[([^\\]]*)\\]\\s*$","no_match":"workspace_id"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["workspace_id","page_title"],"color":"darkseagreen","pattern":"{toc: %workspace_id [%page_title]}","fields":["workspace_id","page_title"],"desc":"Display a table of contents for a page. Each header or section on the page is listed as a link in the table of contents. Click \"Save\" now, or click \"More options\" to edit the properties for the table of contents.","id":"toc","label":"Table of Contents","title":"Table of contents for '$page_title'. Click to edit.","image_text":[{"text":"toc: %page_title","field":"page_title"},{"text":"toc","field":"default"}],"labels":{"workspace_id":"Page in","page_title":"Headers and<br/>sections in"}},"link2":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio"},"parse":{"fields":["workspace_id","page_title","section_name"],"regexp":"?three-part-link","no_match":"section_name"},"primary_field":"section_name","pdfields":["label","workspace_id","page_title"],"color":"blue","select_if":{"blank":["workspace_id"]},"required":["section_name"],"desc":"Use this form to edit the properties of the link to a page section.","id":"link2","image_text":[{"text":"link: %label","field":"label"},{"text":"link: %page_title (%section_name )","field":"page_title"},{"text":"link: %section_name","field":"default"}],"labels":{"workspace_id":"Workspace"},"more_desc":"Optional properties include the text to display for the link, and the title of a different page.","hide_in_menu":"true","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"\"%label\"{link: %workspace_id [%page_title] %section_name}","fields":["section_name","label","workspace_id","page_title"],"label":"Link to a Wiki page","title":"Link to $workspace_id: '$page_title' $section_name. Click to edit."},"weblog":{"more_desc":"Optional properties include link text, and the name of a different workspace for the weblog.","input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","weblog_name"],"regexp":"?workspace-value","no_match":"weblog_name"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["label","workspace_id"],"color":"purple","pattern":"\"%label\"{weblog: %workspace_id; %weblog_name}","required":["weblog_name"],"fields":["label","weblog_name","workspace_id"],"desc":"Display a link to a weblog. Use this form to edit the properties of the link.","id":"weblog","label":"Weblog Link","title":"Link to weblog '$weblog_name'. Click to edit.","image_text":[{"text":"weblog: %label","field":"label"},{"text":"weblog: %weblog_name","field":"default"}],"labels":{"workspace_id":"Weblog on"}},"fetchatom":{"more_desc":"There are no optional properties for an Atom feed.","pattern":"{fetchatom: %atom_url}","color":"darkgreen","desc":"Display the content of an Atom feed. Use this form to edit the properties of the inline Atom feed.","title":"Include the '$atom_url' Atom feed. Click to edit.","label":"Inline Atom","id":"fetchatom","image_text":[{"text":"feed: %atom_url","field":"default"}],"field":"atom_url"},"fetchrss":{"more_desc":"There are no optional properties for an RSS feed.","pattern":"{fetchrss: %rss_url}","color":"orange","desc":"Display the content of an RSS feed. Use this form to edit the properties of the inline RSS feed.","title":"Include the '$rss_url' RSS feed. Click to edit.","label":"Inline RSS","id":"fetchrss","image_text":[{"text":"feed: %rss_url","field":"default"}],"field":"rss_url"},"aim":{"more_desc":"There are no optional properties for an AIM link.","pattern":"aim:%aim_id","required":["aim_id"],"desc":"Display a link to an AIM screen name. The icon will show whether the person is online. Clicking the link will start an IM conversation with the person if your IM client is properly configured. Use this form to edit the properties of the link.","markup":["bound_phrase","aim:",""],"title":"Instant message to '$aim_id' using AIM. Click to edit.","label":"AIM Link","id":"aim","image_text":[{"text":"AIM: %aim_id","field":"default"}],"field":"aim_id"},"image":{"extra_fields":["width","height"],"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio","size":"size"},"parse":{"fields":["workspace_id","page_title","image_name"],"regexp":"?three-part-link","no_match":"image_name"},"pdfields":["workspace_id","page_title","label"],"color":"red","required":["image_name"],"desc":"Display an image on this page. The image must be already uploaded as an attachment to this page or another page. Use this form to edit the properties of the displayed image.","id":"image","image_text":[{"text":"image: %label","field":"label"},{"text":"image: %image_name","field":"default"}],"labels":{"workspace_id":"Page in","image_name":"Image filename","page_title":"Attached to","size":"Size"},"more_desc":"Optional properties include the title of another page to which the image is attached, and link text. If link text is specified then a link to the image is displayed instead of the image.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"\"%label\"{image: %workspace_id [%page_title] %image_name size=%size}","fields":["image_name","workspace_id","page_title","label","size"],"label":"Attached Image","title":"Display image '$image_name'. Click to edit."},"link2_section":{"more_desc":"Optional properties include the text to display for the link.","hide_in_menu":"true","primary_field":"url","pdfields":["label","url"],"color":"blue","pattern":"\"%label\"{link: %workspace_id [%page_title] %section_name}","required":["url"],"fields":["label","url"],"desc":"Use this form to edit the properties of the link to a section.","title":"Link to '$url'. Click to edit.","id":"link2_section","label":"Link to a Section","labels":{"url":"Link destination","label":"Linked text"}},"asis":{"more_desc":"There are no optional properties for unformatted text.","pattern":"{{%asis_content}}","color":"darkslateblue","required":["asis_content"],"desc":"Include unformatted text in the page. This text will not be treated as wiki text. Use this form to edit the text.","markup":["bound_phrase","{{","}}"],"title":"Unformatted Content","label":"Unformatted","id":"asis","image_text":[{"text":"unformatted: %asis_content","field":"default"}],"field":"asis_content"}},"menu_hierarchy":[{"widget":"ss","label":"Spreadsheet"},{"widget":"image","label":"Image"},{"insert":"table","label":"Table"},{"insert":"hr","label":"Horizontal Line"},{"sub_menu":[{"widget":"file","label":"A file attached to this page"},{"widget":"link2_section","label":"A section in this page"},{"widget":"link2","label":"A different wiki page"},{"widget":"weblog","label":"A person's blog"},{"widget":"tag","label":"Pages related to a tag"},{"widget":"link2_hyperlink","label":"A page on the web"}],"label":"A link to..."},{"sub_menu":[{"widget":"include","label":"A page include"},{"widget":"ss","label":"A spreadsheet include"},{"widget":"tag_list","label":"Tagged pages"},{"widget":"recent_changes","label":"Recent changes"},{"widget":"weblog_list","label":"Blog postings"},{"widget":"search","label":"Wiki search results"}],"label":"From workspaces..."},{"sub_menu":[{"widget":"googlesearch","label":"Google search results"},{"widget":"technorati","label":"Technorati results"},{"widget":"fetchrss","label":"RSS feed items"},{"widget":"fetchatom","label":"Atom feed items"}],"label":"From the web..."},{"sub_menu":[{"widget":"toc","label":"Table of contents"},{"widget":"section","label":"Section marker"},{"insert":"hr","label":"Horizontal line"}],"label":"Organizing your page..."},{"sub_menu":[{"widget":"skype","label":"Skype link"},{"widget":"aim","label":"AIM link"},{"widget":"yahoo","label":"Yahoo! Messenger link"}],"label":"Communicating..."},{"sub_menu":[{"widget":"user","label":"User name"},{"widget":"date","label":"Local Date & Time"}],"label":"Name & Date..."},{"widget":"asis","label":"Unformatted text..."}]};
+// BEGIN Widgets.yaml
+Wikiwyg.Widgets = {"widgets":["link2","link2_hyperlink","link2_section","image","file","toc","include","section","recent_changes","hashtag","tag","tag_list","blog","blog_list","weblog","weblog_list","fetchrss","fetchatom","search","googlesoap","googlesearch","technorati","aim","yahoo","skype","user","date","asis","new_form_page","ss"],"api_for_title":{"workspace_id":"/data/workspaces/:workspace_id"},"match":{"skype_id":"^(\\S+)$","workspace_id":"^[a-z0-9_\\-]+$","user_email":"^([a-zA-Z0-9_\\+\\.\\-\\&\\!\\%\\+\\$\\*\\^\\']+\\@(([a-zA-Z0-9\\-])+\\.)+([a-zA-Z0-9:]{2,4})+)$","yahoo_id":"^(\\S+)$","aim_id":"^(\\S+)$","date_string":"^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.*)$"},"fields":{"search_term":"Search term","blog_name":"Blog name","tag_name":"Tag name","image_name":"Image name","form_name":"Form name","date_string":"YYYY-MM-DD&nbsp;HH:MM:SS","section_name":"Section name","file_name":"File name","form_text":"Link text","user_email":"User\\'s email","page_title":"Page title","workspace_id":"Workspace","skype_id":"Skype name","relative_url":"Relative URL","spreadsheet_title":"Spreadsheet title","rss_url":"RSS feed URL","atom_url":"Atom feed URL","spreadsheet_cell":"Spreadsheet cell","asis_content":"Unformatted content","label":"Link text","aim_id":"AIM screen name","yahoo_id":"Yahoo! ID"},"synonyms":{"callto":"skype","category_list":"tag_list","callme":"skype","ymsgr":"yahoo","category":"tag"},"regexps":{"workspace-value":"^(?:(\\S+);)?\\s*(.*?)?\\s*$","three-part-link":"^(\\S*)?\\s*\\[([^\\]]*)\\]\\s*(.*?)?\\s*$"},"widget":{"search":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","search_term"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"gold4","required":["search_term"],"desc":"Display the search results for the given phrase within a workspace. Use this form to edit the properties for the search.","id":"search","image_text":[{"text":"search: %search_term","field":"default"}],"labels":{"seach_term":"Search for","workspace_id":"In"},"more_desc":"Optional properties include the name of the workspace to search, whether to search in the page title, text or tags, and whether to display full results or just page titles.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{search: <%workspace_id> %search_term}","fields":["search_term","workspace_id"],"title":{"default":"Search for '$search_term'. Click to edit.","full":"Display result for searching '$search_term'. Click to edit."},"label":"Search Results"},"date":{"more_desc":"There are no optional properties for a date display.","pattern":"{date: %date_string}","color":"royalblue","desc":"Display the given date and time in the individually-set time zone for each reader. Use this form to edit the date and time to be displayed","title":"Display '$date_string' in reader's time zone. Click to edit.","label":"Date in Local Time","id":"date","image_text":[{"text":"date: %date_string","field":"default"}],"field":"date_string"},"tag_list":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","tag_name"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"darkviolet","required":["tag_name"],"desc":"Display a list of the most recently changed pages in a workspace that have a specific tag. By default only the page title is displayed. Use this form to edit the list properties.","id":"tag_list","image_text":[{"text":"tag list: %tag_name","field":"default"}],"labels":{"workspace_id":"Pages in"},"more_desc":"Optional properties include specifying which workspace to use and whether to display page titles or whole pages.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{tag_list: <%workspace_id> %tag_name}","fields":["tag_name","workspace_id"],"title":{"default":"Pages with the '$tag_name' tag. Click to edit.","full":"Display pages with the '$tag_name' tag. Click to edit."},"label":"Tag List"},"file":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio"},"parse":{"fields":["workspace_id","page_title","file_name"],"regexp":"?three-part-link","no_match":"file_name"},"pdfields":["workspace_id","page_title","label"],"color":"brown","required":["file_name"],"desc":"Display a link to a file attached to a page. Use this form to edit the properities of the link.","id":"file","image_text":[{"text":"file: %label","field":"label"},{"text":"file: %file_name","field":"default"}],"labels":{"workspace_id":"Page in","file_name":"Attachment filename","page_title":"File attached to"},"more_desc":"Optional properties include specifying a different page for the attachment, and link text.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"\"%label\"{file: %workspace_id [%page_title] %file_name}","fields":["file_name","workspace_id","page_title","label"],"title":"Link to file '$file_name'. Click to edit.","label":"Attachment Link"},"hashtag":{"pattern":"{hashtag: %tag}","color":"green","required":["tag"],"fields":["tag"],"title":"Link to tag '$tag'. Click to edit.","label":"Signal Tag Link","id":"hashtag","image_text":[{"text":"#%tag","field":"tag"}]},"ss":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio"},"parse":{"regexp":"?three-part-link"},"pdfields":[],"color":"pink","required":["spreadsheet_title"],"desc":"Display the contents of a spreadsheet within the current page. Use this form to edit the properties for the spreadsheet include.","id":"ss","image_text":[{"text":"ss: %spreadsheet_title (%spreadsheet_cell)","field":"default"}],"labels":{"workspace_id":"Other spreadsheet in"},"more_desc":"There are no optional properties for spreadsheet include.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"{ss: %workspace_id [%spreadsheet_title] %spreadsheet_cell}","fields":["workspace_id","spreadsheet_title","spreadsheet_cell"],"title":"Include the page '$spreadsheete_title'. Click to edit.","label":"Spreadsheet Include"},"irc":{"color":"darkorange","title":"IRC link. Edit in Wiki Text mode.","id":"irc","uneditable":"true"},"http":{"color":"darkorange","title":"Relative HTTP link. Edit in Wiki Text mode.","id":"http","uneditable":"true"},"link2_hyperlink":{"more_desc":"Optional properties include the text to display for the link.","hide_in_menu":"true","primary_field":"url","pdfields":["label","url"],"color":"blue","pattern":"\"%label\"{link: %workspace_id [%page_title] %section_name}","required":["url"],"fields":["label","url"],"desc":"Use this form to edit the properties of the link to a web page.","title":"Link to '$url'. Click to edit.","id":"link2_hyperlink","label":"Link to a Web Page","labels":{"url":"Link destination","label":"Linked text"}},"user":{"more_desc":"There are no optional properties for a user name.","pattern":"{user: %user_email}","color":"darkgoldenrod","required":["user_email"],"desc":"Display the full name for the given email address or user name. Use this form to edit the properties of the user name.","title":"User mention. Click to edit.","label":"User Name","id":"user","image_text":[{"text":"user: %user_email","field":"default"}],"field":"user_email"},"tag":{"more_desc":"Optional properties include link text, and the name of a different workspace for the tags.","input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","tag_name"],"regexp":"?workspace-value","no_match":"tag_name"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["label","workspace_id"],"color":"green","pattern":"\"%label\"{tag: %workspace_id; %tag_name}","required":["tag_name"],"fields":["tag_name","label","workspace_id"],"desc":"Display a link to a list of pages with a specific tag. Use this form to edit the properties of the link.","id":"tag","label":"Tag Link","title":"Link to tag '$tag_name'. Click to edit.","image_text":[{"text":"tag: %label","field":"label"},{"text":"tag: %tag_name","field":"tag_name"}],"labels":{"workspace_id":"Search"}},"yahoo":{"more_desc":"There are no optional properties for a Yahoo! link.","pattern":"yahoo:%yahoo_id","required":["yahoo_id"],"desc":"Display a link to a Yahoo! instant message ID. The icon will show whether the person is online. Clicking the link will start an IM conversation with the person if your IM client is properly configured. Use this form to edit the properties of the link.","markup":["bound_phrase","yahoo:",""],"title":"Instant message to '$yahoo_id' using Yahoo! Click to edit.","label":"Yahoo! IM Link","id":"yahoo","image_text":[{"text":"Yahoo! IM: %yahoo_id","field":"default"}],"field":"yahoo_id"},"blog_list":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","blog_name"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"forestgreen","required":["blog_name"],"desc":"Display a list of the most recent entries from a blog in a workspace. By default only the blog entry names are displayed. Use this form to edit the list properties.","id":"blog_list","image_text":[{"text":"blog list: %blog_name","field":"default"}],"labels":{"workspace_id":"in"},"more_desc":"Optional parameters include specifying which workspace to use and whether to display page titles or whole pages.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{blog_list: <%workspace_id> %blog_name}","fields":["workspace_id","blog_name"],"title":{"default":"Include the blog '$blog_name'. Click to edit.","full":"Display the blog '$blog_name'. Click to edit."},"label":"Blog List"},"googlesoap":{"more_desc":"There are no optional properties for an Google search.","color":"saddlebrown","pattern":"{googlesoap: %search_term}","desc":"Display the results from a Google search. Use this form to edit the properties for the search.","id":"googlesoap","label":"Google Search","title":"Search Google for '$search_term'. Click to edit.","labels":{"search_term":"Search for"},"image_text":[{"text":"Google: %search_term","field":"default"}],"field":"search_term"},"new_form_page":{"more_desc":"There are no optional properties for a new form page.","parse":{"regexp":"^\\s*(\\S+)\\s+(.+)\\s*$"},"on_menu":"false","color":"maroon","pattern":"{new_form_page: %form_name %form_text}","fields":["form_name","form_text"],"required":["form_name","form_text"],"desc":"Select a form and generates a new form page.","id":"new_form_page","label":"New Form Page","title":"Use $form_name to generate a form. Click to edit.","image_text":[{"text":"form: %form_name","field":"default"}]},"sharepoint":{"color":"red","title":"Sharepoint link. Edit in Wiki Text mode.","id":"sharepoint","uneditable":"true"},"skype":{"more_desc":"There are no optional properties for a Skype link.","pattern":"skype:%skype_id","required":["skype_id"],"desc":"Display a link to a Skype name. Clicking the link will start a Skype call with the person if your Skype client is properly configured. Use this form to edit the properties of the link.","markup":["bound_phrase","skype:",""],"title":"Call '$skype_id' using Skype. Click to edit.","label":"Skype Link","id":"skype","image_text":[{"text":"Skype: %skype_id","field":"default"}],"field":"skype_id"},"https":{"color":"darkorange","title":"HTTP relative link. Edit in Wiki Text mode.","id":"https","uneditable":"true"},"recent_changes":{"more_desc":"Optionally, specify that the page contents should be displayed.","input":{"workspace_id":"radio"},"parse":{"regexp":"^\\s*(.*?)?\\s*$"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","color":"gold","pattern":"{recent_changes: %workspace_id}","fields":["workspace_id"],"desc":"Display a list of pages recently changed in a workspace. By default only the page titles are displayed. Use this form to edit the list properties.","id":"recent_changes","label":"What\\'s New","title":{"default":"What's new in the '$workspace_id' workspace. Click to edit.","full":"Display what's new in the '$workspace_id' workspace. Click to edit."},"image_text":[{"text":"recent changes: %workspace_id","field":"workspace_id"},{"text":"recent changes","field":"default"}],"labels":{"workspace_id":"Workspace"}},"include":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio"},"parse":{"regexp":"^(\\S*)?\\s*\\[([^\\]]*)\\]\\s*$"},"pdfields":[],"color":"darkblue","required":["page_title"],"desc":"Display the contents of another page within the current page. Use this form to edit the properties for the page include.","id":"include","image_text":[{"text":"include: %page_title","field":"default"}],"labels":{"workspace_id":"Other page in"},"more_desc":"There are no optional properties for page include.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"{include: %workspace_id [%page_title]}","fields":["workspace_id","page_title"],"title":"Include the page '$page_title'. Click to edit.","label":"Page Include"},"googlesearch":{"more_desc":"There are no optional properties for an Google search.","color":"saddlebrown","pattern":"{googlesearch: %search_term}","desc":"Display the results from a Google search. Use this form to edit the properties for the search.","id":"googlesearch","label":"Google Search","title":"Search Google for '$search_term'. Click to edit.","labels":{"search_term":"Search for"},"image_text":[{"text":"Google: %search_term","field":"default"}],"field":"search_term"},"section":{"more_desc":"There are no optional properties for a section marker.","pattern":"{section: %section_name}","color":"darkred","desc":"Add a section marker at the current cursor location. You can link to a section marker using a \"Section Link\". Use this form to edit the properties for the section marker.","title":"Section marker '$section_name'. Click to edit.","label":"Section Marker","id":"section","image_text":[{"text":"section: %section_name","field":"default"}],"field":"section_name"},"weblog_list":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","blog_name"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"forestgreen","required":["blog_name"],"desc":"Display a list of the most recent entries from a blog in a workspace. By default only the blog entry names are displayed. Use this form to edit the list properties.","id":"weblog_list","image_text":[{"text":"blog list: %blog_name","field":"default"}],"labels":{"workspace_id":"in"},"more_desc":"Optional parameters include specifying which workspace to use and whether to display page titles or whole pages.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{weblog_list: <%workspace_id> %blog_name}","fields":["workspace_id","blog_name"],"title":{"default":"Include the blog '$blog_name'. Click to edit.","full":"Display the blog '$blog_name'. Click to edit."},"label":"Blog List"},"ftp":{"color":"darkorange","title":"FTP link. Edit in Wiki Text mode.","id":"ftp","uneditable":"true"},"html":{"color":"indianred","title":"Raw HTML section. Edit in Wiki Text mode.","id":"html","uneditable":"true"},"unknown":{"color":"darkslategrey","title":"Unknown widget '$unknown_id'. Edit in Wiki Text mode.","id":"unknown","uneditable":"true"},"technorati":{"more_desc":"There are no optional properties for a Technorati search.","color":"darkmagenta","pattern":"{technorati: %search_term}","desc":"Display the results for a Technorati search. Use this form to edit the properties for the search.","id":"technorati","label":"Technorati Search","title":"Search Technorati for '$search_term'. Click to edit.","labels":{"search_term":"Search for"},"image_text":[{"text":"Technorati: %search_term","field":"default"}],"field":"search_term"},"toc":{"more_desc":"Optionally, specify which page\\'s headers and sections to use for the table of contents.","checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio"},"parse":{"regexp":"^(\\S*)?\\s*\\[([^\\]]*)\\]\\s*$","no_match":"workspace_id"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["workspace_id","page_title"],"color":"darkseagreen","pattern":"{toc: %workspace_id [%page_title]}","fields":["workspace_id","page_title"],"desc":"Display a table of contents for a page. Each header or section on the page is listed as a link in the table of contents. Click \"Save\" now, or click \"More options\" to edit the properties for the table of contents.","id":"toc","label":"Table of Contents","title":"Table of contents for '$page_title'. Click to edit.","image_text":[{"text":"toc: %page_title","field":"page_title"},{"text":"toc","field":"default"}],"labels":{"workspace_id":"Page in","page_title":"Headers and<br/>sections in"}},"link2":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio"},"parse":{"fields":["workspace_id","page_title","section_name"],"regexp":"?three-part-link","no_match":"section_name"},"primary_field":"section_name","pdfields":["label","workspace_id","page_title"],"color":"blue","select_if":{"blank":["workspace_id"]},"required":["section_name"],"desc":"Use this form to edit the properties of the link to a page section.","id":"link2","image_text":[{"text":"link: %label","field":"label"},{"text":"link: %page_title (%section_name )","field":"page_title"},{"text":"link: %section_name","field":"default"}],"labels":{"workspace_id":"Workspace"},"more_desc":"Optional properties include the text to display for the link, and the title of a different page.","hide_in_menu":"true","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"\"%label\"{link: %workspace_id [%page_title] %section_name}","fields":["section_name","label","workspace_id","page_title"],"label":"Link to a Wiki page","title":"Link to $workspace_id: '$page_title' $section_name. Click to edit."},"weblog":{"more_desc":"Optional properties include link text, and the name of a different workspace for the blog.","input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","blog_name"],"regexp":"?workspace-value","no_match":"blog_name"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["label","workspace_id"],"color":"purple","pattern":"\"%label\"{weblog: %workspace_id; %blog_name}","required":["blog_name"],"fields":["label","blog_name","workspace_id"],"desc":"Display a link to a blog. Use this form to edit the properties of the link.","id":"weblog","label":"Blog Link","title":"Link to blog '$blog_name'. Click to edit.","image_text":[{"text":"blog: %label","field":"label"},{"text":"blog: %blog_name","field":"default"}],"labels":{"workspace_id":"Blog on"}},"blog":{"more_desc":"Optional properties include link text, and the name of a different workspace for the blog.","input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","blog_name"],"regexp":"?workspace-value","no_match":"blog_name"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["label","workspace_id"],"color":"purple","pattern":"\"%label\"{blog: %workspace_id; %blog_name}","required":["blog_name"],"fields":["label","blog_name","workspace_id"],"desc":"Display a link to a blog. Use this form to edit the properties of the link.","id":"blog","label":"Blog Link","title":"Link to blog '$blog_name'. Click to edit.","image_text":[{"text":"blog: %label","field":"label"},{"text":"blog: %blog_name","field":"default"}],"labels":{"workspace_id":"Blog on"}},"fetchatom":{"more_desc":"There are no optional properties for an Atom feed.","pattern":"{fetchatom: %atom_url}","color":"darkgreen","desc":"Display the content of an Atom feed. Use this form to edit the properties of the inline Atom feed.","title":"Include the '$atom_url' Atom feed. Click to edit.","label":"Inline Atom","id":"fetchatom","image_text":[{"text":"feed: %atom_url","field":"default"}],"field":"atom_url"},"fetchrss":{"more_desc":"There are no optional properties for an RSS feed.","pattern":"{fetchrss: %rss_url}","color":"orange","desc":"Display the content of an RSS feed. Use this form to edit the properties of the inline RSS feed.","title":"Include the '$rss_url' RSS feed. Click to edit.","label":"Inline RSS","id":"fetchrss","image_text":[{"text":"feed: %rss_url","field":"default"}],"field":"rss_url"},"aim":{"more_desc":"There are no optional properties for an AIM link.","pattern":"aim:%aim_id","required":["aim_id"],"desc":"Display a link to an AIM screen name. The icon will show whether the person is online. Clicking the link will start an IM conversation with the person if your IM client is properly configured. Use this form to edit the properties of the link.","markup":["bound_phrase","aim:",""],"title":"Instant message to '$aim_id' using AIM. Click to edit.","label":"AIM Link","id":"aim","image_text":[{"text":"AIM: %aim_id","field":"default"}],"field":"aim_id"},"image":{"extra_fields":["width","height"],"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio","size":"size"},"parse":{"fields":["workspace_id","page_title","image_name"],"regexp":"?three-part-link","no_match":"image_name"},"pdfields":["workspace_id","page_title","label"],"color":"red","required":["image_name"],"desc":"Display an image on this page. The image must be already uploaded as an attachment to this page or another page. Use this form to edit the properties of the displayed image.","id":"image","image_text":[{"text":"image: %label","field":"label"},{"text":"image: %image_name","field":"default"}],"labels":{"workspace_id":"Page in","image_name":"Image filename","page_title":"Attached to","size":"Size"},"more_desc":"Optional properties include the title of another page to which the image is attached, and link text. If link text is specified then a link to the image is displayed instead of the image.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"\"%label\"{image: %workspace_id [%page_title] %image_name size=%size}","fields":["image_name","workspace_id","page_title","label","size"],"label":"Attached Image","title":"Display image '$image_name'. Click to edit."},"link2_section":{"more_desc":"Optional properties include the text to display for the link.","hide_in_menu":"true","primary_field":"url","pdfields":["label","url"],"color":"blue","pattern":"\"%label\"{link: %workspace_id [%page_title] %section_name}","required":["url"],"fields":["label","url"],"desc":"Use this form to edit the properties of the link to a section.","title":"Link to '$url'. Click to edit.","id":"link2_section","label":"Link to a Section","labels":{"url":"Link destination","label":"Linked text"}},"asis":{"more_desc":"There are no optional properties for unformatted text.","pattern":"{{%asis_content}}","color":"darkslateblue","required":["asis_content"],"desc":"Include unformatted text in the page. This text will not be treated as wiki text. Use this form to edit the text.","markup":["bound_phrase","{{","}}"],"title":"Unformatted Content","label":"Unformatted","id":"asis","image_text":[{"text":"unformatted: %asis_content","field":"default"}],"field":"asis_content"}},"menu_hierarchy":[{"widget":"ss","label":"Spreadsheet"},{"widget":"image","label":"Image"},{"insert":"table","label":"Table"},{"insert":"hr","label":"Horizontal Line"},{"sub_menu":[{"widget":"file","label":"A file attached to this page"},{"widget":"link2_section","label":"A section in this page"},{"widget":"link2","label":"A different wiki page"},{"widget":"blog","label":"A person's blog"},{"widget":"tag","label":"Pages related to a tag"},{"widget":"link2_hyperlink","label":"A page on the web"}],"label":"A link to..."},{"sub_menu":[{"widget":"include","label":"A page include"},{"widget":"ss","label":"A spreadsheet include"},{"widget":"tag_list","label":"Tagged pages"},{"widget":"recent_changes","label":"Recent changes"},{"widget":"blog_list","label":"Blog postings"},{"widget":"search","label":"Wiki search results"}],"label":"From workspaces..."},{"sub_menu":[{"widget":"googlesearch","label":"Google search results"},{"widget":"technorati","label":"Technorati results"},{"widget":"fetchrss","label":"RSS feed items"},{"widget":"fetchatom","label":"Atom feed items"}],"label":"From the web..."},{"sub_menu":[{"widget":"toc","label":"Table of contents"},{"widget":"section","label":"Section marker"},{"insert":"hr","label":"Horizontal line"}],"label":"Organizing your page..."},{"sub_menu":[{"widget":"skype","label":"Skype link"},{"widget":"aim","label":"AIM link"},{"widget":"yahoo","label":"Yahoo! Messenger link"}],"label":"Communicating..."},{"sub_menu":[{"widget":"user","label":"User name"},{"widget":"date","label":"Local Date & Time"}],"label":"Name & Date..."},{"widget":"asis","label":"Unformatted text..."}]};;
 ;
 // BEGIN lib/Wikiwyg/Widgets.js
 /* This file needs to be loaded after Widgets.js. */
@@ -2453,8 +2517,8 @@ proto.find_right = function(t, selection_end, matcher) {
 
 proto.get_lines = function() {
     var t = this.area;
-    var selection_start = t.selectionStart;
-    var selection_end = t.selectionEnd;
+    var selection_start = this.getSelectionStart();
+    var selection_end = this.getSelectionEnd();
 
     if (selection_start == null) {
         selection_start = selection_end;
@@ -2481,7 +2545,7 @@ proto.get_lines = function() {
 
     this.selection_start = this.find_left(our_text, selection_start, /[\r\n]/);
     this.selection_end = this.find_right(our_text, selection_end, /[\r\n]/);
-    t.setSelectionRange(selection_start, selection_end);
+    this.setSelectionRange(selection_start, selection_end);
     t.focus();
 
     this.start = our_text.substr(0,this.selection_start);
@@ -2511,8 +2575,8 @@ proto.get_words = function() {
     }
 
     var t = this.area;
-    var selection_start = t.selectionStart;
-    var selection_end = t.selectionEnd;
+    var selection_start = this.getSelectionStart();
+    var selection_end = this.getSelectionEnd();
 
     if (selection_start == null) {
         selection_start = selection_end;
@@ -2544,7 +2608,7 @@ proto.get_words = function() {
     this.selection_end =
         this.find_right(our_text, selection_end, Wikiwyg.Wikitext.phrase_end_re);
 
-    t.setSelectionRange(this.selection_start, this.selection_end);
+    this.setSelectionRange(this.selection_start, this.selection_end);
     t.focus();
 
     this.start = our_text.substr(0,this.selection_start);
@@ -2613,8 +2677,8 @@ proto.insert_text_at_cursor = function(text, opts) {
         return false;
     }
 
-    var selection_start = t.selectionStart;
-    var selection_end = t.selectionEnd;
+    var selection_start = this.getSelectionStart();
+    var selection_end = this.getSelectionEnd();
 
     if (selection_start == null) {
         selection_start = selection_end;
@@ -2629,7 +2693,7 @@ proto.insert_text_at_cursor = function(text, opts) {
 
     this.area.focus();
     var end = selection_end + text.length;
-    this.area.setSelectionRange(end, end);
+    this.setSelectionRange(end, end);
 }
 
 proto.insert_text = function (text) {
@@ -2638,7 +2702,7 @@ proto.insert_text = function (text) {
 
 proto.set_text_and_selection = function(text, start, end) {
     this.area.value = text;
-    this.area.setSelectionRange(start, end);
+    this.setSelectionRange(start, end);
 }
 
 proto.add_markup_words = function(markup_start, markup_finish, example) {
@@ -2720,7 +2784,7 @@ proto.add_markup_lines = function(markup_start) {
 
     // Here we cancel the selection and allow the user to keep typing
     // (instead of replacing the freshly-inserted-markup by typing.)
-    this.area.selectionStart = this.area.selectionEnd;
+    this.setSelectionRange(this.getSelectionEnd(), this.getSelectionEnd());
 
     this.area.focus();
 }
@@ -2761,7 +2825,7 @@ proto.bound_markup_lines = function(markup_array) {
 
     // Here we cancel the selection and allow the user to keep typing
     // (instead of replacing the freshly-inserted-markup by typing.)
-    this.area.selectionStart = this.area.selectionEnd;
+    this.setSelectionRange(this.getSelectionEnd(), this.getSelectionEnd());
 
     this.area.focus();
 }
@@ -2892,8 +2956,8 @@ proto.get_selection_text = function() {
     }
 
     var t = this.area;
-    var selection_start = t.selectionStart;
-    var selection_end   = t.selectionEnd;
+    var selection_start = this.getSelectionStart();
+    var selection_end   = this.getSelectionEnd();
 
     if (selection_start != null) {
         return t.value.substr(selection_start, selection_end - selection_start);
@@ -2962,8 +3026,8 @@ proto.kill_linkedness = function(str) {
 proto.markup_line_alone = function(markup_array) {
     var t = this.area;
     var scroll_top = t.scrollTop;
-    var selection_start = t.selectionStart;
-    var selection_end = t.selectionEnd;
+    var selection_start = this.getSelectionStart();
+    var selection_end = this.getSelectionEnd();
     if (selection_start == null) {
         selection_start = selection_end;
     }
@@ -2971,7 +3035,7 @@ proto.markup_line_alone = function(markup_array) {
     var text = t.value;
     this.selection_start = this.find_right(text, selection_start, /\r?\n/);
     this.selection_end = this.selection_start;
-    t.setSelectionRange(this.selection_start, this.selection_start);
+    this.setSelectionRange(this.selection_start, this.selection_start);
     t.focus();
 
     var markup = markup_array[1];
@@ -3349,6 +3413,19 @@ proto.looks_like_a_url = function(string) {
     return string.match(/^(http|https|ftp|irc|mailto|file):/);
 }
 
+proto.setSelectionRange = function (startPos, endPos) {
+    this.area.setSelectionRange(startPos, endPos);
+}
+
+proto.getSelectionStart = function () {
+    return this.area.selectionStart;
+}
+
+proto.getSelectionEnd = function () {
+    return this.area.selectionEnd;
+}
+
+
 /*==============================================================================
 Support for Internet Explorer in Wikiwyg.Wikitext
  =============================================================================*/
@@ -3365,10 +3442,93 @@ proto.initializeObject = function() {
     this.initialize_object();
     if (!this.config.javascriptLocation)
         throw new Error("Missing javascriptLocation config option!");
-    this.area.addBehavior(this.config.javascriptLocation + "Selection.htc");
+
     jQuery(this.area).bind('beforedeactivate', function () {
         self.old_range = document.selection.createRange();
     });
+}
+
+var selectionStart = 0;
+var selectionEnd = 0;
+
+proto.setSelectionRange = function (startPos, endPos) {
+    var element = this.area;
+    var objRange = element.createTextRange();
+    objRange.collapse(true);
+    objRange.move("character", startPos);
+
+    charLength = endPos - startPos;
+    for (var i=1; i<=charLength; i++)
+        objRange.expand("character");
+
+    objRange.select();
+}
+
+proto.getSelectionStart = function() {
+    this.getSelectionRange("start");
+    return selectionStart;
+}
+
+proto.getSelectionEnd = function() {
+    var element = this.area;
+    this.getSelectionRange("end");
+    element.value = element.value.replace(/\x01/g, '');
+    return selectionEnd;
+}
+
+proto.getSelectionRange = function (type) {
+    var element = this.area;
+    var sRange = element.document.selection.createRange();
+    if (sRange.text.length == 0) {
+        var pos = element.value.indexOf('\x01');
+        if (pos == -1) {
+            element.focus();
+            sRange = element.document.selection.createRange();
+            sRange.text = '\x01';
+            element.focus();
+            selectionStart = null;
+            selectionEnd = null;
+        }
+        else {
+            element.value = element.value.replace(/\x01/, '');
+            selectionStart = pos;
+            selectionEnd = pos;
+        }
+        return;
+    }
+
+    var sRange2 = sRange.duplicate();
+    var iRange = element.document.body.createTextRange();
+    iRange.moveToElementText(element);
+    var coord = 0;
+    var fin = 0;
+
+    while (fin == 0) {
+        len = iRange.text.length;
+        move = Math.floor(len / 2);
+        _move = iRange.moveStart("character", move);
+        where = iRange.compareEndPoints("StartToStart", sRange2);
+        if (where == 1) {
+            iRange.moveStart("character", -_move);
+            iRange.moveEnd("character", -len+move);
+        }
+        else if (where == -1) {
+            coord = coord + move;
+        }
+        else {
+            coord = coord + move;
+            fin = 1;
+        }
+        if (move == 0) {
+            while (iRange.compareEndPoints("StartToStart", sRange2) < 0) {
+                iRange.moveStart("character", 1);
+                coord++;
+            }
+            fin = 2;
+        }
+    }
+    selectionStart = coord;
+    selectionEnd = coord + (sRange.text.replace(/\r/g, "")).length;
 }
 
 } // end of global if
@@ -3405,7 +3565,7 @@ proto.contain_widget_image = function(element) {
         var e = element.childNodes[ii]
         if ( e.nodeType == 1 ) {
             if ( e.nodeName == 'IMG' ) {
-                if ( e.getAttribute("widget") )
+                if ( /^st-widget-/.test(e.getAttribute('alt')) )
                     return true;
             }
         }
@@ -3507,9 +3667,13 @@ proto.enableThis = function() {
 
 }
 
-proto.toHtml = function(func) {
+proto.toNormalizedHtml = function(func) {
+    return this.toHtml(func);
+}
+
+proto.toHtml = function(func, onError) {
     var wikitext = this.wikiwyg.current_wikitext = this.canonicalText();
-    this.convertWikitextToHtml(wikitext, func);
+    this.convertWikitextToHtml(wikitext, func, onError);
 }
 
 proto.fromHtml = function(html) {
@@ -3542,7 +3706,7 @@ proto.do_www = Wikiwyg.Wikitext.make_do('www');
 proto.do_attach = Wikiwyg.Wikitext.make_do('attach');
 proto.do_image = Wikiwyg.Wikitext.make_do('image');
 
-proto.convertWikitextToHtml = function(wikitext, func) {
+proto.convertWikitextToHtml = function(wikitext, func, onError) {
     // TODO: This could be as simple as:
     //    func((new Document.Parser.Wikitext()).parse(wikitext, new Document.Emitter.HTML()));
     // But we need to ensure newer wikitext features, such has (sortable) tables,
@@ -3552,7 +3716,8 @@ proto.convertWikitextToHtml = function(wikitext, func) {
     var postdata = 'action=wikiwyg_wikitext_to_html;content=' +
         encodeURIComponent(wikitext);
 
-    var post = jQuery.ajax({
+    var isSuccess = false;
+    jQuery.ajax({
         url: uri,
         async: false,
         type: 'POST',
@@ -3560,10 +3725,19 @@ proto.convertWikitextToHtml = function(wikitext, func) {
             action: 'wikiwyg_wikitext_to_html',
             page_name: jQuery('#st-newpage-pagename-edit, #st-page-editing-pagename').val(),
             content: wikitext
+        },
+        success: function(_data, _status, xhr) {
+            if (xhr.responseText && /\S/.test(xhr.responseText)) {
+                isSuccess = true;
+                func(xhr.responseText);
+            }
         }
     });
 
-    func(post.responseText);
+    if (!isSuccess) {
+        alert(loc("Operation failed due to server error; please try again later."));
+        if (onError) { onError(xhr); }
+    }
 }
 
 proto.href_is_really_a_wiki_link = function(href) {
@@ -3690,6 +3864,7 @@ proto.build_msoffice_list = function(top) {
 proto.convert_html_to_wikitext = function(html, isWholeDocument) {
     var self = this;
     if (html == '') return '';
+    html = html.replace(/^\s*<div(?:\s*\/|><\/div)>/, '');
     html = this.strip_msword_gunk(html);
 
     (function ($) {
@@ -3737,6 +3912,11 @@ proto.convert_html_to_wikitext = function(html, isWholeDocument) {
             }
         } while (foundVisualBR);
 
+        // {bz: 4738}: Don't run _format_one_line on top-level tables, HRs and PREs.
+        $(dom).find('td, hr, pre')
+            .parents('span, a, h1, h2, h3, h4, h5, h6, b, strong, i, em, strike, del, s, tt, code, kbd, samp, var, u')
+            .addClass('_st_format_div');
+
         $(dom).find('._st_walked').removeClass('_st_walked');
 
         // This needs to be done by hand for IE.
@@ -3747,7 +3927,7 @@ proto.convert_html_to_wikitext = function(html, isWholeDocument) {
             for (var i = 0, l = elems.length; i < l; i++) {
                 if (elems[i].className != 'wiki') continue;
                 var div = document.createElement('div');
-                div.innerHTML = elems[i].innerHTML + '<br>\n';
+                div.innerHTML = elems[i].innerHTML;
                 elems[i].parentNode.replaceChild(
                     div,
                     elems[i]
@@ -3760,7 +3940,13 @@ proto.convert_html_to_wikitext = function(html, isWholeDocument) {
 
             $dom
             .find("div.wiki").each(function() { 
-                $(this).replaceWith( $(this).html() + "<br>\n" );
+                var html = $(this).html();
+                if (/<br\b[^>]*>\s*$/i.test(html)) {
+                    $(this).replaceWith( html );
+                }
+                else {
+                    $(this).replaceWith( html + '<br />');
+                }
             });
 
         // Try to find an user-pasted paragraph. With extra gecko-introduced \n
@@ -3861,10 +4047,9 @@ proto.convert_html_to_wikitext = function(html, isWholeDocument) {
 //     if (String(location).match(/\?.*dump$/))
 //         throw yyy(dom_copy);
 
-    var wikitext = this.walk(dom).replace(/[\xa0\s\n]*$/, '\n');
+    return this.walk(dom).replace(/[\xa0\s\n]*$/, '\n').replace(/\r/g, '');
 //     if (String(location).match(/\?.*dump2$/))
 //         throw yyy(copyDom(dom));
-    return wikitext;
 }
 
 proto.walk = function(elem) {
@@ -3907,6 +4092,12 @@ proto.walk = function(elem) {
         var method = 'format_' + part.nodeName.toLowerCase();
         if (method != 'format_blockquote' && part.is_indented)
             method = 'format_indent';
+
+        // {bz: 4738}: Don't run _format_one_line on top-level TABLEs, HRs and PREs.
+        if (/\b_st_format_div\b/.test(part.className)) {
+            method = 'format_div';
+        }
+
 //         window.XXX_method = method = method.replace(/#/, '');
         method = method.replace(/#/, '');
         try {
@@ -3921,14 +4112,15 @@ proto.walk = function(elem) {
                 continue;
             }
 
-            if (this.wikitext) {
+            if (this.wikitext && this.wikitext != '\n') {
                 for (var node = part; node; node = node.firstChild) {
                     if (node.top_level_block) {
                         // *** Hotspot - Optimizing by hand. ***
-                        // this.wikitext = this.wikitext.replace(/ *\n*$/, '\n\n');
+                        // this.wikitext = this.wikitext.replace(/ *\n?\n?$/, '\n\n');
                         var len = this.wikitext.length;
 
-                        while (this.wikitext.charAt(len-1) == '\n') len--;
+                        if (this.wikitext.charAt(len-1) == '\n') len--;
+                        if (this.wikitext.charAt(len-1) == '\n') len--;
                         while (this.wikitext.charAt(len-1) == ' ') len--;
 
                         if (len == this.wikitext.length) {
@@ -3946,8 +4138,10 @@ proto.walk = function(elem) {
                     }
                 }
             }
+
             if (part.widget_on_widget) {
-                this.wikitext = this.wikitext.replace(/\n*$/, '\n');
+// This isn't required anymore after [Story: Preserve white space].
+//                this.wikitext = this.wikitext.replace(/\n*$/, '\n');
             }
 
             this.assert_trailing_space(part, text);
@@ -3974,13 +4168,14 @@ proto.walk = function(elem) {
 
     this.depth--;
     if (!(this.wikitext.length && this.wikitext.match(/\S/))) return '';
-    return this.wikitext.replace(/\n+$/, '\n');
+    return this.wikitext;
 }
 
 proto.assert_trailing_space = function(part, text) {
     if ((! part.requires_preceding_space) && (
             (! part.previousSibling) 
          || (! part.previousSibling.requires_trailing_space)
+         || (part.nodeName == 'BR') // BR now counts as trailing space
         )
     ) return;
 
@@ -4047,11 +4242,20 @@ proto.no_descend = function(elem) {
 
 proto.check_start_of_block = function(elem) {
     var prev = elem.previousSibling;
+    var next = elem.nextSibling;
 
     if (this.wikitext &&
         prev &&
         prev.top_level_block &&
-        ! this.wikitext.match(/\n\n$/)
+        ! /\n\n$/.test(this.wikitext) &&
+        ! ((elem.nodeType == 3) && (!/\S/.test(elem.nodeValue)) &&
+            /* If we are on an empty text node, and the BRs following us makes
+             * up for "\n\n" required by start-of-block, don't add another \n.*/
+            (next && next.nodeName == 'BR') && (
+                /\n$/.test(this.wikitext)
+                || next.nextSibling && next.nextSibling.nodeName == 'BR'
+            )
+        )
     ) this.wikitext += '\n';
 }
 
@@ -4161,12 +4365,13 @@ proto.format_p = function(elem) {
     // formatter print a P with a single space. Should fix that some day.
     if (text == ' ') return;
 
-    return text.replace(/\s*$/, '\n');
+    return text + '\n';
 }
 
 proto.format_img = function(elem) {
-    var widget = elem.getAttribute('widget');
-    if (widget) {
+    var widget = elem.getAttribute('alt');
+    if (/^st-widget-/.test(widget)) {
+        widget = widget.replace(/^st-widget-/, '');
         if (Wikiwyg.is_ie) widget = Wikiwyg.htmlUnescape( widget );
         if (widget.match(/^\.\w+\n/))
             elem.top_level_block = true;
@@ -4373,7 +4578,7 @@ proto.format_td = function(elem) {
     if (elem.wikitext.match(/\n/) ||
         (elem.firstChild && elem.firstChild.top_level_block)
     ) {
-        elem.wikitext = elem.wikitext.replace(/\s?$/, ' ');
+        elem.wikitext = elem.wikitext.replace(/\s?\n?$/, ' ');
         return '| ' + elem.wikitext;
     }
     else {
@@ -4416,7 +4621,7 @@ for (var i = 1; i <= 6; i++) {
 proto.format_pre = function(elem) {
     var data = Wikiwyg.htmlUnescape(elem.innerHTML);
     data = data.replace(/<br>/g, '\n')
-               .replace(/\n$/, '')
+               .replace(/\r?\n$/, '')
                .replace(/^&nbsp;$/, '\n');
     elem.top_level_block = true;
     return '.pre\n' + data + '\n.pre\n';
@@ -4603,12 +4808,11 @@ proto.format_br = function(elem) {
 
     if (Wikiwyg.is_ie) 
        this.wikitext = this.wikitext.replace(/\xA0/, "");
-    return (this.wikitext && !this.wikitext.match(/\n\n$/)) ? '\n' : '';
+    return '\n';
 }
 
 proto.format_hr = function(elem) {
     if (this.has_parent(elem, 'LI')) return '';
-    elem.top_level_block = true;
     return '----\n';
 }
 
@@ -4660,12 +4864,18 @@ proto.has_parent = function(elem, name) {
                 }
             }
 
+            // Do not markup empty text: {bz: 4677}
+            if (!(/\S/.test(wikitext))) {
+                return wikitext;
+            }
+
             // Finally, move whitespace outward so only non-whitespace
             // characters are put into markup.
             // Example: "x<b> y </b>z" becomes "x *y* z".
             return wikitext
                 .replace(/^(\s*)/, "$1" + markup_open)
-                .replace(/(\s*)$/, markup_close + "$1");
+                .replace(/(\s*)$/, markup_close + "$1")
+                .replace(/\n/g, ' ');
         }
     }
 
@@ -4756,7 +4966,12 @@ proto.clear_inner_html = function() {
     var clear = this.config.clearRegex;
     var res = inner_html.match(clear) ? 'true' : 'false';
     if (clear && inner_html.match(clear)) {
-        this.set_inner_html('');
+        if ($.browser.safari) {
+            this.set_inner_html('<div></div>');
+        }
+        else {
+            this.set_inner_html('');
+        }
     }
 }
 
@@ -5008,7 +5223,7 @@ proto.toHtml = function(func) {
         html = self.remove_padding_material(html);
         html = html
             .replace(/\n*<p>\n?/ig, "")
-            .replace(/<\/p>/ig, br)
+            .replace(/<\/p>(?:<br class=padding>)?/ig, br)
 
         func(html);
     });
@@ -5018,17 +5233,18 @@ proto.remove_padding_material = function(html) {
     var dom = document.createElement("div");
     if (Wikiwyg.is_ie)
         html = html.replace(/<P>\s*<HR>\s*<\/P>\s*/g, '<HR>\n\n');
-    dom.innerHTML = html;
+
+    $(dom).html(html);
 
     // <BR>&nbsp; at t last. This is likely
     // something left by deleting from a padding <p>.
     var pTags = dom.getElementsByTagName("p");
 
     for(var i = 0; i < pTags.length; i++) {
-      var p = pTags[i]
+      var p = pTags[i];
       if (p.nodeType == 1) {
-          if (p.outerHTML.match(/<P class=padding>&nbsp;<\/P>/)) {
-              p.outerHTML = "<BR>"
+          if (/<P class=padding>&nbsp;<\/P>/.test(p.outerHTML)) {
+              p.outerHTML = "<BR class=padding>"
           } else if (p.innerHTML.match(/&nbsp;$/)) {
               var h = p.innerHTML
               p.innerHTML = h.replace(/&nbsp;$/,"");
@@ -5194,6 +5410,8 @@ proto.set_inner_html = function(html) {
         // First time running get_editable_div() -- give it 1.6sec
         // The heuristic here is to allow 3 tries of tryAppendDiv to pass.
         self.get_editable_div();
+
+        if (!html) { return }
         setTimeout( function() {
             self.set_inner_html(html);
         }, 1600);      
@@ -5351,6 +5569,22 @@ proto.enable_pastebin = function () {
     var self = this;
 
     if ($.browser.safari) {
+        this.bind('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.which) {
+                    case 66: case 98: {
+                        self.do_bold();
+                        e.preventDefault();
+                        break;
+                    }
+                    case 73: case 105: {
+                        self.do_italic();
+                        e.preventDefault();
+                        break;
+                    }
+                }
+            }
+        });
         self.enable_pastebin_webkit();
         return;
     }
@@ -5393,12 +5627,14 @@ proto.enable_pastebin = function () {
 // so it needs a separate treatment.
 proto.enable_pastebin_webkit = function () {
     var self = this;
-    self.get_edit_window().addEventListener("paste", function(e) {
+    $(self.get_edit_window()).unbind('paste').bind("paste", function(e) {
         self.get_edit_window().focus();
 
         var editDoc = self.get_edit_document();
         var sel = self.get_edit_window().getSelection();
         var oldRange = sel.getRangeAt(0);
+
+        $('div.pastebin', editDoc).remove();
 
         var pasteBin = editDoc.createElement('div');
         pasteBin.style.width = '1px';
@@ -5406,6 +5642,7 @@ proto.enable_pastebin_webkit = function () {
         pasteBin.style.position = 'fixed';
         pasteBin.style.top = '0';
         pasteBin.style.right = '-4000';
+        pasteBin.className = 'pastebin';
         pasteBin.appendChild( editDoc.createTextNode('') );
         editDoc.body.appendChild( pasteBin );
         pasteBin.focus();
@@ -5419,13 +5656,20 @@ proto.enable_pastebin_webkit = function () {
 
         setTimeout(function(){
             var pastedHtml;
+
+            while (pasteBin.firstChild && pasteBin.firstChild.tagName && pasteBin.firstChild.tagName.toLowerCase() == 'meta') {
+                pasteBin.removeChild( pasteBin.firstChild );
+            }
+
             if (pasteBin.firstChild && pasteBin.firstChild.className == 'Apple-style-span') {
                 pastedHtml = pasteBin.firstChild.innerHTML;
             }
             else {
                 pastedHtml = pasteBin.innerHTML;
             }
-            editDoc.body.removeChild( pasteBin );
+            try {
+                editDoc.body.removeChild( pasteBin );
+            } catch (e) {}
             sel.removeAllRanges();
             sel.addRange(oldRange);
             self.on_pasted(pastedHtml);
@@ -5502,22 +5746,37 @@ proto.enableThis = function() {
 
     var self = this;
     var ready = function() {
-        if (!self.wikiwyg.previous_mode) {
+        if (!self.wikiwyg.previous_mode && !Wikiwyg.is_gecko) {
             self.fromHtml( self.wikiwyg.div.innerHTML );
         }
         if (Wikiwyg.is_gecko) {
-            self.get_edit_document().designMode = 'on';
-            setTimeout(function() {
+            var doEnableDesignMode = function() {
                 try {
-                    self.get_edit_document().execCommand(
-                        "enableObjectResizing", false, false
-                    );
-                    self.get_edit_document().execCommand(
-                        "enableInlineTableEditing", false, false
-                    );
+                    self.get_edit_document().designMode = 'on';
+                } catch (e) {
+                    setTimeout(doEnableDesignMode, 100);
+                    return;
                 }
-                catch(e){}
-            }, 100);
+                setTimeout(function() {
+                    try {
+                        self.get_edit_document().execCommand(
+                            "enableObjectResizing", false, false
+                        );
+                        self.get_edit_document().execCommand(
+                            "enableInlineTableEditing", false, false
+                        );
+
+                        if (!self.wikiwyg.previous_mode) {
+                            self.fromHtml( self.wikiwyg.div.innerHTML );
+                        }
+                    }
+                    catch(e){
+                        setTimeout(doEnableDesignMode, 100);
+                    }
+                    $('#st-page-editing-wysiwyg').css('visibility', 'visible');
+                }, 100);
+            };
+            doEnableDesignMode();
         }
         else if (Wikiwyg.is_ie) {
             /* IE needs this to prevent stack overflow when switching modes,
@@ -5539,6 +5798,11 @@ proto.enableThis = function() {
                     'overflow', 'visible'
                 );
             }
+
+            $('#st-page-editing-wysiwyg').css('visibility', 'visible');
+        }
+        else {
+            $('#st-page-editing-wysiwyg').css('visibility', 'visible');
         }
 
         self.enable_keybindings();
@@ -5567,6 +5831,13 @@ proto.enableThis = function() {
 
     jQuery.poll(
         function() {
+            var win = self.get_edit_window();
+            var loaded = false;
+            try {
+                loaded = self.edit_iframe.contentWindow.Socialtext.body_loaded;
+            } catch (e) {}
+            if (!loaded) return false;
+
             var doc = self.get_edit_document();
             if (!doc) return false;
             if (jQuery.browser.msie && doc.readyState != 'interactive' && doc.readyState != 'complete') {
@@ -5599,6 +5870,8 @@ proto.disableThis = function() {
 proto.on_pasted = function(html) {
     var self = this;
 
+    html = html.replace(/^(?:\s*<meta\s[^>]*>)+/i, '');
+
     if (this.paste_buffer_is_simple(html)) {
         self.insert_html( html );
         return;
@@ -5610,7 +5883,7 @@ proto.on_pasted = function(html) {
     if (!/<(?:table|img)[\s>]/i.test(html)) {
         // The HTML does not contain tables or images - use the JS Document parser.
         html = ((new Document.Parser.Wikitext()).parse(wikitext, new Document.Emitter.HTML()));
-        self.insert_html( html );
+        self.insert_html( html.replace(/^\s*<p>/i, '').replace(/<\/p>\s*$/i, '') );
         return;
     }
 
@@ -5628,7 +5901,7 @@ proto.on_pasted = function(html) {
 
             html = html
                 .replace(/^<div class="wiki">\n*/i, '')
-                .replace(/\n*<br\/><\/div>\n*$/i, '')
+                .replace(/\n*<br\b[^>]*\/><\/div>\n*$/i, '')
                 .replace(/^<p>([\s\S]*?)<\/p>/, '$1')
                 .replace(/(<a\b[^>]*\bhref=['"])(index.cgi)?\?/ig, '$1' + base + '?');
 
@@ -5755,6 +6028,7 @@ proto.set_clear_handler = function () {
     var clean = function(e) {
         self.clear_inner_html();
         jQuery(editor).unbind('click', clean).unbind('keydown', clean);
+        $(window).focus();
         self.set_focus();
     };
 
@@ -5886,7 +6160,7 @@ proto.make_link = function(label, page_name, url) {
 
     // Anchor text
     var text = label || page_name || url;
-    link_node.appendChild( document.createTextNode(text) );
+    link_node.appendChild( document.createTextNode(text.replace(/"/g, '\uFF02')) );
 
     // Anchor HREF
     link_node.href = url || "?" + encodeURIComponent(page_name);
@@ -5904,13 +6178,13 @@ proto.make_link = function(label, page_name, url) {
 if (Wikiwyg.is_ie) {
     proto.make_link = function(label, page_name, url) {
 
-        var text = html_escape( label || page_name || url );
+        var text = label || page_name || url;
         var href = url || "?" + encodeURIComponent(page_name);
         var attr = "";
         if (page_name) {
-            attr = " wiki_page=\"" + page_name + "\"";
+            attr = " wiki_page=\"" + html_escape(page_name).replace(/"/g, "&quot;") + "\"";
         }
-        var html = "<a href=\"" + href + "\"" + attr + ">" + text;
+        var html = "<a href=\"" + href + "\"" + attr + ">" + html_escape( text.replace(/"/g, '\uFF02').replace(/"/g, "&quot;") );
 
 
         html += "</a>";
@@ -5970,7 +6244,8 @@ proto.insert_table_html = function(rows, columns, options) {
         .attr('id', id)
         .addClass("formatter_table")
         .html(innards);
-    this.insert_html($table.parent().html());
+    var $div = jQuery('<div />').append($table);
+    this.insert_html($div.html());
 
     jQuery.poll(
         function() {
@@ -6059,6 +6334,25 @@ proto.deselect = function() {
 proto.find_table_cell_with_cursor = function() {
     var doc = this.get_edit_document();
 
+    try {
+        var container = this.get_edit_window().getSelection()
+            .getRangeAt(0).startContainer;
+    }
+    catch (e) {};
+
+    if (container) {
+        this.deselect();
+
+        var $container = $(container);
+        if ($container.get(0).tagName && $container.get(0).tagName.toLowerCase() == 'td') {
+            return $container;
+        }
+
+        var $td = $container.parents('td:first');
+        if (! $td.length) { return; }
+        return $td;
+    }
+
     jQuery("span.find-cursor", doc).removeClass('find-cursor');
 
     // Note that we explicitly don't call set_focus() here, otherwise
@@ -6067,8 +6361,7 @@ proto.find_table_cell_with_cursor = function() {
     this.insert_html("<span class=\"find-cursor\"></span>");
 
     var cursor = jQuery("span.find-cursor", doc);
-    if (! cursor.parents('td').length)
-        return;
+    if (! cursor.parents('td').length) { return; }
     var $cell = cursor.parents("td");
 
     cursor.remove();
@@ -6256,7 +6549,7 @@ proto.do_add_col_left = function() {
             $td.before(
                 $(doc.createElement( $td.get(0).tagName ))
                     .attr({style: 'border: 1px solid black;', padding: '0.2em'})
-                    .html("&nbsp;")
+                    .html("<span>&nbsp;</span>")
             );
         });
 
@@ -6275,7 +6568,7 @@ proto.do_add_col_right = function() {
             $td.after(
                 $(doc.createElement( $td.get(0).tagName ))
                     .attr({style: 'border: 1px solid black;', padding: '0.2em'})
-                    .html("&nbsp;")
+                    .html("<span>&nbsp;</span>")
             );
         });
 
@@ -6722,9 +7015,22 @@ proto.assert_padding_between_block_elements = function(html) {
 
 proto.assert_padding_around_block_elements = function(html) {
     var tmpElement = document.createElement('div');
-    tmpElement.innerHTML = 
-        html.replace(/<div\b/g, '<span tmp="div"')
-            .replace(/<\/div>/g, '</span>')
+    var separator = '<<<'+Math.random()+'>>>';
+    var chunks = html.replace(/<!--[\d\D]*?-->/g, separator + '$&' + separator).split(separator);
+    var escapedHtml = '';
+    for(var i=0;i<chunks.length;i++) {
+        var chunk = chunks[i];
+        if (/^<!--/.test(chunk) && /-->$/.test(chunk)) {
+            /* {bz: 4285}: Do not escape <div>s in <!-- wiki: ... --> sections */
+            escapedHtml += chunk;
+        }
+        else {
+            escapedHtml += chunk
+                .replace(/<div\b/g, '<span tmp="div"')
+                .replace(/<\/div>/g, '</span>')
+        }
+    }
+    tmpElement.innerHTML = escapedHtml;
     var doc = $(tmpElement);
 
     var el;
@@ -6769,13 +7075,19 @@ proto.replace_p_with_br = function(html) {
     var p_tags = jQuery(doc).find("p").get();
     for(var i=0;i<p_tags.length;i++) {
         var html = p_tags[i].innerHTML;
+        var parent_tag = null;
+        var parent = p_tags[i].parentNode;
+        if (parent && parent.tagName) {
+            parent_tag = parent.tagName.toLowerCase();
+        }
         var prev = p_tags[i].previousSibling;
         var prev_tag = null;
         if (prev && prev.tagName) {
             prev_tag = prev.tagName.toLowerCase();
         }
 
-        html = html.replace(/(<br>)?\s*$/, br + br);
+        html = html.replace(/(<br\b[^>]*>)?\s*$/, br + br);
+
         if (prev && prev_tag && (prev_tag == 'div' || (prev_tag == 'span' && prev.firstChild && prev.firstChild.tagName && prev.firstChild.tagName.toLowerCase() == 'div'))) {
             html = html.replace(/^\n?[ \t]*/,br + br)
         }
@@ -6823,7 +7135,7 @@ proto.toHtml = function(func) {
             html = self.remove_padding_material(html);
             html = html
                 .replace(/\n*<p>\n?/ig, "")
-                .replace(/<\/p>/ig, br)
+                .replace(/<\/p>(?:<br class=padding>)?/ig, br)
 
             func(html);
         });
@@ -6866,23 +7178,23 @@ proto.setWidgetHandlers = function() {
 
     if (jQuery(doc, win).data("mouseup_handler_set")) return;
 
-    var $$ = jQuery;
     jQuery(doc, win).mouseup(function(e) {
-        if (!$$(e.target).is("img[widget]")) return true;
-        self.currentWidget = self.parseWidgetElement(e.target);
-        var id = self.currentWidget.id;  
-        if (widget_data[id] && widget_data[id].uneditable) {
-            alert(loc("This is not an editable widget. Please edit it in Wiki Text mode."))  
-        }
-        else {
-            self.getWidgetInput(e.target, false, false);
+        if (e.target && e.target.tagName && e.target.tagName.toLowerCase() == 'img' && /^st-widget-/.test(e.target.getAttribute('alt'))) {
+            self.currentWidget = self.parseWidgetElement(e.target);
+            var id = self.currentWidget.id;  
+            if (widget_data[id] && widget_data[id].uneditable) {
+                alert(loc("This is not an editable widget. Please edit it in Wiki Text mode."))  
+            }
+            else {
+                self.getWidgetInput(e.target, false, false);
+            }
         }
     }).data("mouseup_handler_set", true);
 }
 
 proto.setWidgetHandler = function(img) {
-    var widget = img.getAttribute('widget');
-    if (! widget) return;
+    var widget = img.getAttribute('alt');
+    if (! /^st-widget-/.test(widget)) return;
     this.currentWidget = this.parseWidgetElement(img);
     this.currentWidget = this.setTitleAndId(this.currentWidget);
     this.attachTooltip(img);
@@ -6903,7 +7215,7 @@ proto.revert_widget_images = function() {
         for (var i=0, l = imgs.length; i < l; i++) {
             var img = imgs[i];
 
-            if (!img.getAttribute("widget")) { continue; }
+            if (! /^st-widget-/.test(img.getAttribute('alt'))) { continue; }
 
             img.removeAttribute("style");
             img.removeAttribute("width");
@@ -6977,7 +7289,7 @@ proto.reclaim_element_registry_space = function() {
         var found = false;
         for (var j = 0; j < imgs.length; j++) {
             var img = imgs[j];
-            if (!img.getAttribute("widget")) { continue; }
+            if (! /^st-widget-/.test(img.getAttribute('alt'))) { continue; }
             if (wikiwyg_widgets_element_registry[i] == img) {
                 found = true;
                 break;
@@ -7073,7 +7385,7 @@ proto.setTitleAndId = function (widget) {
 }
 
 proto.parseWidgetElement = function(element) {
-    var widget = element.getAttribute('widget');
+    var widget = element.getAttribute('alt').replace(/^st-widget-/, '');
     if (Wikiwyg.is_ie) widget = Wikiwyg.htmlUnescape( widget );
     return this.parseWidget(widget);
 }
@@ -7276,6 +7588,11 @@ proto.replace_widget = function(elem) {
     var widget_image;
     var src;
 
+    if ( (matches = widget.match(/^"([\s\S]+?)"<(.+?)>$/m)) || // Named Links
+        (matches = widget.match(/^(?:"([\s\S]*)")?\{(\w+):?\s*([\s\S]*?)\s*\}$/m))) {
+        // For labeled links or wafls, remove all newlines/returns
+        widget = widget.replace(/[\r\n]/g, ' ');
+    }
     if (widget.match(/^{image:/)) {
         var orig = elem.firstChild;
         if (orig.src) src = orig.src;
@@ -7285,7 +7602,7 @@ proto.replace_widget = function(elem) {
 
     widget_image = Wikiwyg.createElementWithAttrs('img', {
         'src': src,
-        'widget': Wikiwyg.is_ie? Wikiwyg.htmlEscape(widget) : widget
+        'alt': 'st-widget-' + (Wikiwyg.is_ie? Wikiwyg.htmlEscape(widget) : widget)
     });
     elem.parentNode.replaceChild(widget_image, elem);
     return widget_image;
@@ -7342,22 +7659,23 @@ proto.insert_image = function (src, widget, widget_element, cb) {
                             .replace(/'/g, "\\'")
                             .replace(/\\/g, "\\\\");
         html += 'if (!window.image_dimension_cache) window.image_dimension_cache = {};';
-        html += 'window.image_dimension_cache[' + "'";
+        html += 'if (this.offsetWidth && this.offsetHeight) { window.image_dimension_cache[' + "'";
         html += srcEscaped;
         html += "'" + '] = [ this.offsetWidth, this.offsetHeight ]; ';
         html += "this.style.width = this.offsetWidth + 'px'; this.style.height = this.offsetHeight + 'px'";
-        html += '"';
+        html += '}"';
     }
 
     html += ' src="' + src +
-        '" widget="' + widget.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + '" />';
+        '" alt="st-widget-' + widget.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + '" />';
     if ( widget_element ) {
         if ( widget_element.parentNode ) {
-            var div = this.get_edit_document().createElement("div");
-            div.innerHTML = html;
-
-            var new_widget_element = div.firstChild;
-            widget_element.parentNode.replaceChild(new_widget_element, widget_element);
+            if (widget_element.getAttribute('alt') == 'st-widget-' + widget) {
+                // Do nothing - The widget was not modified.
+            }
+            else {
+                $(widget_element).replaceWith(html);
+            }
         }
         else {
             this.insert_html(html);
@@ -7462,7 +7780,7 @@ proto.getWidgetImageUrl = function(widget_text) {
         // Just ignore and set the text to be the widget text
     }
 
-    return '/data/wafl/' + encodeURIComponent(widget_text) + (uneditable ? '?uneditable=1' : '');
+    return '/data/wafl/' + encodeURIComponent(widget_text).replace(/%2F/g, '/') + (uneditable ? '?uneditable=1' : '');
 }
 
 proto.create_wafl_string = function(widget, form) {
@@ -7843,9 +8161,9 @@ proto.getWidgetInput = function(widget_element, selection, new_widget) {
         }
     );
 
-    jQuery('#st-widget-savebutton')
-        .unbind('click')
-        .click(function() {
+    jQuery(form)
+        .unbind('submit')
+        .submit(function() {
             var error = null;
             jQuery('#lightbox .buttons input').attr('disabled', 'disabled');
             try {

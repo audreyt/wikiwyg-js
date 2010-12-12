@@ -11,6 +11,8 @@ widgets:
   - hashtag
   - tag
   - tag_list
+  - blog
+  - blog_list
   - weblog
   - weblog_list
   - fetchrss
@@ -203,32 +205,59 @@ widget:
         - { field: label, text: "file: %label" }
         - { field: default, text: "file: %file_name" }
 
-  weblog:
-    id: weblog
-    label: Weblog Link
+  blog:
+    id: blog
+    label: Blog Link
     color: purple
-    pattern: '"%label"{weblog: %workspace_id; %weblog_name}'
-    fields: [label, weblog_name, workspace_id ]
+    pattern: '"%label"{blog: %workspace_id; %blog_name}'
+    fields: [label, blog_name, workspace_id ]
     pdfields: [label, workspace_id]
-    title: Link to weblog '$weblog_name'. Click to edit.
+    title: Link to blog '$blog_name'. Click to edit.
     labels:
-       workspace_id: Weblog on
+       workspace_id: Blog on
     input:
        workspace_id: radio
-    desc: Display a link to a weblog. Use this form to edit the properties of the link.
-    more_desc: Optional properties include link text, and the name of a different workspace for the weblog.
+    desc: Display a link to a blog. Use this form to edit the properties of the link.
+    more_desc: Optional properties include link text, and the name of a different workspace for the blog.
     parse:
       regexp: '?workspace-value'
-      no_match: weblog_name
-      fields: [workspace_id, weblog_name]
-    required: [weblog_name]
+      no_match: blog_name
+      fields: [workspace_id, blog_name]
+    required: [blog_name]
     title_and_id:
       workspace_id:
         id:
         title:
     image_text:
-        - { field: label, text: "weblog: %label" }
-        - { field: default, text: "weblog: %weblog_name" }
+        - { field: label, text: "blog: %label" }
+        - { field: default, text: "blog: %blog_name" }
+
+  weblog:
+    id: weblog
+    label: Blog Link
+    color: purple
+    pattern: '"%label"{weblog: %workspace_id; %blog_name}'
+    fields: [label, blog_name, workspace_id ]
+    pdfields: [label, workspace_id]
+    title: Link to blog '$blog_name'. Click to edit.
+    labels:
+       workspace_id: Blog on
+    input:
+       workspace_id: radio
+    desc: Display a link to a blog. Use this form to edit the properties of the link.
+    more_desc: Optional properties include link text, and the name of a different workspace for the blog.
+    parse:
+      regexp: '?workspace-value'
+      no_match: blog_name
+      fields: [workspace_id, blog_name]
+    required: [blog_name]
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: label, text: "blog: %label" }
+        - { field: default, text: "blog: %blog_name" }
 
   hashtag:
     id: hashtag
@@ -458,33 +487,61 @@ widget:
     image_text:
         - { field: default, text: "tag list: %tag_name" }
 
-  weblog_list:
-    id: weblog_list
-    label: Weblog List
+  blog_list:
+    id: blog_list
+    label: Blog List
     color: forestgreen
-    pattern: '{weblog_list: <%workspace_id> %weblog_name}'
-    fields: [workspace_id, weblog_name]
+    pattern: '{blog_list: <%workspace_id> %blog_name}'
+    fields: [workspace_id, blog_name]
     pdfields: [workspace_id]
     input:
        workspace_id: radio
     labels:
        workspace_id: in
     title:
-      default: Include the weblog '$weblog_name'. Click to edit.
-      full: Display the weblog '$weblog_name'. Click to edit.
-    desc: Display a list of the most recent entries from a weblog in a workspace. By default only the weblog entry names are displayed. Use this form to edit the list properties.
+      default: Include the blog '$blog_name'. Click to edit.
+      full: Display the blog '$blog_name'. Click to edit.
+    desc: Display a list of the most recent entries from a blog in a workspace. By default only the blog entry names are displayed. Use this form to edit the list properties.
     more_desc: Optional parameters include specifying which workspace to use and whether to display page titles or whole pages.
-    required: [weblog_name]
+    required: [blog_name]
     parse:
       regexp: '^(?:<(\S+)>)?\s*(.*?)?\s*$'
-      fields: [workspace_id, weblog_name]
+      fields: [workspace_id, blog_name]
     full: off
     title_and_id:
       workspace_id:
         id:
         title:
     image_text:
-        - { field: default, text: "weblog list: %weblog_name" }
+        - { field: default, text: "blog list: %blog_name" }
+
+  weblog_list:
+    id: weblog_list
+    label: Blog List
+    color: forestgreen
+    pattern: '{weblog_list: <%workspace_id> %blog_name}'
+    fields: [workspace_id, blog_name]
+    pdfields: [workspace_id]
+    input:
+       workspace_id: radio
+    labels:
+       workspace_id: in
+    title:
+      default: Include the blog '$blog_name'. Click to edit.
+      full: Display the blog '$blog_name'. Click to edit.
+    desc: Display a list of the most recent entries from a blog in a workspace. By default only the blog entry names are displayed. Use this form to edit the list properties.
+    more_desc: Optional parameters include specifying which workspace to use and whether to display page titles or whole pages.
+    required: [blog_name]
+    parse:
+      regexp: '^(?:<(\S+)>)?\s*(.*?)?\s*$'
+      fields: [workspace_id, blog_name]
+    full: off
+    title_and_id:
+      workspace_id:
+        id:
+        title:
+    image_text:
+        - { field: default, text: "blog list: %blog_name" }
 
   aim:
     id: aim
@@ -639,7 +696,7 @@ fields:
   section_name: Section name
   file_name: File name
   image_name: Image name
-  weblog_name: Weblog name
+  blog_name: Blog name
   tag_name: Tag name
   rss_url: RSS feed URL
   atom_url: Atom feed URL
@@ -697,7 +754,7 @@ menu_hierarchy:
       - label: A different wiki page
         widget: link2
       - label: A person's blog
-        widget: weblog
+        widget: blog
       - label: Pages related to a tag
         widget: tag
       - label: A page on the web
@@ -713,7 +770,7 @@ menu_hierarchy:
       - label: Recent changes
         widget: recent_changes
       - label: Blog postings
-        widget: weblog_list
+        widget: blog_list
       - label: Wiki search results
         widget: search
   - label: From the web...   

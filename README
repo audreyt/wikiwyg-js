@@ -5,6 +5,14 @@ Wikiwyg is a WYSIWYG browser editor framework for wikis.
 It is designed to be pluggable on top of existing wiki engines,
 with little or no change to the wiki engine's core software.
 
-^^ Setup Instructions
+^^ Demo Setup
 
-Coming soon!
+> % perl start.pl
+> main: You can connect to your server at http://localhost:8080/
+
+Note how you can switch between Richtext and Wikitext modes.
+
+For supported syntax see: https://www.socialtext.net/help-en/?action=refcard
+
+Happy hacking!
+鳳
