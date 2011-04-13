@@ -9,7 +9,7 @@ licenses as well as general legal notices.
     COPYRIGHT AND ATTRIBUTION NOTICES
 =========================================
 
-Copyright (C) 2009-2010 Socialtext, Inc. 
+Copyright (C) 2009-2011 Socialtext, Inc. 
 All Rights Reserved.
 
 =========================================
@@ -25,25 +25,3 @@ http://wikiwyg.net/.
 
 Socialtext and SocialCalc are registered trademarks of Socialtext, Inc.
 The Socialtext logo and Dreamcatcher are trademarks of Socialtext, Inc.
-
-=========================================
-  LEGAL NOTICES REQUIRED BY THE LICENSE
-=========================================
-
-CHANGES MADE TO THE COVERED CODE (see CPAL Version 1.0 Section 3.3):
-
-None.
-
-(Documentation of future changes as the result of Modifications, including the date of 
-change, will go here in this LEGAL.txt file. This documentation may be summaries of 
-changes with the more detailed descriptions included in the actual modified files as 
-appropriate.)
-
-==========
-
-THIRD PARTY CLAIMS (see CPAL Version 1.0 Section 3.4(a)):
-
-None.
-
-[End of LEGAL.txt]
-
