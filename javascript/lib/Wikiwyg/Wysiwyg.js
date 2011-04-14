@@ -10,23 +10,17 @@ COPYRIGHT:
 
 Wikiwyg is free software.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This library is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 2.1 of the License, or (at
+your option) any later version.
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+This library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser
+General Public License for more details.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+    http://www.gnu.org/copyleft/lesser.txt
 
  =============================================================================*/
 
@@ -490,7 +484,7 @@ proto.get_inner_html_async = function( cb, tries ) {
                 }, 500);
             }
             else {
-                html = loc('Sorry, an edit error occured; please re-edit this page.');
+                html = loc('error.edit-again');
             }
         }
         if (html != null) {
@@ -575,23 +569,17 @@ COPYRIGHT:
 
 Wikiwyg is free software.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This library is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 2.1 of the License, or (at
+your option) any later version.
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+This library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser
+General Public License for more details.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+    http://www.gnu.org/copyleft/lesser.txt
 
  =============================================================================*/
 
@@ -670,6 +658,89 @@ proto.on_key_enter = function(e) {
     if (jQuery(node).is("li")) {
         jQuery(node).find("br:last-child").remove();
     }
+}
+
+proto.enable_table_navigation_bindings = function() {
+    var self = this;
+    var event_name = "keydown";
+    if (jQuery.browser.mozilla && navigator.oscpu.match(/Mac/)) {
+        event_name = "keypress";
+    }
+
+    self.bind( event_name, function (e) {
+        if (e.metaKey || e.ctrlKey) { return true; }
+        switch (e.keyCode) {
+            case 9: { // Tab
+                var $cell = self.find_table_cell_with_cursor();
+                if (!$cell) { return; }
+                e.preventDefault();
+
+                var $new_cell;
+                if (e.shiftKey) {
+                    $new_cell = $cell.prev('td');
+                    if (!$new_cell.length) {
+                        $new_cell = $cell.parents('tr:first').prev('tr').find('td:last');
+                        if (!$new_cell.length) {
+                            return;
+                        }
+                    }
+                }
+                else {
+                    $new_cell = $cell.next('td');
+                    if (!$new_cell.length) {
+                        $new_cell = $cell.parents('tr:first').next('tr').find('td:first');
+                        if (!$new_cell.length) {
+                            // Extend the table now we're at the last cell
+                            var doc = self.get_edit_document();
+                            var $tr = jQuery(doc.createElement('tr'));
+                            $cell.parents("tr").find("td").each(function() {
+                                $tr.append('<td style="border: 1px solid black; padding: 0.2em;">&nbsp;</td>');
+                            });
+                            $tr.insertAfter( $cell.parents('tr:first') );
+                            $new_cell = $tr.find('td:first');
+                        }
+                    }
+                }
+
+                self.set_focus_on_cell($new_cell);
+                break;
+            }
+            case 38: { // Up
+                self._do_table_up_or_down(e, 'prev', ':first');
+                break;
+            }
+            case 40: { // Down
+                self._do_table_up_or_down(e, 'next', ':last');
+                break;
+            }
+        }
+    });
+}
+
+proto._do_table_up_or_down = function(e, direction, selector) {
+    var self = this;
+    if (e.shiftKey) { return; }
+
+    var $cell = self.find_table_cell_with_cursor();
+    if (!$cell) { return; }
+
+    var col = self._find_column_index($cell);
+    if (!col) { return; }
+
+    var $tr = $cell.parents('tr:first')[direction]('tr:first');
+    var $new_cell;
+    if ($tr.length) {
+        var tds = $tr.find('td');
+        $new_cell = $(tds[col-1]);
+        e.preventDefault();
+    }
+    else {
+        // At the top/bottom row - move to the first/last cell,
+        // and do not preventDefault, so we can move outside the table
+        $new_cell = $cell.parents('table:first').find('tr'+selector+' td'+selector);
+    }
+
+    self.set_focus_on_cell($new_cell);
 }
 
 proto.enable_pastebin = function () {
@@ -836,7 +907,7 @@ proto._unbindHandler = function(event_name) {
 }
 
 proto._bindHandler = function(event_name, callback) {
-    if (Wikiwyg.is_ie && event_name == 'blur') {
+    if ((Wikiwyg.is_ie || $.browser.webkit) && event_name == 'blur') {
         jQuery(this.get_edit_window()).bind(event_name, callback);
     }
     else {
@@ -913,6 +984,8 @@ proto.enableThis = function() {
         }
 
         self.enable_keybindings();
+        self.enable_table_navigation_bindings();
+
         self.enable_pastebin();
         if (!self.wikiwyg.config.noAutoFocus) {
             self.set_focus();
@@ -1144,51 +1217,34 @@ proto.set_clear_handler = function () {
     } catch (e) {};
 }
 
-proto.show_messages = function(html) {
-    var advanced_link = this.advanced_link_html();
-    var message_titles = {
-        wiki:  loc('Advanced Content in Grey Border'),
-        table: loc('Table Edit Tip'),
-        both:  loc('Table & Advanced Editing')
-    };
-    var message_bodies = {
-        wiki:
-            loc('Advanced content is shown inside a grey border. Switch to [_1] to edit areas inside a grey border.',advanced_link),
-        table: loc('Use [_1] to change the number of rows and columns in a table.', advanced_link),
-        both: ''
-    };
-    message_bodies.both = message_bodies.table + ' ' + message_bodies.wiki;
-
-    var wiki    = html.match(/<!--\s*wiki:/);
-    var table   = html.match(/<table /i);
-    var message = null;
-    if      (wiki && table) message = 'both'
-    else if (table)         message = 'table'
-    else if (wiki)          message = 'wiki';
-
-    if (message) {
-        this.wikiwyg.message.display({
-            title: message_titles[message],
-            body: message_bodies[message],
-            timeout: 60
-        });
-    }
-}
+proto.show_messages = function(html) {}
 
 proto.do_p = function() {
     this.format_command("p");
-}
-
-proto.do_attach = function() {
-    this.wikiwyg.message.display(this.use_advanced_mode_message(loc('Attachments')));
 }
 
 proto.do_image = function() {
     this.do_widget_image();
 }
 
+proto.do_video = function() {
+    this.do_widget_video();
+}
+
 proto.do_link = function(widget_element) {
     this._do_link(widget_element);
+}
+
+proto.do_video = function() {
+    this.do_widget_video();
+}
+
+proto.do_widget = function(widget_element) {
+    if (widget_element && widget_element.nodeName) {
+        this.do_opensocial_setup(widget_element);
+        return;
+    }
+    this.do_opensocial_gallery();
 }
 
 proto.add_wiki_link = function(widget_element, dummy_widget) {
@@ -1261,78 +1317,22 @@ proto.make_web_link = function(url, link_text) {
     this.make_link(link_text, false, url);
 }
 
+
 proto.make_link = function(label, page_name, url) {
-    var span_node = document.createElement("span");
-    var link_node = document.createElement("a");
 
-    // Anchor text
     var text = label || page_name || url;
-    link_node.appendChild( document.createTextNode(text.replace(/"/g, '\uFF02')) );
-
-    // Anchor HREF
-    link_node.href = url || "?" + encodeURIComponent(page_name);
-
+    var href = url || encodeURIComponent(page_name);
+    var attr = "";
     if (page_name) {
-        jQuery(link_node).attr('wiki_page', page_name)
+        attr = " wiki_page=\"" + html_escape(page_name).replace(/"/g, "&quot;") + "\"";
     }
-
-    span_node.appendChild( link_node );
-    span_node.appendChild( document.createTextNode('\u00A0') );
-
-    this.insert_element_at_cursor(span_node);
-}
-
-if (Wikiwyg.is_ie) {
-    proto.make_link = function(label, page_name, url) {
-
-        var text = label || page_name || url;
-        var href = url || "?" + encodeURIComponent(page_name);
-        var attr = "";
-        if (page_name) {
-            attr = " wiki_page=\"" + html_escape(page_name).replace(/"/g, "&quot;") + "\"";
-        }
-        var html = "<a href=\"" + href + "\"" + attr + ">" + html_escape( text.replace(/"/g, '\uFF02').replace(/"/g, "&quot;") );
+    var html = "<a href=\"" + href + "\"" + attr + ">" + html_escape( text.replace(/"/g, '\uFF02').replace(/"/g, "&quot;") );
 
 
-        html += "</a>";
+    html += "</a>";
 
-        this.set_focus(); // Need this before .insert_html
-        this.insert_html(html);
-    }
-}
-
-proto.insert_element_at_cursor = function(ele) {
-    var selection = this.get_edit_window().getSelection();
-    if (selection.toString().length > 0) {
-        selection.deleteFromDocument();
-    }
-
-    selection  = this.get_edit_window().getSelection();
-    var anchor = selection.anchorNode;
-    var offset = selection.anchorOffset;
-
-    if (anchor.nodeName == '#text') {  // Insert into a text element.
-        var secondNode = anchor.splitText(offset);
-        anchor.parentNode.insertBefore(ele, secondNode);
-    } else {  // Insert at the start of the line.
-        var children = selection.anchorNode.childNodes;
-        if (children.length > offset) {
-            selection.anchorNode.insertBefore(ele, children[offset]);
-        } else {
-            anchor.appendChild(ele);
-        }
-    }
-}
-
-proto.use_advanced_mode_message = function(subject) {
-    return {
-        title: loc('Use Advanced Mode for [_1]', subject),
-        body: loc('Switch to [_1] to use this feature.',  this.advanced_link_html()) 
-    }
-}
-
-proto.advanced_link_html = function() {
-    return '<a onclick="wikiwyg.wikitext_link.onclick(); return false" href="#">' + loc('Advanced Mode') + '</a>';
+    this.set_focus(); // Need this before .insert_html
+    this.insert_html(html);
 }
 
 proto.insert_table_html = function(rows, columns, options) {
@@ -1362,6 +1362,20 @@ proto.insert_table_html = function(rows, columns, options) {
             var $table = jQuery('#'+id, self.get_edit_document());
             $table.removeAttr('id');
             self.applyTableOptions($table, options);
+
+            // Skip the <br/> padding around tables for Selenium so we can test with the cursor in tables.
+            if (Wikiwyg.is_selenium) { return; } 
+
+            if ($table.prev().length == 0) {
+                // Table is the first element in document - add a <br/> so
+                // navigation is possible beyond the table.
+                $table.before('<br />');
+            }
+            if ($table.next().length == 0) {
+                // Table is the last element in document - add a <br/> so
+                // navigation is possible beyond the table.
+                $table.after('<br />');
+            }
         },
         500, 10000
     );
@@ -1382,25 +1396,25 @@ proto.do_new_table = function() {
         var rows = jQuery('.table-create input[name=rows]').val();
         var cols = jQuery('.table-create input[name=columns]').val();
         if (! rows.match(/^\d+$/))
-            return $error.text(loc('Rows is invalid.'));
+            return $error.text(loc('error.invalid-rows'));
         if (! cols.match(/^\d+$/))
-            return $error.text(loc('Columns is invalid.'));
+            return $error.text(loc('error.invalid-columns'));
         rows = Number(rows);
         cols = Number(cols);
         if (! (rows && cols))
-            return $error.text(loc('Rows and Columns must be non-zero.'));
+            return $error.text(loc('error.rows-and-columns-required'));
         if (rows > 100)
-            return $error.text(loc('Rows is too big. 100 maximum.'));
+            return $error.text(loc('error.rows-too-big'));
         if (cols > 35)
-            return $error.text(loc('Columns is too big. 35 maximum.'));
+            return $error.text(loc('error.columns-too-big'));
         self.set_focus(); // Need this before .insert_html
         var options = self.tableOptionsFromNode(jQuery('.table-create'));
         self.insert_table_html(rows, cols, options);
         self.closeTableDialog();
     }
     var setup = function() {
-        jQuery('.table-create input[name=columns]').focus();
-        jQuery('.table-create input[name=columns]').select();
+        jQuery('.table-create input[name=rows]').focus();
+        jQuery('.table-create input[name=rows]').select();
         jQuery('.table-create .save')
             .unbind("click")
             .bind("click", function() {
@@ -1479,6 +1493,37 @@ proto.find_table_cell_with_cursor = function() {
     return $cell;
 }
 
+proto.set_focus_on_cell = function($new_cell) {
+    var self = this;
+    self.set_focus();
+
+    if (Wikiwyg.is_gecko) {
+        var $span = $new_cell.find("span");
+        if ($span.length > 0) {
+            if ($span.html() == '') {
+                $span.html('&nbsp;');
+            }
+        }
+        else {
+            $span = $new_cell;
+        }
+
+        var r = self.get_edit_document().createRange();
+        r.setStart( $span.get(0), 0 );
+        r.setEnd( $span.get(0), 0 );
+
+        var s = self.get_edit_window().getSelection();
+        s.removeAllRanges();
+        s.addRange(r);
+    }
+    else if (jQuery.browser.msie) {
+        var r = self.get_edit_document().selection.createRange();
+        r.moveToElementText( $new_cell.get(0) );
+        r.collapse(true);
+        r.select();
+    }
+}
+
 proto._do_table_manip = function(callback) {
     var self = this;
     setTimeout(function() {
@@ -1489,32 +1534,7 @@ proto._do_table_manip = function(callback) {
 
         if ($new_cell) {
             $cell = $new_cell;
-            self.set_focus();
-            if (Wikiwyg.is_gecko) {
-                var $span = $new_cell.find("span");
-                if ($span.length > 0) {
-                    if ($span.html() == '') {
-                        $span.html('&nbsp;');
-                    }
-                }
-                else {
-                    $span = $new_cell;
-                }
-
-                var r = self.get_edit_document().createRange();
-                r.setStart( $span.get(0), 0 );
-                r.setEnd( $span.get(0), 0 );
-
-                var s = self.get_edit_window().getSelection();
-                s.removeAllRanges();
-                s.addRange(r);
-            }
-            else if (jQuery.browser.msie) {
-                var r = self.get_edit_document().selection.createRange();
-                r.moveToElementText( $new_cell.get(0) );
-                r.collapse(true);
-                r.select();
-            }
+            self.set_focus_on_cell($new_cell);
         }
 
         setTimeout(function() {
@@ -1621,10 +1641,10 @@ proto.do_add_row_below = function() {
     this._do_table_manip(function($cell) {
         var doc = this.get_edit_document();
         var $tr = jQuery(doc.createElement('tr'));
-        $cell.parents("tr").find("td").each(function() {
+        $cell.parents("tr:first").find("td").each(function() {
             $tr.append('<td style="border: 1px solid black; padding: 0.2em;">&nbsp;</td>');
         });
-        $tr.insertAfter( $cell.parents("tr") );
+        $tr.insertAfter( $cell.parents("tr:first") );
     });
 }
 
@@ -1634,10 +1654,10 @@ proto.do_add_row_above = function() {
         var doc = this.get_edit_document();
         var $tr = jQuery(doc.createElement('tr'));
 
-        $cell.parents("tr").find("td").each(function() {
+        $cell.parents("tr:first").find("td").each(function() {
             $tr.append('<td style="border: 1px solid black; padding: 0.2em;">&nbsp;</td>');
         });
-        $tr.insertBefore( $cell.parents("tr") );
+        $tr.insertBefore( $cell.parents("tr:first") );
     });
 }
 
@@ -1886,7 +1906,7 @@ proto.socialtext_wikiwyg_image = function(image_name) {
 proto.get_link_selection_text = function() {
     var selection = this.get_selection_text();
     if (! selection) {
-        alert(loc("Please select the text you would like to turn into a link."));
+        alert(loc("error.link-selection-required"));
         return;
     }
     return selection;
@@ -2059,6 +2079,15 @@ var widget_data = Wikiwyg.Widgets.widget;
 
 proto.fromHtml = function(html) {
     if (typeof html != 'string') html = '';
+
+    html = html.replace(
+        new RegExp(
+            '(<!--[\\d\\D]*?-->)|(<(span|div)\\sclass="nlw_phrase">)[\\d\\D]*?(<!--\\swiki:\\s[\\d\\D]*?\\s--><\/\\3>)',
+            'g'
+        ), function(_, _1, _2, _3, _4) {
+            return(_1 ? _1 : _2 + '&nbsp;' + _4);
+        }
+    );
 
     if (Wikiwyg.is_ie) {
         html = html.replace(/<DIV class=wiki>([\s\S]*)<\/DIV>/gi, "$1");
@@ -2240,11 +2269,24 @@ proto.toHtml = function(func) {
             var br = "<br class=\"p\"/>";
 
             html = self.remove_padding_material(html);
-            html = html
-                .replace(/\n*<p>\n?/ig, "")
-                .replace(/<\/p>(?:<br class=padding>)?/ig, br)
 
-            func(html);
+            /* {bz: 4812}: Don't replace <p> and <br> tags inside WAFL alt text */
+            var separator = '<<<'+Math.random()+'>>>';
+            var chunks = html.replace(/\balt="st-widget-[^"]*"/ig, separator + '$&' + separator).split(separator);
+            var escapedHtml = '';
+            for(var i=0;i<chunks.length;i++) {
+                var chunk = chunks[i];
+                if (/^alt="st-widget-/.test(chunk) && /"$/.test(chunk)) {
+                    escapedHtml += chunk;
+                }
+                else {
+                    escapedHtml += chunk
+                        .replace(/\n*<p>\n?/ig, "")
+                        .replace(/<\/p>(?:<br class=padding>)?/ig, br)
+                }
+            }
+
+            func(escapedHtml);
         });
     }
     else {
@@ -2260,6 +2302,20 @@ proto.toHtml = function(func) {
         delete this._white_page_fixer_interval_id;
     }
     */
+}
+
+proto.getNextSerialForOpenSocialWidget = function(src) {
+    var max = 0;
+    var imgs = this.get_edit_document().getElementsByTagName('img');
+    for (var ii = 0; ii < imgs.length; ii++) {
+        var match = (imgs[ii].getAttribute('alt') || '').match(
+            /^st-widget-\{widget:\s*([^\s#]+)(?:\s*#(\d+))?((?:\s+[^\s=]+=\S*)*)\s*\}$/
+        );
+        if (match && match[1].replace(/^local:widgets:/, '') == src.replace(/^local:widgets:/, '')) {
+            max = Math.max( max, (match[2] || 1) );
+        }
+    }
+    return max+1;
 }
 
 proto.setWidgetHandlers = function() {
@@ -2290,7 +2346,7 @@ proto.setWidgetHandlers = function() {
             self.currentWidget = self.parseWidgetElement(e.target);
             var id = self.currentWidget.id;  
             if (widget_data[id] && widget_data[id].uneditable) {
-                alert(loc("This is not an editable widget. Please edit it in Wiki Text mode."))  
+                alert(loc("info.wafl-uneditable"))  
             }
             else {
                 self.getWidgetInput(e.target, false, false);
@@ -2338,6 +2394,22 @@ proto.revert_widget_images = function() {
 proto.sanitize_dom = function(dom) {
     Wikiwyg.Mode.prototype.sanitize_dom.call(this, dom);
     this.widget_walk(dom);
+
+    // Skip the <br/> padding around tables for Selenium so we can test with the cursor in tables.
+    if (Wikiwyg.is_selenium) { return; } 
+
+    // Table is the first element in document - prepend a <br/> so
+    // navigation is possible beyond the table.
+    var $firstTable = $('table:first', dom);
+    if ($firstTable.length && ($firstTable.prev().length == 0)) {
+        $firstTable.before('<br />');
+    }
+    // Table is the last element in document - append a <br/> so
+    // navigation is possible beyond the table.
+    var $lastTable = $('table:last', dom);
+    if ($lastTable.length && ($lastTable.next().length == 0)) {
+        $firstTable.after('<br />');
+    }
 }
 
 proto.attachTooltip = function(elem) {
@@ -2494,6 +2566,12 @@ proto.setTitleAndId = function (widget) {
 proto.parseWidgetElement = function(element) {
     var widget = element.getAttribute('alt').replace(/^st-widget-/, '');
     if (Wikiwyg.is_ie) widget = Wikiwyg.htmlUnescape( widget );
+    if ($.browser.webkit) widget = widget.replace(
+        /&#x([a-fA-F\d]{2,5});/g, 
+        function($_, $1) { 
+            return String.fromCharCode(parseInt($1, 16));
+        }
+    );
     return this.parseWidget(widget);
 }
 
@@ -2505,8 +2583,8 @@ proto.parseWidget = function(widget) {
     if ((matches = widget.match(/^(aim|yahoo|ymsgr|skype|callme|callto|http|irc|file|ftp|https):([\s\S]*?)\s*$/)) ||
         (matches = widget.match(/^\{(\{([\s\S]+)\})\}$/)) || // AS-IS
         (matches = widget.match(/^"(.+?)"<(.+?)>$/)) || // Named Links
-        (matches = widget.match(/^(?:"(.*)")?\{(\w+):?\s*([\s\S]*?)\s*\}$/)) ||
-        (matches = widget.match(/^\.(\w+)\s*?\n([\s\S]*?)\1\s*?$/))
+        (matches = widget.match(/^(?:"(.*)")?\{([-\w]+):?\s*([\s\S]*?)\s*\}$/)) ||
+        (matches = widget.match(/^\.([-\w]+)\s*?\n([\s\S]*?)\1\s*?$/))
     ) {
         var widget_id = matches[1];
         var full = false;
@@ -2569,7 +2647,7 @@ proto.parseWidget = function(widget) {
         return widget_parse;
     }
     else
-        throw(loc('Unexpected Widget >>[_1]<< in parseWidget', widget));
+        throw(loc('error.unexpected-parse=widget', widget));
 }
 
 for (var i = 0; i < widgets_list.length; i++) {
@@ -2602,32 +2680,35 @@ for (var i = 0; i < widgets_list.length; i++) {
             if (! (data.field || data.parse)) {
                 data.field = data.fields[0];
             }
-
             if (data.field) {
                 widget_parse[ data.field ] = widget_args;
-                return widget_parse;
             }
 
-            var widgetFields = data.parse.fields || data.fields;
-            var regexp = data.parse.regexp;
-            var regexp2 = regexp.replace(/^\?/, '');
-            if (regexp != regexp2)
-                regexp = Wikiwyg.Widgets.regexps[regexp2];
-            var tokens = widget_args.match(regexp);
-            if (tokens) {
-                for (var i = 0; i < widgetFields.length; i++)
-                    widget_parse[ widgetFields[i] ] = tokens[i+1];
+            var widgetFields = data.parse ? (data.parse.fields || data.fields) : data.fields;
+
+            if (data.parse) {
+                var regexp = data.parse.regexp;
+                var regexp2 = regexp.replace(/^\?/, '');
+                if (regexp != regexp2)
+                    regexp = Wikiwyg.Widgets.regexps[regexp2];
+                var tokens = widget_args.match(regexp);
+                if (tokens) {
+                    for (var i = 0; i < widgetFields.length; i++)
+                        widget_parse[ widgetFields[i] ] = tokens[i+1];
+                }
+                else {
+                    if (data.parse.no_match)
+                        widget_parse[ data.parse.no_match ] = widget_args;
+                }
             }
-            else {
-                if (data.parse.no_match)
-                    widget_parse[ data.parse.no_match ] = widget_args;
-            }
+
             if (widget_parse.size) {
                 if (widget_parse.size.match(/^(\d+)(?:x(\d+))?$/)) {
                     widget_parse.width = RegExp.$1 || '';
                     widget_parse.height = RegExp.$2 || '';
                 }
             }
+
             if (widget_parse.search_term) {
                 var term = widget_parse.search_term;
                 var term2 = term.replace(/^(tag|category|title):/, '');
@@ -2695,21 +2776,30 @@ proto.replace_widget = function(elem) {
     var widget_image;
     var src;
 
-    if ( (matches = widget.match(/^"([\s\S]+?)"<(.+?)>$/m)) || // Named Links
-        (matches = widget.match(/^(?:"([\s\S]*)")?\{(\w+):?\s*([\s\S]*?)\s*\}$/m))) {
-        // For labeled links or wafls, remove all newlines/returns
-        widget = widget.replace(/[\r\n]/g, ' ');
-    }
-    if (widget.match(/^{image:/)) {
-        var orig = elem.firstChild;
-        if (orig.src) src = orig.src;
+    if (/nlw_phrase/.test(elem.className)) {
+        if ($.browser.webkit) widget = widget.replace(
+            /&#x([a-fA-F\d]{2,5});/g, 
+            function($_, $1) { 
+                return String.fromCharCode(parseInt($1, 16));
+            }
+        );
+        if ( (matches = widget.match(/^"([\s\S]+?)"<(.+?)>$/m)) || // Named Links
+            (matches = widget.match(/^(?:"([\s\S]*)")?\{([-\w]+):?\s*([\s\S]*?)\s*\}$/m))) {
+            // For labeled links or wafls, remove all newlines/returns
+            widget = widget.replace(/[\r\n]/g, ' ');
+        }
+        if (widget.match(/^{image:/)) {
+            var orig = elem.firstChild;
+            if (orig.src) src = orig.src;
+        }
     }
 
     if (!src) src = this.getWidgetImageUrl(widget);
 
     widget_image = Wikiwyg.createElementWithAttrs('img', {
         'src': src,
-        'alt': 'st-widget-' + (Wikiwyg.is_ie? Wikiwyg.htmlEscape(widget) : widget)
+        'alt': 'st-widget-' + (Wikiwyg.is_ie? Wikiwyg.htmlEscape(widget) : widget),
+        'title': this.getWidgetTooltip(widget)
     });
     elem.parentNode.replaceChild(widget_image, elem);
     return widget_image;
@@ -2796,6 +2886,16 @@ proto.insert_image = function (src, widget, widget_element, cb) {
         cb();
 }
 
+proto.insert_block = function (text, label, elem) {
+    if (!elem) { this.insert_html('<br />'); }
+    this.insert_image(
+        this.getWidgetImageUrl(label),
+        text,
+        elem
+    );
+    if (!elem) { this.insert_html('<br />'); }
+}
+
 proto.insert_widget = function(widget, widget_element, cb) {
     var self = this;
 
@@ -2825,9 +2925,18 @@ proto.insert_widget = function(widget, widget_element, cb) {
 
 proto.getWidgetImageText = function(widget_text, widget) {
     var text = widget_text;
-    // XXX Hack for html block. Should key off of 'uneditable' flag.
-    if (widget.id == 'html') {
-        text = widget_data.html.title;
+    var config = widget_data[ widget.id ];
+    if (config && config.use_title_as_text) {
+        text = config.title;
+        if (/__title__/.test(text)) {
+            var match = widget_text.replace(/-=/g, '-').replace(/==/g, '=').match(/\s__title__=(\S+)[\s}]/);
+            if (match) {
+                text = text.replace(/__title__/g, decodeURI(match[1]));
+            }
+            else {
+                text = text.replace(/__title__\s+/g, '');
+            }
+        }
     }
     else if (widget_text.match(/^"([^"]+)"{/)) {
         text = RegExp.$1;
@@ -2875,6 +2984,21 @@ proto.getWidgetImageLocalizeText = function(widget, text) {
     return newtext;
 }
 
+proto.getWidgetTooltip = function(widget_text) {
+    var uneditable = false;
+    try {
+        var widget = this.parseWidget(widget_text);
+        uneditable = widget_data[widget.id].uneditable;
+        widget_text = this.getWidgetImageText(widget_text, widget);
+    }
+    catch (e) {
+        // parseWidget can throw an error
+        // Just ignore and set the text to be the widget text
+    }
+
+    return widget_text;
+}
+
 proto.getWidgetImageUrl = function(widget_text) {
     var uneditable = false;
     try {
@@ -2896,8 +3020,8 @@ proto.create_wafl_string = function(widget, form) {
 
     var values = this.form_values(widget, form);
     var fields =
-        data.field ? [ data.field ] :
         data.fields ? data.fields :
+        data.field ? [ data.field ] :
         [];
     if (data.other_fields) {
         jQuery.each(data.other_fields, function (){ fields.push(this) });
@@ -2914,9 +3038,9 @@ proto.create_wafl_string = function(widget, form) {
         replace(/\(\s*\)/, '').
         replace(/\s;\s/, ' ').
         replace(/\s\s+/g, ' ').
-        replace(/^\{(\w+)\: \}$/,'{$1}');
+        replace(/^\{([-\w]+)\: \}$/,'{$1}');
     if (values.full)
-        result = result.replace(/^(\{\w+)/, '$1_full');
+        result = result.replace(/^(\{[-\w]+)/, '$1_full');
     return result;
 }
 
@@ -2935,8 +3059,8 @@ for (var i = 0; i < widgets_list.length; i++) {
 proto.form_values = function(widget, form) {
     var data = widget_data[widget];
     var fields =
-        data.field ? [ data.field ] :
         data.fields ? data.fields :
+        data.field ? [ data.field ] :
         [];
     var values = {};
 
@@ -2995,7 +3119,7 @@ proto.validate_fields = function(widget, values) {
             var field = required[i];
             if (! values[field].length) {
                 var label = Wikiwyg.Widgets.fields[field];
-                throw(loc("'[_1]' is a required field", label));
+                throw(loc("error.widget-field-required=label", label));
             }
         }
     }
@@ -3012,7 +3136,7 @@ proto.validate_fields = function(widget, values) {
                 found++;
         }
         if (! found)
-            throw(loc("Requires one of: [_1]", labels.join(', ')));
+            throw(loc("error.field-required=labels", labels.join(', ')));
     }
 
     for (var field in values) {
@@ -3027,7 +3151,7 @@ proto.validate_fields = function(widget, values) {
 
         if (!fieldOk) {
             var label = Wikiwyg.Widgets.fields[field];
-            throw(loc("'[_1]' has an invalid value", label));
+            throw(loc("error.invalid-widget-field=label", label));
         }
     }
 
@@ -3040,18 +3164,53 @@ proto.validate_fields = function(widget, values) {
     }
 }
 
+proto.require_valid_video_url = function(values) {
+    if (!values.video_url || !values.video_url.length) {
+        throw(loc("error.video-url-required"));
+    }
+
+    var error = null;
+    jQuery.ajax({
+        type: 'get',
+        async: false,
+        url: 'index.cgi',
+        dataType: 'json',
+        data: {
+            action: 'check_video_url',
+            video_url: values.video_url.replace(/^<|>$/g, '')
+        },
+        success: function(data) {
+            if (data.title) {
+                return true;
+            }
+            else {
+                error = data.error || loc("error.invalid-video-url");
+            }
+        },
+        error: function(xhr) {
+            error = loc("error.check-video-url");
+        }
+    });
+
+    if (error) {
+        throw(error);
+    }
+
+    return true;
+}
+
 proto.require_page_if_workspace = function(values) {
     if (values.spreadsheet_title) {
         return this.require_spreadsheet_if_workspace(values);
     }
 
     if (values.workspace_id.length && ! values.page_title.length)
-        throw(loc("Page Title required if Workspace Id specified"));
+        throw(loc("edit.page-title-required-for-wiki"));
 }
 
 proto.require_spreadsheet_if_workspace = function(values) {
     if (values.workspace_id.length && ! values.spreadsheet_title.length)
-        throw(loc("Spreadsheet Title required if Workspace Id specified"));
+        throw(loc("edit.spreadsheet-title-required-for-wiki"));
 }
 
 
@@ -3196,6 +3355,22 @@ proto.getWidgetInput = function(widget_element, selection, new_widget) {
         jQuery('#web-link-text').focus();
         return;
     }
+    else if (widget == 'pre') {
+        this.do_widget_pre(widget_element);
+        return;
+    }
+    else if (widget == 'html') {
+        this.do_widget_html(widget_element);
+        return;
+    }
+    else if (/^code(?:-\w+)?$/.test(widget)) {
+        this.do_widget_code(widget_element);
+        return;
+    }
+    else if (widget == 'widget') {
+        this.do_opensocial_setup();
+        return;
+    }
 
     var template = 'widget_' + widget + '_edit.html';
     var html = Jemplate.process(template, this.currentWidget);
@@ -3227,21 +3402,20 @@ proto.getWidgetInput = function(widget_element, selection, new_widget) {
                     : '#st-widget-' + field;
                 jQuery(selector).select().focus();
             }
+
+            if (widget == 'video') {
+                self._preload_video_dimensions();
+            }
         }
     });
 
     var self = this;
     var form = jQuery('#widget-' + widget + ' form').get(0);
 
-    // When the lightbox is closed, decrement widget_editing so lightbox can pop up again. 
-    jQuery('#lightbox').bind("lightbox-unload", function(){
-        Wikiwyg.Widgets.widget_editing--;
-        if (self.wikiwyg && self.wikiwyg.current_mode && self.wikiwyg.current_mode.set_focus) {
-            self.wikiwyg.current_mode.set_focus();
-        }
-    });
-
     var intervalId = setInterval(function () {
+        if (widget == 'video') {
+            $('#st-widget-video_url').triggerHandler('change');
+        }
         jQuery('#'+widget+'_wafl_text')
             .html(
                 ' <span>' +
@@ -3251,17 +3425,26 @@ proto.getWidgetInput = function(widget_element, selection, new_widget) {
             );
     }, 500);
 
+    // When the lightbox is closed, decrement widget_editing so lightbox can pop up again. 
+    jQuery('#lightbox').unbind('lightbox-unload').bind("lightbox-unload", function(){
+        clearInterval(intervalId);
+        Wikiwyg.Widgets.widget_editing--;
+        if (self.wikiwyg && self.wikiwyg.current_mode && self.wikiwyg.current_mode.set_focus) {
+            self.wikiwyg.current_mode.set_focus();
+        }
+    });
+
     jQuery('#st-widgets-moreoptions').unbind('click').toggle(
         function () {
             jQuery('#st-widgets-moreoptions')
-                .html(loc('Fewer options'))
+                .html(loc('wafl.fewer-options'))
             jQuery('#st-widgets-optionsicon')
                 .attr('src', nlw_make_s2_path('/images/st/hide_more.gif'));
             jQuery('#st-widgets-moreoptionspanel').show();
         },
         function () {
             jQuery('#st-widgets-moreoptions')
-                .html(loc('More options'))
+                .html(loc('wafl.more-options'))
             jQuery('#st-widgets-optionsicon')
                 .attr('src', nlw_make_s2_path('/images/st/show_more.gif'));
             jQuery('#st-widgets-moreoptionspanel').hide();
@@ -3337,14 +3520,18 @@ proto.getWidgetInput = function(widget_element, selection, new_widget) {
 
     if (form.size) {
         jQuery(form.width).click(function (){
-            form.size[4].checked = true;
+            form.size[form.size.length-1].checked = true;
             disable(form.height);
             enable(form.width);
+        }).focus(function() {
+            $(this).triggerHandler('click');
         });
         jQuery(form.height).click(function () {
-            form.size[4].checked = true;
+            form.size[form.size.length-1].checked = true;
             disable(form.width);
             enable(form.height);
+        }).focus(function() {
+            $(this).triggerHandler('click');
         });
         if (!Number(form.height.value))
             disable(form.height);
@@ -3352,4 +3539,58 @@ proto.getWidgetInput = function(widget_element, selection, new_widget) {
             disable(form.width);
     }
 }
+
+proto._preload_video_dimensions = function() {
+    var previousURL = null;
+    var loading = false;
+    var queued = false;
+
+    $('#st-widget-video_url').unbind('change').change(function(){
+        var url = $(this).val();
+        if (!/^[-+.\w]+:\/\/[^\/]+\//.test(url)) {
+            $('#st-widget-video-original-width').text('');
+            url = null;
+        }
+        if (url == previousURL) { return; }
+        previousURL = url;
+
+        if (loading) { queued = true; return; }
+        queued = false;
+
+        if (!url) { return; }
+        loading = true;
+
+        $('#st-widget-video-original-width').text(loc('edit.loading'));
+        $('#video_widget_edit_error_msg').text('').hide();
+
+        jQuery.ajax({
+            type: 'get',
+            async: true,
+            url: 'index.cgi',
+            dataType: 'json',
+            data: {
+                action: 'check_video_url',
+                video_url: url.replace(/^<|>$/g, '')
+            },
+            success: function(data) {
+                loading = false;
+                if (queued) {
+                    $('#st-widget-video_url').triggerHandler('change');
+                    return;
+                }
+                if (data.title) {
+                    $('#st-widget-video-original-width').text(
+                        loc('wafl.width=px', data.width)
+                            + ' ' +
+                        loc('wafl.height=px', data.height)
+                    );
+                }
+                else {
+                    $('#st-widget-video-original-width').text('');
+                }
+            }
+        });
+    });
+}
+
 

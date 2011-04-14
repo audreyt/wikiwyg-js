@@ -2,16 +2,16 @@
     <div class="body">
         <form action="#">
             <div class="field">
-                <label for="st-edit-summary-text-area">[% loc("Summarize your edit (optional)") %]</label>
+                <label for="st-edit-summary-text-area">[% loc("edit.summarize") %]</label>
                 <input type="text" id="st-edit-summary-text-area" maxlength="250" class="input">
             </div>
             [% IF plugins_enabled.grep("signals").size && plugins_enabled_for_current_workspace_account.grep("signals").size -%]
             <div class="signal">
                 <div class="preview" style="display: none;">Your Signal will appear as:<div id="st-edit-summary-signal-preview" class="text"></div></div>
-                <input id="st-edit-summary-signal-checkbox" type="checkbox" /><label for="st-edit-summary-signal-checkbox">[% loc('Signal this edit to') %]</label>
+                <input id="st-edit-summary-signal-checkbox" type="checkbox" /><label for="st-edit-summary-signal-checkbox">[% loc('edit.signal-to') %]</label>
                 <input id="st-edit-summary-signal-to" type="hidden" />
                 <span class="select" id="signal_network">...</span>
-                <img id="signal_network_warning" src="/static/skin/common/images/warning-icon.png" style="margin-right: -20px; position: relative; display: none" title="[% loc('Only members with permission to view this page will receive the signal.') %]" />
+                <img id="signal_network_warning" src="/static/skin/common/images/warning-icon.png" style="margin-right: -20px; position: relative; display: none" title="[% loc('info.edit-summary-signal-visibility') %]" />
             </div>
             [%- END %]
          [%#    <div class="minor">

@@ -97,20 +97,6 @@ jQuery(function() {
     jQuery(window).bind("resize", set_main_frame_margin).trigger("resize");
 });
 
-function nlw_name_to_id(name) {
-    if (name == '')
-        return '';
-    return encodeURI(
-        name.replace(/[^A-Za-z0-9_+]/g, '_') /* For Safari, the similar regex below doesn't work in Safari */
-            .replace(/[^A-Za-z0-9_+\u00C0-\u00FF]/g, '_')
-            .replace(/_+/g, '_')
-            .replace(/^_*(.*?)_*$/g, '$1')
-            .replace(/^0$/, '_')
-            .replace(/^$/, '_')
-            .toLocaleLowerCase()
-    );
-}
-
 function check_revisions(form) {
     var r1;
     var r2;
@@ -194,6 +180,3456 @@ Socialtext.logEvent = function(action) {
     });
 }
 ;
+// BEGIN rangy-core.js
+/**
+ * @license Rangy, a cross-browser JavaScript range and selection library
+ * http://code.google.com/p/rangy/
+ *
+ * Copyright 2011, Tim Down
+ * Licensed under the MIT license.
+ * Version: 1.0.1
+ * Build date: 3 January 2011
+ */
+var rangy = (function() {
+
+
+    var OBJECT = "object", FUNCTION = "function", UNDEFINED = "undefined";
+
+    var domRangeProperties = ["startContainer", "startOffset", "endContainer", "endOffset", "collapsed",
+        "commonAncestorContainer", "START_TO_START", "START_TO_END", "END_TO_START", "END_TO_END"];
+
+    var domRangeMethods = ["setStart", "setStartBefore", "setStartAfter", "setEnd", "setEndBefore",
+        "setEndAfter", "collapse", "selectNode", "selectNodeContents", "compareBoundaryPoints", "deleteContents",
+        "extractContents", "cloneContents", "insertNode", "surroundContents", "cloneRange", "toString", "detach"];
+
+    var textRangeProperties = ["boundingHeight", "boundingLeft", "boundingTop", "boundingWidth", "htmlText", "text"];
+
+    // Subset of TextRange's full set of methods that we're interested in
+    var textRangeMethods = ["collapse", "compareEndPoints", "duplicate", "getBookmark", "moveToBookmark",
+        "moveToElementText", "parentElement", "pasteHTML", "select", "setEndPoint"];
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    // Trio of functions taken from Peter Michaux's article:
+    // http://peter.michaux.ca/articles/feature-detection-state-of-the-art-browser-scripting
+    function isHostMethod(o, p) {
+        var t = typeof o[p];
+        return t == FUNCTION || (!!(t == OBJECT && o[p])) || t == "unknown";
+    }
+
+    function isHostObject(o, p) {
+        return !!(typeof o[p] == OBJECT && o[p]);
+    }
+
+    function isHostProperty(o, p) {
+        return typeof o[p] != UNDEFINED;
+    }
+
+    // Creates a convenience function to save verbose repeated calls to tests functions
+    function createMultiplePropertyTest(testFunc) {
+        return function(o, props) {
+            var i = props.length;
+            while (i--) {
+                if (!testFunc(o, props[i])) {
+                    return false;
+                }
+            }
+            return true;
+        };
+    }
+
+    // Next trio of functions are a convenience to save verbose repeated calls to previous two functions
+    var areHostMethods = createMultiplePropertyTest(isHostMethod);
+    var areHostObjects = createMultiplePropertyTest(isHostObject);
+    var areHostProperties = createMultiplePropertyTest(isHostProperty);
+
+    var api = {
+        initialized: false,
+        supported: true,
+
+        util: {
+            isHostMethod: isHostMethod,
+            isHostObject: isHostObject,
+            isHostProperty: isHostProperty,
+            areHostMethods: areHostMethods,
+            areHostObjects: areHostObjects,
+            areHostProperties: areHostProperties
+        },
+
+        features: {},
+
+        modules: {},
+        config: {
+            alertOnWarn: false
+        }
+    };
+
+    function fail(reason) {
+        window.alert("Rangy not supported in your browser. Reason: " + reason);
+        api.initialized = true;
+        api.supported = false;
+    }
+
+    api.fail = fail;
+
+    function warn(reason) {
+        var warningMessage = "Rangy warning: " + reason;
+        if (api.config.alertOnWarn) {
+            window.alert(warningMessage);
+        } else if (typeof window.console != UNDEFINED && typeof window.console.log != UNDEFINED) {
+            window.console.log(warningMessage);
+        }
+    }
+
+    api.warn = warn;
+
+    // Initialization
+    function init() {
+        if (api.initialized) {
+            return;
+        }
+        var testRange;
+        var implementsDomRange = false, implementsTextRange = false;
+
+        // First, perform basic feature tests
+
+        if (isHostMethod(document, "createRange")) {
+            testRange = document.createRange();
+            if (areHostMethods(testRange, domRangeMethods) && areHostProperties(testRange, domRangeProperties)) {
+                implementsDomRange = true;
+            }
+            testRange.detach();
+        }
+
+        var body = isHostObject(document, "body") ? document.body : document.getElementsByTagName("body")[0];
+
+        if (body && isHostMethod(body, "createTextRange")) {
+            testRange = body.createTextRange();
+            if (areHostMethods(testRange, textRangeMethods) && areHostProperties(testRange, textRangeProperties)) {
+                implementsTextRange = true;
+            }
+        }
+
+        if (!implementsDomRange && !implementsTextRange) {
+            fail("Neither Range nor TextRange are implemented");
+        }
+
+        api.initialized = true;
+        api.features = {
+            implementsDomRange: implementsDomRange,
+            implementsTextRange: implementsTextRange
+        };
+
+        // Initialize modules and call init listeners
+        var allListeners = moduleInitializers.concat(initListeners);
+        for (var i = 0, len = allListeners.length; i < len; ++i) {
+            try {
+                allListeners[i](api);
+            } catch (ex) {
+                if (isHostObject(window, "console") && isHostMethod(window.console, "log")) {
+                    console.log("Init listener threw an exception. Continuing.", ex);
+                }
+
+            }
+        }
+    }
+
+    // Allow external scripts to initialize this library in case it's loaded after the document has loaded
+    api.init = init;
+
+    var initListeners = [];
+    var moduleInitializers = [];
+
+    // Execute listener immediately if already initialized
+    api.addInitListener = function(listener) {
+        if (api.initialized) {
+            listener(api);
+        } else {
+            initListeners.push(listener);
+        }
+    };
+
+    var createMissingNativeApiListeners = [];
+
+    api.addCreateMissingNativeApiListener = function(listener) {
+        createMissingNativeApiListeners.push(listener);
+    };
+
+    function createMissingNativeApi(win) {
+        win = win || window;
+        init();
+
+        // Notify listeners
+        for (var i = 0, len = createMissingNativeApiListeners.length; i < len; ++i) {
+            createMissingNativeApiListeners[i](win);
+        }
+    }
+
+    api.createMissingNativeApi = createMissingNativeApi;
+
+    /**
+     * @constructor
+     */
+    function Module(name) {
+        this.name = name;
+        this.initialized = false;
+        this.supported = false;
+    }
+
+    Module.prototype.fail = function(reason) {
+        this.initialized = true;
+        this.supported = false;
+
+        throw new Error("Module '" + this.name + "' failed to load: " + reason);
+    };
+
+    Module.prototype.createError = function(msg) {
+        return new Error("Error in Rangy " + this.name + " module: " + msg);
+    };
+
+    api.createModule = function(name, initFunc) {
+        var module = new Module(name);
+        api.modules[name] = module;
+
+        moduleInitializers.push(function(api) {
+            initFunc(api, module);
+            module.initialized = true;
+            module.supported = true;
+        });
+    };
+
+    api.requireModules = function(modules) {
+        for (var i = 0, len = modules.length, module, moduleName; i < len; ++i) {
+            moduleName = modules[i];
+            module = api.modules[moduleName];
+            if (!module || !(module instanceof Module)) {
+                throw new Error("Module '" + moduleName + "' not found");
+            }
+            if (!module.supported) {
+                throw new Error("Module '" + moduleName + "' not supported");
+            }
+        }
+    };
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    // Wait for document to load before running tests
+
+    var docReady = false;
+
+    var loadHandler = function(e) {
+
+        if (!docReady) {
+            docReady = true;
+            if (!api.initialized) {
+                init();
+            }
+        }
+    };
+
+    // Test whether we have window and document objects that we will need
+    if (typeof window == UNDEFINED) {
+        fail("No window found");
+        return;
+    }
+    if (typeof document == UNDEFINED) {
+        fail("No document found");
+        return;
+    }
+
+    if (isHostMethod(document, "addEventListener")) {
+        document.addEventListener("DOMContentLoaded", loadHandler, false);
+    }
+
+    // Add a fallback in case the DOMContentLoaded event isn't supported
+    if (isHostMethod(window, "addEventListener")) {
+        window.addEventListener("load", loadHandler, false);
+    } else if (isHostMethod(window, "attachEvent")) {
+        window.attachEvent("onload", loadHandler);
+    } else {
+        fail("Window does not have required addEventListener or attachEvent method");
+    }
+
+    return api;
+})();
+rangy.createModule("DomUtil", function(api, module) {
+
+    var UNDEF = "undefined";
+    var util = api.util;
+
+    // Perform feature tests
+    if (!util.areHostMethods(document, ["createDocumentFragment", "createElement", "createTextNode"])) {
+        module.fail("document missing a Node creation method");
+    }
+
+    if (!util.isHostMethod(document, "getElementsByTagName")) {
+        module.fail("document missing getElementsByTagName method");
+    }
+
+    var el = document.createElement("div");
+    if (!util.areHostMethods(el, ["insertBefore", "appendChild", "cloneNode"] ||
+            !util.areHostObjects(el, ["previousSibling", "nextSibling", "childNodes", "parentNode"]))) {
+        module.fail("Incomplete Element implementation");
+    }
+
+    var textNode = document.createTextNode("test");
+    if (!util.areHostMethods(textNode, ["splitText", "deleteData", "insertData", "appendData", "cloneNode"] ||
+            !util.areHostObjects(el, ["previousSibling", "nextSibling", "childNodes", "parentNode"]) ||
+            !util.areHostProperties(textNode, ["data"]))) {
+        module.fail("Incomplete Text Node implementation");
+    }
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    // Removed use of indexOf because of a bizarre bug in Opera that is thrown in one of the Acid3 tests. Haven't been
+    // able to replicate it outside of the test. The bug is that indexOf return -1 when called on an Array that contains
+    // just the document as a single element and the value searched for is the document.
+    var arrayContains = /*Array.prototype.indexOf ?
+        function(arr, val) {
+            return arr.indexOf(val) > -1;
+        }:*/
+
+        function(arr, val) {
+            var i = arr.length;
+            while (i--) {
+                if (arr[i] === val) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+    function getNodeIndex(node) {
+        var i = 0;
+        while( (node = node.previousSibling) ) {
+            i++;
+        }
+        return i;
+    }
+
+    function getCommonAncestor(node1, node2) {
+        var ancestors = [], n;
+        for (n = node1; n; n = n.parentNode) {
+            ancestors.push(n);
+        }
+
+        for (n = node2; n; n = n.parentNode) {
+            if (arrayContains(ancestors, n)) {
+                return n;
+            }
+        }
+
+        return null;
+    }
+
+    function isAncestorOf(ancestor, descendant, selfIsAncestor) {
+        var n = selfIsAncestor ? descendant : descendant.parentNode;
+        while (n) {
+            if (n === ancestor) {
+                return true;
+            } else {
+                n = n.parentNode;
+            }
+        }
+        return false;
+    }
+
+    function getClosestAncestorIn(node, ancestor, selfIsAncestor) {
+        var p, n = selfIsAncestor ? node : node.parentNode;
+        while (n) {
+            p = n.parentNode;
+            if (p === ancestor) {
+                return n;
+            }
+            n = p;
+        }
+        return null;
+    }
+
+    function isCharacterDataNode(node) {
+        var t = node.nodeType;
+        return t == 3 || t == 4 || t == 8 ; // Text, CDataSection or Comment
+    }
+
+    function insertAfter(node, precedingNode) {
+        var nextNode = precedingNode.nextSibling, parent = precedingNode.parentNode;
+        if (nextNode) {
+            parent.insertBefore(node, nextNode);
+        } else {
+            parent.appendChild(node);
+        }
+        return node;
+    }
+
+    function splitDataNode(node, index) {
+        var newNode;
+        if (node.nodeType == 3) {
+            newNode = node.splitText(index);
+        } else {
+            newNode = node.cloneNode();
+            newNode.deleteData(0, index);
+            node.deleteData(0, node.length - index);
+            insertAfter(newNode, node);
+        }
+        return newNode;
+    }
+
+    function getDocument(node) {
+        if (node.nodeType == 9) {
+            return node;
+        } else if (typeof node.ownerDocument != UNDEF) {
+            return node.ownerDocument;
+        } else if (typeof node.document != UNDEF) {
+            return node.document;
+        } else if (node.parentNode) {
+            return getDocument(node.parentNode);
+        } else {
+            throw new Error("getDocument: no document found for node");
+        }
+    }
+
+    function getWindow(node) {
+        var doc = getDocument(node);
+        if (typeof doc.defaultView != UNDEF) {
+            return doc.defaultView;
+        } else if (typeof doc.parentWindow != UNDEF) {
+            return doc.parentWindow;
+        } else {
+            throw new Error("Cannot get a window object for node");
+        }
+    }
+
+    function getBody(doc) {
+        return util.isHostObject(doc, "body") ? doc.body : doc.getElementsByTagName("body")[0];
+    }
+
+    function comparePoints(nodeA, offsetA, nodeB, offsetB) {
+        // See http://www.w3.org/TR/DOM-Level-2-Traversal-Range/ranges.html#Level-2-Range-Comparing
+        var nodeC, root, childA, childB, n;
+        if (nodeA == nodeB) {
+
+            // Case 1: nodes are the same
+            return offsetA === offsetB ? 0 : (offsetA < offsetB) ? -1 : 1;
+        } else if ( (nodeC = getClosestAncestorIn(nodeB, nodeA, true)) ) {
+
+            // Case 2: node C (container B or an ancestor) is a child node of A
+            return offsetA <= getNodeIndex(nodeC) ? -1 : 1;
+        } else if ( (nodeC = getClosestAncestorIn(nodeA, nodeB, true)) ) {
+
+            // Case 3: node C (container A or an ancestor) is a child node of B
+            return getNodeIndex(nodeC) < offsetB  ? -1 : 1;
+        } else {
+
+            // Case 4: containers are siblings or descendants of siblings
+            root = getCommonAncestor(nodeA, nodeB);
+            childA = (nodeA === root) ? root : getClosestAncestorIn(nodeA, root, true);
+            childB = (nodeB === root) ? root : getClosestAncestorIn(nodeB, root, true);
+
+            if (childA === childB) {
+                // This shouldn't be possible
+
+                throw new Error("comparePoints got to case 4 and childA and childB are the same!");
+            } else {
+                n = root.firstChild;
+                while (n) {
+                    if (n === childA) {
+                        return -1;
+                    } else if (n === childB) {
+                        return 1;
+                    }
+                    n = n.nextSibling;
+                }
+                throw new Error("Should not be here!");
+            }
+        }
+    }
+
+    function inspectNode(node) {
+        if (!node) {
+            return "[No node]";
+        }
+        if (isCharacterDataNode(node)) {
+            return '"' + node.data + '"';
+        } else if (node.nodeType == 1) {
+            var idAttr = node.id ? ' id="' + node.id + '"' : "";
+            return "<" + node.nodeName + idAttr + ">";
+        } else {
+            return node.nodeName;
+        }
+    }
+
+    /**
+     * @constructor
+     */
+    function NodeIterator(root) {
+        this.root = root;
+        this._next = root;
+    }
+
+    NodeIterator.prototype = {
+        _current: null,
+
+        hasNext: function() {
+            return !!this._next;
+        },
+
+        next: function() {
+            var n = this._current = this._next;
+            var child, next;
+            if (this._current) {
+                child = n.firstChild;
+                if (child) {
+                    this._next = child;
+                } else {
+                    next = null;
+                    while ((n !== this.root) && !(next = n.nextSibling)) {
+                        n = n.parentNode;
+                    }
+                    this._next = next;
+                }
+            }
+            return this._current;
+        },
+
+        detach: function() {
+            this._current = this._next = this.root = null;
+        }
+    };
+
+    function createIterator(root) {
+        return new NodeIterator(root);
+    }
+
+    /**
+     * @constructor
+     */
+    function DomPosition(node, offset) {
+        this.node = node;
+        this.offset = offset;
+    }
+
+    DomPosition.prototype = {
+        equals: function(pos) {
+            return this.node === pos.node & this.offset == pos.offset;
+        },
+
+        inspect: function() {
+            return "[DomPosition(" + inspectNode(this.node) + ":" + this.offset + ")]";
+        }/*,
+
+        isStartOfElementContent: function() {
+            var isCharacterData = isCharacterDataNode(this.node);
+            var el = isCharacterData ? this.node.parentNode : this.node;
+            return (el && el.nodeType == 1 && (isCharacterData ?
+            if (isCharacterDataNode(this.node) && !this.node.previousSibling && this.node.parentNode)
+        }*/
+    };
+
+    /**
+     * @constructor
+     */
+    function DOMException(codeName) {
+        this.code = this[codeName];
+        this.codeName = codeName;
+        this.message = "DOMException: " + this.codeName;
+    }
+
+    DOMException.prototype = {
+        INDEX_SIZE_ERR: 1,
+        HIERARCHY_REQUEST_ERR: 3,
+        WRONG_DOCUMENT_ERR: 4,
+        NO_MODIFICATION_ALLOWED_ERR: 7,
+        NOT_FOUND_ERR: 8,
+        NOT_SUPPORTED_ERR: 9,
+        INVALID_STATE_ERR: 11
+    };
+
+    DOMException.prototype.toString = function() {
+        return this.message;
+    };
+
+    api.dom = {
+        arrayContains: arrayContains,
+        getNodeIndex: getNodeIndex,
+        getCommonAncestor: getCommonAncestor,
+        isAncestorOf: isAncestorOf,
+        getClosestAncestorIn: getClosestAncestorIn,
+        isCharacterDataNode: isCharacterDataNode,
+        insertAfter: insertAfter,
+        splitDataNode: splitDataNode,
+        getDocument: getDocument,
+        getWindow: getWindow,
+        getBody: getBody,
+        comparePoints: comparePoints,
+        inspectNode: inspectNode,
+        createIterator: createIterator,
+        DomPosition: DomPosition
+    };
+
+    api.DOMException = DOMException;
+});rangy.createModule("DomRange", function(api, module) {
+    api.requireModules( ["DomUtil"] );
+
+
+    var dom = api.dom;
+    var DomPosition = dom.DomPosition;
+    var DOMException = api.DOMException;
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    // RangeIterator code borrows from IERange by Tim Ryan (http://github.com/timcameronryan/IERange)
+
+    /**
+     * @constructor
+     */
+    function RangeIterator(range, clonePartiallySelectedTextNodes) {
+        this.range = range;
+        this.clonePartiallySelectedTextNodes = clonePartiallySelectedTextNodes;
+
+
+
+        if (!range.collapsed) {
+            this.sc = range.startContainer;
+            this.so = range.startOffset;
+            this.ec = range.endContainer;
+            this.eo = range.endOffset;
+            var root = range.commonAncestorContainer;
+
+            if (this.sc === this.ec && dom.isCharacterDataNode(this.sc)) {
+                this.isSingleCharacterDataNode = true;
+                this._first = this._last = this._next = this.sc;
+            } else {
+                this._first = this._next = (this.sc === root && !dom.isCharacterDataNode(this.sc)) ?
+                    this.sc.childNodes[this.so] : dom.getClosestAncestorIn(this.sc, root, true);
+                this._last = (this.ec === root && !dom.isCharacterDataNode(this.ec)) ?
+                    this.ec.childNodes[this.eo - 1] : dom.getClosestAncestorIn(this.ec, root, true);
+            }
+
+        }
+    }
+
+    RangeIterator.prototype = {
+        _current: null,
+        _next: null,
+        _first: null,
+        _last: null,
+        isSingleCharacterDataNode: false,
+
+        reset: function() {
+            this._current = null;
+            this._next = this._first;
+        },
+
+        hasNext: function() {
+            return !!this._next;
+        },
+
+        next: function() {
+            // Move to next node
+            var current = this._current = this._next;
+            if (current) {
+                this._next = (current !== this._last) ? current.nextSibling : null;
+
+                // Check for partially selected text nodes
+                if (dom.isCharacterDataNode(current) && this.clonePartiallySelectedTextNodes) {
+                    if (current === this.ec) {
+                        (current = current.cloneNode(true)).deleteData(this.eo, current.length - this.eo);
+                    }
+                    if (this._current === this.sc) {
+                        (current = current.cloneNode(true)).deleteData(0, this.so);
+                    }
+                }
+            }
+
+            return current;
+        },
+
+        remove: function() {
+            var current = this._current, start, end;
+
+            if (dom.isCharacterDataNode(current) && (current === this.sc || current === this.ec)) {
+                start = (current === this.sc) ? this.so : 0;
+                end = (current === this.ec) ? this.eo : current.length;
+                if (start != end) {
+                    current.deleteData(start, end - start);
+                }
+            } else {
+                if (current.parentNode) {
+                    current.parentNode.removeChild(current);
+                } else {
+
+                }
+            }
+        },
+
+        // Checks if the current node is partially selected
+        isPartiallySelectedSubtree: function() {
+            var current = this._current;
+            return isNonTextPartiallySelected(current, this.range);
+        },
+
+        getSubtreeIterator: function() {
+            var subRange;
+            if (this.isSingleCharacterDataNode) {
+                subRange = this.range.cloneRange();
+                subRange.collapse();
+            } else {
+                subRange = new Range(getRangeDocument(this.range));
+                var current = this._current;
+                var startContainer = current, startOffset = 0, endContainer = current, endOffset = getEndOffset(current);
+
+                if (dom.isAncestorOf(current, this.sc, true)) {
+                    startContainer = this.sc;
+                    startOffset = this.so;
+                }
+                if (dom.isAncestorOf(current, this.ec, true)) {
+                    endContainer = this.ec;
+                    endOffset = this.eo;
+                }
+
+                updateBoundaries(subRange, startContainer, startOffset, endContainer, endOffset);
+            }
+            return new RangeIterator(subRange, this.clonePartiallySelectedTextNodes);
+        },
+
+        detach: function(detachRange) {
+            if (detachRange) {
+                this.range.detach();
+            }
+            this.range = this._current = this._next = this._first = this._last = this.sc = this.so = this.ec = this.eo = null;
+        }
+    };
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    // Exceptions
+
+    /**
+     * @constructor
+     */
+    function RangeException(codeName) {
+        this.code = this[codeName];
+        this.codeName = codeName;
+        this.message = "RangeException: " + this.codeName;
+    }
+
+    RangeException.prototype = {
+        BAD_BOUNDARYPOINTS_ERR: 1,
+        INVALID_NODE_TYPE_ERR: 2
+    };
+
+    RangeException.prototype.toString = function() {
+        return this.message;
+    };
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+
+    function getRangeDocument(range) {
+        return dom.getDocument(range.startContainer);
+    }
+
+    function dispatchEvent(range, type, args) {
+        var listeners = range._listeners[type];
+        if (listeners) {
+            for (var i = 0, len = listeners.length; i < len; ++i) {
+                listeners[i].call(range, {target: range, args: args});
+            }
+        }
+    }
+
+    function getBoundaryBeforeNode(node) {
+        return new DomPosition(node.parentNode, dom.getNodeIndex(node));
+    }
+
+    function getBoundaryAfterNode(node) {
+        return new DomPosition(node.parentNode, dom.getNodeIndex(node) + 1);
+    }
+
+    function getEndOffset(node) {
+        return dom.isCharacterDataNode(node) ? node.length : (node.childNodes ? node.childNodes.length : 0);
+    }
+
+    function insertNodeAtPosition(node, n, o) {
+        var firstNodeInserted = node.nodeType == 11 ? node.firstChild : node;
+        if (dom.isCharacterDataNode(n)) {
+            if (o == n.length) {
+                dom.insertAfter(node, n);
+            } else {
+                n.parentNode.insertBefore(node, o == 0 ? n : dom.splitDataNode(n, o));
+            }
+        } else if (o >= n.childNodes.length) {
+            n.appendChild(node);
+        } else {
+            n.insertBefore(node, n.childNodes[o]);
+        }
+        return firstNodeInserted;
+    }
+
+    function cloneSubtree(iterator) {
+        var partiallySelected;
+        for (var node, frag = getRangeDocument(iterator.range).createDocumentFragment(), subIterator; node = iterator.next(); ) {
+            partiallySelected = iterator.isPartiallySelectedSubtree();
+
+            node = node.cloneNode(!partiallySelected);
+            if (partiallySelected) {
+                subIterator = iterator.getSubtreeIterator();
+                node.appendChild(cloneSubtree(subIterator));
+                subIterator.detach(true);
+            }
+
+            if (node.nodeType == 10) { // DocumentType
+                throw new DOMException("HIERARCHY_REQUEST_ERR");
+            }
+            frag.appendChild(node);
+        }
+        return frag;
+    }
+
+    function iterateSubtree(rangeIterator, func, iteratorState) {
+        var it, n;
+        iteratorState = iteratorState || { stop: false };
+        for (var node, subRangeIterator; node = rangeIterator.next(); ) {
+            //log.debug("iterateSubtree, partially selected: " + rangeIterator.isPartiallySelectedSubtree(), nodeToString(node));
+            if (rangeIterator.isPartiallySelectedSubtree()) {
+                // The node is partially selected by the Range, so we can use a new RangeIterator on the portion of the
+                // node selected by the Range.
+                if (func(node) === false) {
+                    iteratorState.stop = true;
+                    return;
+                } else {
+                    subRangeIterator = rangeIterator.getSubtreeIterator();
+                    iterateSubtree(subRangeIterator, func, iteratorState);
+                    subRangeIterator.detach(true);
+                    if (iteratorState.stop) {
+                        return;
+                    }
+                }
+            } else {
+                // The whole node is selected, so we can use efficient DOM iteration to iterate over the node and its
+                // descendant
+                it = dom.createIterator(node);
+                while ( (n = it.next()) ) {
+                    if (func(n) === false) {
+                        iteratorState.stop = true;
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    function deleteSubtree(iterator) {
+        var subIterator;
+        while (iterator.next()) {
+            if (iterator.isPartiallySelectedSubtree()) {
+                subIterator = iterator.getSubtreeIterator();
+                deleteSubtree(subIterator);
+                subIterator.detach(true);
+            } else {
+                iterator.remove();
+            }
+        }
+    }
+
+    function extractSubtree(iterator) {
+
+        for (var node, frag = getRangeDocument(iterator.range).createDocumentFragment(), subIterator; node = iterator.next(); ) {
+
+
+            if (iterator.isPartiallySelectedSubtree()) {
+                node = node.cloneNode(false);
+                subIterator = iterator.getSubtreeIterator();
+                node.appendChild(extractSubtree(subIterator));
+                subIterator.detach(true);
+            } else {
+                iterator.remove();
+            }
+            if (node.nodeType == 10) { // DocumentType
+                throw new DOMException("HIERARCHY_REQUEST_ERR");
+            }
+            frag.appendChild(node);
+        }
+        return frag;
+    }
+
+    function getNodesInRange(range, nodeTypes, filter) {
+        //log.info("getNodesInRange, " + nodeTypes.join(","));
+        var filterNodeTypes = !!(nodeTypes && nodeTypes.length), regex;
+        var filterExists = !!filter;
+        if (filterNodeTypes) {
+            regex = new RegExp("^(" + nodeTypes.join("|") + ")$");
+        }
+
+        var nodes = [];
+        iterateSubtree(new RangeIterator(range, false), function(node) {
+            if ((!filterNodeTypes || regex.test(node.nodeType)) && (!filterExists || filter(node))) {
+                nodes.push(node);
+            }
+        });
+        return nodes;
+    }
+
+    function inspect(range) {
+        var name = (typeof range.getName == "undefined") ? "Range" : range.getName();
+        return "[" + name + "(" + dom.inspectNode(range.startContainer) + ":" + range.startOffset + ", " +
+                dom.inspectNode(range.endContainer) + ":" + range.endOffset + ")]";
+    }
+
+    /**
+     * Currently iterates through all nodes in the range on creation until I think of a decent way to do it
+     * TODO: Look into making this a proper iterator, not requiring preloading everything first
+     * @constructor
+     */
+    function RangeNodeIterator(range, nodeTypes, filter) {
+        this.nodes = getNodesInRange(range, nodeTypes, filter);
+        this._next = this.nodes[0];
+        this._pointer = 0;
+    }
+
+    RangeNodeIterator.prototype = {
+        _current: null,
+
+        hasNext: function() {
+            return !!this._next;
+        },
+
+        next: function() {
+            this._current = this._next;
+            this._next = this.nodes[ ++this._pointer ];
+            return this._current;
+        },
+
+        detach: function() {
+            this._current = this._next = this.nodes = null;
+        }
+    };
+
+    function isNonTextPartiallySelected(node, range) {
+        return (node.nodeType != 3) &&
+               (dom.isAncestorOf(node, range.startContainer, true) || dom.isAncestorOf(node, range.endContainer, true));
+    }
+
+    var beforeAfterNodeTypes = [1, 3, 4, 5, 7, 8, 10];
+    var rootContainerNodeTypes = [2, 9, 11];
+    var readonlyNodeTypes = [5, 6, 10, 12];
+    var insertableNodeTypes = [1, 3, 4, 5, 7, 8, 10, 11];
+    var surroundNodeTypes = [1, 3, 4, 5, 7, 8];
+
+    function createAncestorFinder(nodeTypes) {
+        return function(node, selfIsAncestor) {
+            var t, n = selfIsAncestor ? node : node.parentNode;
+            while (n) {
+                t = n.nodeType;
+                if (dom.arrayContains(nodeTypes, t)) {
+                    return n;
+                }
+                n = n.parentNode;
+            }
+            return null;
+        };
+    }
+
+    function getRootContainer(node) {
+        var parent;
+        while ( (parent = node.parentNode) ) {
+            node = parent;
+        }
+        return node;
+    }
+
+    var getDocumentOrFragmentContainer = createAncestorFinder( [9, 11] );
+    var getReadonlyAncestor = createAncestorFinder(readonlyNodeTypes);
+    var getDocTypeNotationEntityAncestor = createAncestorFinder( [6, 10, 12] );
+
+    function assertNoDocTypeNotationEntityAncestor(node, allowSelf) {
+        if (getDocTypeNotationEntityAncestor(node, allowSelf)) {
+            throw new RangeException("INVALID_NODE_TYPE_ERR");
+        }
+    }
+
+    function assertNotDetached(range) {
+        if (!range.startContainer) {
+            throw new DOMException("INVALID_STATE_ERR");
+        }
+    }
+
+    function assertValidNodeType(node, invalidTypes) {
+        if (!dom.arrayContains(invalidTypes, node.nodeType)) {
+            throw new RangeException("INVALID_NODE_TYPE_ERR");
+        }
+    }
+
+    function assertValidOffset(node, offset) {
+        if (offset < 0 || offset > (dom.isCharacterDataNode(node) ? node.length : node.childNodes.length)) {
+            throw new DOMException("INDEX_SIZE_ERR");
+        }
+    }
+
+    function assertSameDocumentOrFragment(node1, node2) {
+        if (getDocumentOrFragmentContainer(node1, true) !== getDocumentOrFragmentContainer(node2, true)) {
+            throw new DOMException("WRONG_DOCUMENT_ERR");
+        }
+    }
+
+    function assertNodeNotReadOnly(node) {
+        if (getReadonlyAncestor(node, true)) {
+            throw new DOMException("NO_MODIFICATION_ALLOWED_ERR");
+        }
+    }
+
+    function assertNode(node, codeName) {
+        if (!node) {
+            throw new DOMException(codeName);
+        }
+    }
+
+    function isOrphan(node) {
+        return !getDocumentOrFragmentContainer(node, true);
+    }
+
+    function isValidOffset(node, offset) {
+        return offset <= (dom.isCharacterDataNode(node) ? node.length : node.childNodes.length);
+    }
+
+    function assertRangeValid(range) {
+        if (isOrphan(range.startContainer) || isOrphan(range.endContainer) ||
+                !isValidOffset(range.startContainer, range.startOffset) ||
+                !isValidOffset(range.endContainer, range.endOffset)) {
+            throw new Error("Range Range error: Range is no longer valid after DOM mutation (" + range.inspect() + ")");
+        }
+    }
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    var rangeProperties = ["startContainer", "startOffset", "endContainer", "endOffset", "collapsed",
+        "commonAncestorContainer"];
+
+    var s2s = 0, s2e = 1, e2e = 2, e2s = 3;
+    var n_b = 0, n_a = 1, n_b_a = 2, n_i = 3;
+
+    function copyComparisonConstantsToObject(obj) {
+        obj.START_TO_START = s2s;
+        obj.START_TO_END = s2e;
+        obj.END_TO_END = e2e;
+        obj.END_TO_START = e2s;
+
+        obj.NODE_BEFORE = n_b;
+        obj.NODE_AFTER = n_a;
+        obj.NODE_BEFORE_AND_AFTER = n_b_a;
+        obj.NODE_INSIDE = n_i;
+    }
+
+    function copyComparisonConstants(constructor) {
+        copyComparisonConstantsToObject(constructor);
+        copyComparisonConstantsToObject(constructor.prototype);
+    }
+
+    function createPrototypeRange(constructor, boundaryUpdater, detacher) {
+        function createBeforeAfterNodeSetter(isBefore, isStart) {
+            return function(node) {
+                assertNotDetached(this);
+                assertValidNodeType(node, beforeAfterNodeTypes);
+                assertValidNodeType(getRootContainer(node), rootContainerNodeTypes);
+
+                var boundary = (isBefore ? getBoundaryBeforeNode : getBoundaryAfterNode)(node);
+                (isStart ? setRangeStart : setRangeEnd)(this, boundary.node, boundary.offset);
+            };
+        }
+
+        function setRangeStart(range, node, offset) {
+            var ec = range.endContainer, eo = range.endOffset;
+            if (node !== range.startContainer || offset !== this.startOffset) {
+                // Check the root containers of the range and the new boundary, and also check whether the new boundary
+                // is after the current end. In either case, collapse the range to the new position
+                if (getRootContainer(node) != getRootContainer(ec) || dom.comparePoints(node, offset, ec, eo) == 1) {
+                    ec = node;
+                    eo = offset;
+                }
+                boundaryUpdater(range, node, offset, ec, eo);
+            }
+        }
+
+        function setRangeEnd(range, node, offset) {
+            var sc = range.startContainer, so = range.startOffset;
+            if (node !== range.endContainer || offset !== this.endOffset) {
+                // Check the root containers of the range and the new boundary, and also check whether the new boundary
+                // is after the current end. In either case, collapse the range to the new position
+                if (getRootContainer(node) != getRootContainer(sc) || dom.comparePoints(node, offset, sc, so) == -1) {
+                    sc = node;
+                    so = offset;
+                }
+                boundaryUpdater(range, sc, so, node, offset);
+            }
+        }
+
+        function setRangeStartAndEnd(range, node, offset) {
+            if (node !== range.startContainer || offset !== this.startOffset || node !== range.endContainer || offset !== this.endOffset) {
+                boundaryUpdater(range, node, offset, node, offset);
+            }
+        }
+
+        function createRangeContentRemover(remover) {
+            return function() {
+                assertNotDetached(this);
+                assertRangeValid(this);
+
+                var sc = this.startContainer, so = this.startOffset, root = this.commonAncestorContainer;
+
+                var iterator = new RangeIterator(this, true);
+
+                // Work out where to position the range after content removal
+                var node, boundary;
+                if (sc !== root) {
+                    node = dom.getClosestAncestorIn(sc, root, true);
+                    boundary = getBoundaryAfterNode(node);
+                    sc = boundary.node;
+                    so = boundary.offset;
+                }
+
+                // Check none of the range is read-only
+                iterateSubtree(iterator, assertNodeNotReadOnly);
+
+                iterator.reset();
+
+                // Remove the content
+                var returnValue = remover(iterator);
+                iterator.detach();
+
+                // Move to the new position
+                boundaryUpdater(this, sc, so, sc, so);
+
+                return returnValue;
+            };
+        }
+
+        constructor.prototype = {
+            attachListener: function(type, listener) {
+                this._listeners[type].push(listener);
+            },
+
+            setStart: function(node, offset) {
+                assertNotDetached(this);
+                assertNoDocTypeNotationEntityAncestor(node, true);
+                assertValidOffset(node, offset);
+
+                setRangeStart(this, node, offset);
+            },
+
+            setEnd: function(node, offset) {
+                assertNotDetached(this);
+                assertNoDocTypeNotationEntityAncestor(node, true);
+                assertValidOffset(node, offset);
+
+                setRangeEnd(this, node, offset);
+            },
+
+            setStartBefore: createBeforeAfterNodeSetter(true, true),
+            setStartAfter: createBeforeAfterNodeSetter(false, true),
+            setEndBefore: createBeforeAfterNodeSetter(true, false),
+            setEndAfter: createBeforeAfterNodeSetter(false, false),
+
+            collapse: function(isStart) {
+                assertNotDetached(this);
+                assertRangeValid(this);
+                if (isStart) {
+                    boundaryUpdater(this, this.startContainer, this.startOffset, this.startContainer, this.startOffset);
+                } else {
+                    boundaryUpdater(this, this.endContainer, this.endOffset, this.endContainer, this.endOffset);
+                }
+            },
+
+            selectNodeContents: function(node) {
+                // This doesn't seem well specified: the spec talks only about selecting the node's contents, which
+                // could be taken to mean only its children. However, browsers implement this the same as selectNode for
+                // text nodes, so I shall do likewise
+                assertNotDetached(this);
+                assertNoDocTypeNotationEntityAncestor(node, true);
+
+                boundaryUpdater(this, node, 0, node, getEndOffset(node));
+            },
+
+            selectNode: function(node) {
+                assertNotDetached(this);
+                assertNoDocTypeNotationEntityAncestor(node, false);
+                assertValidNodeType(node, beforeAfterNodeTypes);
+
+                var start = getBoundaryBeforeNode(node), end = getBoundaryAfterNode(node);
+                boundaryUpdater(this, start.node, start.offset, end.node, end.offset);
+            },
+
+            compareBoundaryPoints: function(how, range) {
+                assertNotDetached(this);
+                assertRangeValid(this);
+                assertSameDocumentOrFragment(this.startContainer, range.startContainer);
+
+                var nodeA, offsetA, nodeB, offsetB;
+                var prefixA = (how == e2s || how == s2s) ? "start" : "end";
+                var prefixB = (how == s2e || how == s2s) ? "start" : "end";
+                nodeA = this[prefixA + "Container"];
+                offsetA = this[prefixA + "Offset"];
+                nodeB = range[prefixB + "Container"];
+                offsetB = range[prefixB + "Offset"];
+                return dom.comparePoints(nodeA, offsetA, nodeB, offsetB);
+            },
+
+            insertNode: function(node) {
+                assertNotDetached(this);
+                assertRangeValid(this);
+                assertValidNodeType(node, insertableNodeTypes);
+                assertNodeNotReadOnly(this.startContainer);
+
+                if (dom.isAncestorOf(node, this.startContainer, true)) {
+                    throw new DOMException("HIERARCHY_REQUEST_ERR");
+                }
+
+                // No check for whether the container of the start of the Range is of a type that does not allow
+                // children of the type of node: the browser's DOM implementation should do this for us when we attempt
+                // to add the node
+
+                var firstNodeInserted = insertNodeAtPosition(node, this.startContainer, this.startOffset);
+                this.setStartBefore(firstNodeInserted);
+            },
+
+            cloneContents: function() {
+                assertNotDetached(this);
+                assertRangeValid(this);
+
+                var clone, frag;
+                if (this.collapsed) {
+                    return getRangeDocument(this).createDocumentFragment();
+                } else {
+                    if (this.startContainer === this.endContainer && dom.isCharacterDataNode(this.startContainer)) {
+                        clone = this.startContainer.cloneNode(true);
+                        clone.data = clone.data.slice(this.startOffset, this.endOffset);
+                        frag = getRangeDocument(this).createDocumentFragment();
+                        frag.appendChild(clone);
+                        return frag;
+                    } else {
+                        var iterator = new RangeIterator(this, true);
+                        clone = cloneSubtree(iterator);
+                        iterator.detach();
+                    }
+                    return clone;
+                }
+            },
+
+            extractContents: createRangeContentRemover(extractSubtree),
+
+            deleteContents: createRangeContentRemover(deleteSubtree),
+
+            canSurroundContents: function() {
+                assertNotDetached(this);
+                assertRangeValid(this);
+                assertNodeNotReadOnly(this.startContainer);
+                assertNodeNotReadOnly(this.endContainer);
+
+                // Check if the contents can be surrounded. Specifically, this means whether the range partially selects
+                // no non-text nodes.
+                var iterator = new RangeIterator(this, true);
+                var boundariesInvalid = (iterator._first && (isNonTextPartiallySelected(iterator._first, this)) ||
+                        (iterator._last && isNonTextPartiallySelected(iterator._last, this)));
+                iterator.detach();
+                return !boundariesInvalid;
+            },
+
+            surroundContents: function(node) {
+                assertValidNodeType(node, surroundNodeTypes);
+
+                if (!this.canSurroundContents()) {
+                    throw new RangeException("BAD_BOUNDARYPOINTS_ERR");
+                }
+
+                // Extract the contents
+                var content = this.extractContents();
+
+                // Clear the children of the node
+                if (node.hasChildNodes()) {
+                    while (node.lastChild) {
+                        node.removeChild(node.lastChild);
+                    }
+                }
+
+                // Insert the new node and add the extracted contents
+                insertNodeAtPosition(node, this.startContainer, this.startOffset);
+                node.appendChild(content);
+
+                this.selectNode(node);
+            },
+
+            cloneRange: function() {
+                assertNotDetached(this);
+                assertRangeValid(this);
+                var range = new Range(getRangeDocument(this));
+                var i = rangeProperties.length, prop;
+                while (i--) {
+                    prop = rangeProperties[i];
+                    range[prop] = this[prop];
+                }
+                return range;
+            },
+
+            detach: function() {
+                detacher(this);
+            },
+
+            toString: function() {
+                assertNotDetached(this);
+                assertRangeValid(this);
+                var sc = this.startContainer;
+                if (sc === this.endContainer && dom.isCharacterDataNode(sc)) {
+                    return (sc.nodeType == 3 || sc.nodeType == 4) ? sc.data.slice(this.startOffset, this.endOffset) : "";
+                } else {
+                    var textBits = [], iterator = new RangeIterator(this, true);
+
+                    iterateSubtree(iterator, function(node) {
+                        // Accept only text or CDATA nodes, not comments
+
+                        if (node.nodeType == 3 || node.nodeType == 4) {
+                            textBits.push(node.data);
+                        }
+                    });
+                    iterator.detach();
+                    return textBits.join("");
+                }
+            },
+
+            // The methods below are all non-standard. The following batch were introduced by Mozilla but have since
+            // been removed from Mozilla.
+
+            compareNode: function(node) {
+                assertNotDetached(this);
+                assertRangeValid(this);
+
+                var parent = node.parentNode;
+                var nodeIndex = dom.getNodeIndex(node);
+
+                if (!parent) {
+                    throw new DOMException("NOT_FOUND_ERR");
+                }
+
+                var startComparison = this.comparePoint(parent, nodeIndex),
+                    endComparison = this.comparePoint(parent, nodeIndex + 1);
+
+                if (startComparison < 0) { // Node starts before
+                    return (endComparison > 0) ? n_b_a : n_b;
+                } else {
+                    return (endComparison > 0) ? n_a : n_i;
+                }
+            },
+
+            comparePoint: function(node, offset) {
+                assertNotDetached(this);
+                assertRangeValid(this);
+                assertNode(node, "HIERARCHY_REQUEST_ERR");
+                assertSameDocumentOrFragment(node, this.startContainer);
+
+                if (dom.comparePoints(node, offset, this.startContainer, this.startOffset) < 0) {
+                    return -1;
+                } else if (dom.comparePoints(node, offset, this.endContainer, this.endOffset) > 0) {
+                    return 1;
+                }
+                return 0;
+            },
+
+            createContextualFragment: function(html) {
+                assertNotDetached(this);
+                var doc = getRangeDocument(this);
+                var container = doc.createElement("div");
+
+                // The next line is obviously non-standard but will work in all recent browsers
+                container.innerHTML = html;
+
+                var frag = doc.createDocumentFragment(), n;
+
+                while ( (n = container.firstChild) ) {
+                    frag.appendChild(n);
+                }
+
+                return frag;
+            },
+
+            // This follows the WebKit model whereby a node that borders a range is considered to intersect with it
+            intersectsNode: function(node) {
+                assertNotDetached(this);
+                assertRangeValid(this);
+                assertNode(node, "NOT_FOUND_ERR");
+                if (dom.getDocument(node) !== getRangeDocument(this)) {
+                    return false;
+                }
+
+                var parent = node.parentNode, offset = dom.getNodeIndex(node);
+                assertNode(parent, "NOT_FOUND_ERR");
+
+                var startComparison = dom.comparePoints(parent, offset, this.startContainer, this.startOffset),
+                    endComparison = dom.comparePoints(parent, offset + 1, this.endContainer, this.endOffset);
+
+                return !((startComparison < 0 && endComparison < 0) || (startComparison > 0 && endComparison > 0));
+            },
+
+            isPointInRange: function(node, offset) {
+                assertNotDetached(this);
+                assertRangeValid(this);
+                assertNode(node, "HIERARCHY_REQUEST_ERR");
+                assertSameDocumentOrFragment(node, this.startContainer);
+
+                return (dom.comparePoints(node, offset, this.startContainer, this.startOffset) >= 0) &&
+                       (dom.comparePoints(node, offset, this.endContainer, this.endOffset) <= 0);
+            },
+
+            // The methods below are non-standard and invented by me.
+
+            // Sharing a boundary start-to-end or end-to-start does not count as intersection.
+            intersectsRange: function(range) {
+                assertNotDetached(this);
+                assertRangeValid(this);
+
+                if (getRangeDocument(range) != getRangeDocument(this)) {
+                    throw new DOMException("WRONG_DOCUMENT_ERR");
+                }
+
+                return dom.comparePoints(this.startContainer, this.startOffset, range.endContainer, range.endOffset) < 0 &&
+                       dom.comparePoints(this.endContainer, this.endOffset, range.startContainer, range.startOffset) > 0;
+            },
+
+            containsNode: function(node, allowPartial) {
+                if (allowPartial) {
+                    return this.intersectsNode(node);
+                } else {
+                    return this.compareNode(node) == n_i;
+                }
+            },
+
+            containsNodeContents: function(node) {
+                return this.comparePoint(node, 0) >= 0 && this.comparePoint(node, getEndOffset(node)) <= 0;
+            },
+
+            splitBoundaries: function() {
+                assertNotDetached(this);
+                assertRangeValid(this);
+
+
+                var sc = this.startContainer, so = this.startOffset, ec = this.endContainer, eo = this.endOffset;
+                var startEndSame = (sc === ec);
+
+                if (dom.isCharacterDataNode(ec) && eo < ec.length) {
+                    dom.splitDataNode(ec, eo);
+
+                }
+
+                if (dom.isCharacterDataNode(sc) && so > 0) {
+                    sc = dom.splitDataNode(sc, so);
+                    if (startEndSame) {
+                        eo -= so;
+                        ec = sc;
+                    }
+                    so = 0;
+
+                }
+                boundaryUpdater(this, sc, so, ec, eo);
+            },
+
+            normalizeBoundaries: function() {
+                assertNotDetached(this);
+                assertRangeValid(this);
+
+                var sc = this.startContainer, so = this.startOffset, ec = this.endContainer, eo = this.endOffset;
+
+                var mergeForward = function(node) {
+                    var sibling = node.nextSibling;
+                    if (sibling && sibling.nodeType == node.nodeType) {
+                        ec = node;
+                        eo = node.length;
+                        node.appendData(sibling.data);
+                        sibling.parentNode.removeChild(sibling);
+                    }
+                };
+
+                var mergeBackward = function(node) {
+                    var sibling = node.previousSibling;
+                    if (sibling && sibling.nodeType == node.nodeType) {
+                        sc = node;
+                        so = sibling.length;
+                        node.insertData(0, sibling.data);
+                        sibling.parentNode.removeChild(sibling);
+                        if (sc == ec) {
+                            eo += so;
+                            ec = sc;
+                        }
+                    }
+                };
+
+                var normalizeStart = true;
+
+                if (dom.isCharacterDataNode(ec)) {
+                    if (ec.length == eo) {
+                        mergeForward(ec);
+                    }
+                } else {
+                    if (eo > 0) {
+                        var endNode = ec.childNodes[eo - 1];
+                        if (endNode && dom.isCharacterDataNode(endNode)) {
+                            mergeForward(endNode);
+                        }
+                    }
+                    normalizeStart = !this.collapsed;
+                }
+
+                if (normalizeStart) {
+                    if (dom.isCharacterDataNode(sc)) {
+                        if (so == 0) {
+                            mergeBackward(sc);
+                        }
+                    } else {
+                        if (so < sc.childNodes.length) {
+                            var startNode = sc.childNodes[so];
+                            if (startNode && dom.isCharacterDataNode(startNode)) {
+                                mergeBackward(startNode);
+                            }
+                        }
+                    }
+                } else {
+                    sc = ec;
+                    so = eo;
+                }
+
+                boundaryUpdater(this, sc, so, ec, eo);
+            },
+
+            createNodeIterator: function(nodeTypes, filter) {
+                assertNotDetached(this);
+                assertRangeValid(this);
+                return new RangeNodeIterator(this, nodeTypes, filter);
+            },
+
+            getNodes: function(nodeTypes, filter) {
+                assertNotDetached(this);
+                assertRangeValid(this);
+                return getNodesInRange(this, nodeTypes, filter);
+            },
+
+            collapseToPoint: function(node, offset) {
+                assertNotDetached(this);
+                assertRangeValid(this);
+
+                assertNoDocTypeNotationEntityAncestor(node, true);
+                assertValidOffset(node, offset);
+
+                setRangeStartAndEnd(this, node, offset);
+            },
+
+            collapseBefore: function(node) {
+                assertNotDetached(this);
+
+                this.setEndBefore(node);
+                this.collapse(false);
+            },
+
+            collapseAfter: function(node) {
+                assertNotDetached(this);
+
+                this.setStartAfter(node);
+                this.collapse(true);
+            },
+
+            getName: function() {
+                return "DomRange";
+            },
+
+            inspect: function() {
+                return inspect(this);
+            }
+        };
+
+        copyComparisonConstants(constructor);
+    }
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    // Updates commonAncestorContainer and collapsed after boundary change
+    function updateCollapsedAndCommonAncestor(range) {
+        range.collapsed = (range.startContainer === range.endContainer && range.startOffset === range.endOffset);
+        range.commonAncestorContainer = range.collapsed ?
+            range.startContainer : dom.getCommonAncestor(range.startContainer, range.endContainer);
+    }
+
+    function updateBoundaries(range, startContainer, startOffset, endContainer, endOffset) {
+        var startMoved = (range.startContainer !== startContainer || range.startOffset !== startOffset);
+        var endMoved = (range.endContainer !== endContainer || range.endOffset !== endOffset);
+
+        range.startContainer = startContainer;
+        range.startOffset = startOffset;
+        range.endContainer = endContainer;
+        range.endOffset = endOffset;
+
+        updateCollapsedAndCommonAncestor(range);
+        dispatchEvent(range, "boundarychange", {startMoved: startMoved, endMoved: endMoved});
+    }
+
+    function detach(range) {
+        assertNotDetached(range);
+        range.startContainer = range.startOffset = range.endContainer = range.endOffset = null;
+        range.collapsed = range.commonAncestorContainer = null;
+        dispatchEvent(range, "detach", null);
+        range._listeners = null;
+    }
+
+    /**
+     * @constructor
+     */
+    function Range(doc) {
+        this.startContainer = doc;
+        this.startOffset = 0;
+        this.endContainer = doc;
+        this.endOffset = 0;
+        this._listeners = {
+            boundarychange: [],
+            detach: []
+        };
+        updateCollapsedAndCommonAncestor(this);
+    }
+
+    createPrototypeRange(Range, updateBoundaries, detach);
+
+    Range.fromRange = function(r) {
+        var range = new Range(getRangeDocument(r));
+        updateBoundaries(range, r.startContainer, r.startOffset, r.endContainer, r.endOffset);
+        return range;
+    };
+
+    Range.rangeProperties = rangeProperties;
+    Range.RangeIterator = RangeIterator;
+    Range.copyComparisonConstants = copyComparisonConstants;
+    Range.createPrototypeRange = createPrototypeRange;
+    Range.inspect = inspect;
+    Range.getRangeDocument = getRangeDocument;
+    Range.rangesEqual = function(r1, r2) {
+        return r1.startContainer === r2.startContainer &&
+               r1.startOffset === r2.startOffset &&
+               r1.endContainer === r2.endContainer &&
+               r1.endOffset === r2.endOffset;
+    };
+    Range.getEndOffset = getEndOffset;
+
+    api.DomRange = Range;
+    api.RangeException = RangeException;
+});rangy.createModule("WrappedRange", function(api, module) {
+    api.requireModules( ["DomUtil", "DomRange"] );
+
+    /**
+     * @constructor
+     */
+    var WrappedRange;
+    var dom = api.dom;
+    var DomPosition = dom.DomPosition;
+    var DomRange = api.DomRange;
+
+
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    /*
+    This is a workaround for a bug where IE returns the wrong container element from the TextRange's parentElement()
+    method. For example, in the following (where pipes denote the selection boundaries):
+
+    <ul id="ul"><li id="a">| a </li><li id="b"> b |</li></ul>
+
+    var range = document.selection.createRange();
+    alert(range.parentElement().id); // Should alert "ul" but alerts "b"
+
+    This method returns the common ancestor node of the following:
+    - the parentElement() of the textRange
+    - the parentElement() of the textRange after calling collapse(true)
+    - the parentElement() of the textRange after calling collapse(false)
+     */
+    function getTextRangeContainerElement(textRange) {
+        var parentEl = textRange.parentElement();
+
+        var range = textRange.duplicate();
+        var bookmark = range.getBookmark();
+        range.collapse(true);
+        var startEl = range.parentElement();
+
+        range.moveToBookmark(bookmark);
+        range.collapse(false);
+        var endEl = range.parentElement();
+        var startEndContainer = (startEl == endEl) ? startEl : dom.getCommonAncestor(startEl, endEl);
+
+        return startEndContainer == parentEl ? startEndContainer : dom.getCommonAncestor(parentEl, startEndContainer);
+    }
+
+    function textRangeIsCollapsed(textRange) {
+        return textRange.compareEndPoints("StartToEnd", textRange) == 0;
+    }
+
+    // Gets the boundary of a TextRange expressed as a node and an offset within that node. This function started out as
+    // an improved version of code found in Tim Cameron Ryan's IERange (http://code.google.com/p/ierange/) but has
+    // grown, fixing problems with line breaks in preformatted text, adding workaround for IE TextRange bugs, handling
+    // for inputs and images, plus optimizations.
+    function getTextRangeBoundaryPosition(textRange, wholeRangeContainerElement, isStart, isCollapsed) {
+        var workingRange = textRange.duplicate();
+
+        workingRange.collapse(isStart);
+        var containerElement = workingRange.parentElement();
+
+        // Sometimes collapsing a TextRange that's at the start of a text node can move it into the previous node, so
+        // check for that
+        // TODO: Find out when. Workaround for wholeRangeContainerElement may break this
+        if (!dom.isAncestorOf(wholeRangeContainerElement, containerElement, true)) {
+            containerElement = wholeRangeContainerElement;
+
+        }
+
+
+
+        // Deal with nodes that cannot "contain rich HTML markup". In practice, this means form inputs, images and
+        // similar. See http://msdn.microsoft.com/en-us/library/aa703950%28VS.85%29.aspx
+        if (!containerElement.canHaveHTML) {
+            return new DomPosition(containerElement.parentNode, dom.getNodeIndex(containerElement));
+        }
+
+        var workingNode = dom.getDocument(containerElement).createElement("span");
+        var comparison, workingComparisonType = isStart ? "StartToStart" : "StartToEnd";
+        var previousNode, nextNode, boundaryPosition, boundaryNode;
+
+        // Move the working range through the container's children, starting at the end and working backwards, until the
+        // working range reaches or goes past the boundary we're interested in
+        do {
+            containerElement.insertBefore(workingNode, workingNode.previousSibling);
+            workingRange.moveToElementText(workingNode);
+        } while ( (comparison = workingRange.compareEndPoints(workingComparisonType, textRange)) > 0 &&
+                workingNode.previousSibling);
+
+        // We've now reached or gone past the boundary of the text range we're interested in
+        // so have identified the node we want
+        boundaryNode = workingNode.nextSibling;
+
+        if (comparison == -1 && boundaryNode && dom.isCharacterDataNode(boundaryNode)) {
+            // This must be a data node (text, comment, cdata) since we've overshot. The working range is collapsed at
+            // the start of the node containing the text range's boundary, so we move the end of the working range to
+            // the boundary point and measure the length of its text to get the boundary's offset within the node
+            workingRange.setEndPoint(isStart ? "EndToStart" : "EndToEnd", textRange);
+
+
+            var offset;
+
+            if (/[\r\n]/.test(boundaryNode.data)) {
+                /*
+                For the particular case of a boundary within a text node containing line breaks (within a <pre> element,
+                for example), we need a slightly complicated approach to get the boundary's offset in IE. The facts:
+
+                - Each line break is represented as \r in the text node's data/nodeValue properties
+                - Each line break is represented as \r\n in the range's text property
+                - The text property of the TextRange strips trailing line breaks
+
+                To get round the problem presented by the final fact above, we can use the fact that TextRange's
+                moveStart and moveEnd properties return the actual number of characters moved, which is not necessarily
+                the same as the number of characters it was instructed to move. The simplest approach is to use this to
+                store the characters moved when moving both the start and end of the range to the start of the document
+                body and subtracting the start offset from the end offset (the "move-negative-gazillion" method).
+                However, this is extremely slow when the document is large and the range is near the end of it. Clearly
+                doing the mirror image (i.e. moving the range boundaries to the end of the document) has the same
+                problem.
+
+                Another approach that works is to use moveStart to move the start boundary of the range up to the end
+                one character at a time and incrementing a counter with the result of the moveStart call. However, the
+                check for whether the start boundary has reached the end boundary is expensive, so this method is slow
+                (although unlike "move-negative-gazillion" is unaffected by the location of the range within the
+                document).
+
+                The method below uses the fact that once each \r\n in the range's text property has been converted to a
+                single \r character (as it is in the text node), we know the offset is at least as long as the range
+                text's length, so the start of the range is moved that length initially and then a character at a time
+                to make up for any line breaks that the range text property has stripped. This seems to have good
+                performance in most situations compared to the previous two methods.
+                */
+                var tempRange = workingRange.duplicate();
+                var rangeLength = tempRange.text.replace(/\r\n/g, "\r").length;
+
+                offset = tempRange.moveStart("character", rangeLength);
+                while ( (comparison = tempRange.compareEndPoints("StartToEnd", tempRange)) == -1) {
+                    offset++;
+                    tempRange.moveStart("character", 1);
+                }
+            } else {
+                offset = workingRange.text.length;
+            }
+            boundaryPosition = new DomPosition(boundaryNode, offset);
+        } else {
+
+
+            // If the boundary immediately follows a character data node and this is the end boundary, we should favour
+            // a position within that, and likewise for a start boundary preceding a character data node
+            previousNode = (isCollapsed || !isStart) && workingNode.previousSibling;
+            nextNode = (isCollapsed || isStart) && workingNode.nextSibling;
+
+
+
+            if (nextNode && dom.isCharacterDataNode(nextNode)) {
+                boundaryPosition = new DomPosition(nextNode, 0);
+            } else if (previousNode && dom.isCharacterDataNode(previousNode)) {
+                boundaryPosition = new DomPosition(previousNode, previousNode.length);
+            } else {
+                boundaryPosition = new DomPosition(containerElement, dom.getNodeIndex(workingNode));
+            }
+        }
+
+        // Clean up
+        workingNode.parentNode.removeChild(workingNode);
+
+        return boundaryPosition;
+    }
+
+    // Returns a TextRange representing the boundary of a TextRange expressed as a node and an offset within that node.
+    // This function started out as an optimized version of code found in Tim Cameron Ryan's IERange
+    // (http://code.google.com/p/ierange/)
+    function createBoundaryTextRange(boundaryPosition, isStart) {
+        var boundaryNode, boundaryParent, boundaryOffset = boundaryPosition.offset;
+        var doc = dom.getDocument(boundaryPosition.node);
+        var workingNode, childNodes, workingRange = doc.body.createTextRange();
+        var nodeIsDataNode = dom.isCharacterDataNode(boundaryPosition.node);
+
+        // There is a shortcut we can take that prevents the need to insert anything into the DOM if the boundary is at
+        // either end of the contents of an element, which is to use TextRange's moveToElementText method
+
+        if (nodeIsDataNode) {
+            boundaryNode = boundaryPosition.node;
+            boundaryParent = boundaryNode.parentNode;
+        } else {
+            childNodes = boundaryPosition.node.childNodes;
+            boundaryNode = (boundaryOffset < childNodes.length) ? childNodes[boundaryOffset] : null;
+            boundaryParent = boundaryPosition.node;
+        }
+
+        // Position the range immediately before the node containing the boundary
+        workingNode = doc.createElement("span");
+
+        // Having a non-empty element persuades IE to consider the TextRange boundary to be within an element
+        // rather than immediately before or after it, which is what we want
+        workingNode.innerHTML = "&#ffef;";
+
+        // insertBefore is supposed to work like appendChild if the second parameter is null. However, a bug report
+        // for IERange suggests that it can crash the browser: http://code.google.com/p/ierange/issues/detail?id=12
+        if (boundaryNode) {
+            boundaryParent.insertBefore(workingNode, boundaryNode);
+        } else {
+            boundaryParent.appendChild(workingNode);
+        }
+
+        workingRange.moveToElementText(workingNode);
+        workingRange.collapse(!isStart);
+
+        // Clean up
+        boundaryParent.removeChild(workingNode);
+
+        // Move the working range to the text offset, if required
+        if (nodeIsDataNode) {
+            workingRange[isStart ? "moveStart" : "moveEnd"]("character", boundaryOffset);
+        }
+
+        return workingRange;
+    }
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    if (api.features.implementsDomRange) {
+        // This is a wrapper around the browser's native DOM Range. It has two aims:
+        // - Provide workarounds for specific browser bugs
+        // - provide convenient extensions, as found in Rangy's DomRange
+
+        (function() {
+            var rangeProto;
+            var rangeProperties = DomRange.rangeProperties;
+            var canSetRangeStartAfterEnd;
+
+            function updateRangeProperties(range) {
+                var i = rangeProperties.length, prop;
+                while (i--) {
+                    prop = rangeProperties[i];
+                    range[prop] = range.nativeRange[prop];
+                }
+            }
+
+            function updateNativeRange(range, startContainer, startOffset, endContainer,endOffset) {
+                var startMoved = (range.startContainer !== startContainer || range.startOffset != startOffset);
+                var endMoved = (range.endContainer !== endContainer || range.endOffset != endOffset);
+
+                if (endMoved) {
+                    range.setEnd(endContainer, endOffset);
+                }
+
+                if (startMoved) {
+                    range.setStart(startContainer, startOffset);
+                }
+            }
+
+            function detach(range) {
+                range.nativeRange.detach();
+                range.detached = true;
+                var i = rangeProperties.length, prop;
+                while (i--) {
+                    prop = rangeProperties[i];
+                    range[prop] = null;
+                }
+            }
+
+            var createBeforeAfterNodeSetter;
+
+            WrappedRange = function(range) {
+                if (!range) {
+                    throw new Error("Range must be specified");
+                }
+                this.nativeRange = range;
+                updateRangeProperties(this);
+            };
+
+            DomRange.createPrototypeRange(WrappedRange, updateNativeRange, detach);
+
+            rangeProto = WrappedRange.prototype;
+
+            rangeProto.selectNode = function(node) {
+                this.nativeRange.selectNode(node);
+                updateRangeProperties(this);
+            };
+
+            rangeProto.deleteContents = function() {
+                this.nativeRange.deleteContents();
+                updateRangeProperties(this);
+            };
+
+            rangeProto.extractContents = function() {
+                var frag = this.nativeRange.extractContents();
+                updateRangeProperties(this);
+                return frag;
+            };
+
+            rangeProto.cloneContents = function() {
+                return this.nativeRange.cloneContents();
+            };
+
+            // TODO: Until I can find a way to programmatically trigger the Firefox bug (apparently long-standing, still
+            // present in 3.6.8) that throws "Index or size is negative or greater than the allowed amount" for
+            // insertNode in some circumstances, all browsers will have to use the Rangy's own implementation of
+            // insertNode, which works but is almost certainly slower than the native implementation.
+/*
+            rangeProto.insertNode = function(node) {
+                this.nativeRange.insertNode(node);
+                updateRangeProperties(this);
+            };
+*/
+
+            rangeProto.surroundContents = function(node) {
+                this.nativeRange.surroundContents(node);
+                updateRangeProperties(this);
+            };
+
+            rangeProto.collapse = function(isStart) {
+                this.nativeRange.collapse(isStart);
+                updateRangeProperties(this);
+            };
+
+            rangeProto.cloneRange = function() {
+                return new WrappedRange(this.nativeRange.cloneRange());
+            };
+
+            rangeProto.refresh = function() {
+                updateRangeProperties(this);
+            };
+
+            rangeProto.toString = function() {
+                return this.nativeRange.toString();
+            };
+
+            // Create test range and node for feature detection
+
+            var testTextNode = document.createTextNode("test");
+            dom.getBody(document).appendChild(testTextNode);
+            var range = document.createRange();
+
+            /*--------------------------------------------------------------------------------------------------------*/
+
+            // Test for Firefox bug (apparently long-standing, still present in 3.6.8) that throws "Index or size is
+            // negative or greater than the allowed amount" for insertNode in some circumstances, and correct for it
+            // by using DomRange's insertNode implementation
+
+/*
+            var span = dom.getBody(document).insertBefore(document.createElement("span"), testTextNode);
+            var spanText = span.appendChild(document.createTextNode("span"));
+            range.setEnd(testTextNode, 2);
+            range.setStart(spanText, 2);
+            var nodeToInsert = document.createElement("span");
+            nodeToInsert.innerHTML = "OIDUIIU"
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            range = sel.getRangeAt(0);
+            //alert(range)
+            range.insertNode(nodeToInsert);
+
+            nodeToInsert.parentNode.removeChild(nodeToInsert);
+            range.setEnd(testTextNode, 2);
+            range.setStart(spanText, 2);
+            nodeToInsert = document.createElement("span");
+            nodeToInsert.innerHTML = "werw"
+            range.insertNode(nodeToInsert);
+            alert(range)
+*/
+
+
+            /*--------------------------------------------------------------------------------------------------------*/
+
+            // Test for Firefox 2 bug that prevents moving the start of a Range to a point after its current end and
+            // correct for it
+
+            range.setStart(testTextNode, 0);
+            range.setEnd(testTextNode, 0);
+
+            try {
+                range.setStart(testTextNode, 1);
+                canSetRangeStartAfterEnd = true;
+
+                rangeProto.setStart = function(node, offset) {
+                    this.nativeRange.setStart(node, offset);
+                    updateRangeProperties(this);
+                };
+
+                rangeProto.setEnd = function(node, offset) {
+                    this.nativeRange.setEnd(node, offset);
+                    updateRangeProperties(this);
+                };
+
+                createBeforeAfterNodeSetter = function(name) {
+                    return function(node) {
+                        this.nativeRange[name](node);
+                        updateRangeProperties(this);
+                    };
+                };
+
+            } catch(ex) {
+
+
+                canSetRangeStartAfterEnd = false;
+
+                rangeProto.setStart = function(node, offset) {
+                    try {
+                        this.nativeRange.setStart(node, offset);
+                    } catch (ex) {
+                        this.nativeRange.setEnd(node, offset);
+                        this.nativeRange.setStart(node, offset);
+                    }
+                    updateRangeProperties(this);
+                };
+
+                rangeProto.setEnd = function(node, offset) {
+                    try {
+                        this.nativeRange.setEnd(node, offset);
+                    } catch (ex) {
+                        this.nativeRange.setStart(node, offset);
+                        this.nativeRange.setEnd(node, offset);
+                    }
+                    updateRangeProperties(this);
+                };
+
+                createBeforeAfterNodeSetter = function(name, oppositeName) {
+                    return function(node) {
+                        try {
+                            this.nativeRange[name](node);
+                        } catch (ex) {
+                            this.nativeRange[oppositeName](node);
+                            this.nativeRange[name](node);
+                        }
+                        updateRangeProperties(this);
+                    };
+                };
+            }
+
+            rangeProto.setStartBefore = createBeforeAfterNodeSetter("setStartBefore", "setEndBefore");
+            rangeProto.setStartAfter = createBeforeAfterNodeSetter("setStartAfter", "setEndAfter");
+            rangeProto.setEndBefore = createBeforeAfterNodeSetter("setEndBefore", "setStartBefore");
+            rangeProto.setEndAfter = createBeforeAfterNodeSetter("setEndAfter", "setStartAfter");
+
+            /*--------------------------------------------------------------------------------------------------------*/
+
+            // Test for and correct Firefox 2 behaviour with selectNodeContents on text nodes: it collapses the range to
+            // the 0th character of the text node
+            range.selectNodeContents(testTextNode);
+            if (range.startContainer == testTextNode && range.endContainer == testTextNode &&
+                    range.startOffset == 0 && range.endOffset == testTextNode.length) {
+                rangeProto.selectNodeContents = function(node) {
+                    this.nativeRange.selectNodeContents(node);
+                    updateRangeProperties(this);
+                };
+            } else {
+                rangeProto.selectNodeContents = function(node) {
+                    this.setStart(node, 0);
+                    this.setEnd(node, DomRange.getEndOffset(node));
+                };
+            }
+
+            /*--------------------------------------------------------------------------------------------------------*/
+
+            // Test for WebKit bug that has the beahviour of compareBoundaryPoints round the wrong way for constants
+            // START_TO_END and END_TO_START: https://bugs.webkit.org/show_bug.cgi?id=20738
+
+            range.selectNodeContents(testTextNode);
+            range.setEnd(testTextNode, 3);
+
+            var range2 = document.createRange();
+            range2.selectNodeContents(testTextNode);
+            range2.setEnd(testTextNode, 4);
+            range2.setStart(testTextNode, 2);
+
+            if (range.compareBoundaryPoints(range.START_TO_END, range2) == -1 && range.compareBoundaryPoints(range.END_TO_START, range2) == 1) {
+                // This is the wrong way round, so correct for it
+
+
+                rangeProto.compareBoundaryPoints = function(type, range) {
+                    range = range.nativeRange || range;
+                    if (type == range.START_TO_END) {
+                        type = range.END_TO_START;
+                    } else if (type == range.END_TO_START) {
+                        type = range.START_TO_END;
+                    }
+                    return this.nativeRange.compareBoundaryPoints(type, range);
+                };
+            } else {
+                rangeProto.compareBoundaryPoints = function(type, range) {
+                    return this.nativeRange.compareBoundaryPoints(type, range.nativeRange || range);
+                };
+            }
+
+            /*--------------------------------------------------------------------------------------------------------*/
+
+            // Clean up
+            dom.getBody(document).removeChild(testTextNode);
+            range.detach();
+            range2.detach();
+        })();
+
+    } else if (api.features.implementsTextRange) {
+        // This is a wrapper around a TextRange, providing full DOM Range functionality using rangy's DomRange as a
+        // prototype
+
+        WrappedRange = function(textRange) {
+            this.textRange = textRange;
+            this.refresh();
+        };
+
+        WrappedRange.prototype = new DomRange(document);
+
+        WrappedRange.prototype.refresh = function() {
+            var start, end;
+
+            // TextRange's parentElement() method cannot be trusted. getTextRangeContainerElement() works around that.
+            // We do that here to avoid doing it twice unnecessarily.
+            var rangeContainerElement = getTextRangeContainerElement(this.textRange);
+
+            if (textRangeIsCollapsed(this.textRange)) {
+                end = start = getTextRangeBoundaryPosition(this.textRange, rangeContainerElement, true, true);
+            } else {
+
+                start = getTextRangeBoundaryPosition(this.textRange, rangeContainerElement, true, false);
+                end = getTextRangeBoundaryPosition(this.textRange, rangeContainerElement, false, false);
+            }
+
+            this.setStart(start.node, start.offset);
+            this.setEnd(end.node, end.offset);
+        };
+
+        WrappedRange.rangeToTextRange = function(range) {
+            if (range.collapsed) {
+                return createBoundaryTextRange(new DomPosition(range.startContainer, range.startOffset), true, true);
+            } else {
+                var startRange = createBoundaryTextRange(new DomPosition(range.startContainer, range.startOffset), true, false);
+                var endRange = createBoundaryTextRange(new DomPosition(range.endContainer, range.endOffset), false, false);
+                var textRange = dom.getDocument(range.startContainer).body.createTextRange();
+                textRange.setEndPoint("StartToStart", startRange);
+                textRange.setEndPoint("EndToEnd", endRange);
+                return textRange;
+            }
+        };
+
+        DomRange.copyComparisonConstants(WrappedRange);
+
+        // Add WrappedRange as the Range property of the global object to allow expression like Range.END_TO_END to work
+        var globalObj = (function() { return this; })();
+        if (typeof globalObj.Range == "undefined") {
+            globalObj.Range = WrappedRange;
+        }
+    }
+
+    WrappedRange.prototype.getName = function() {
+        return "WrappedRange";
+    };
+
+    api.WrappedRange = WrappedRange;
+
+    api.createNativeRange = function(doc) {
+        doc = doc || document;
+        if (api.features.implementsDomRange) {
+            return doc.createRange();
+        } else if (api.features.implementsTextRange) {
+            return doc.body.createTextRange();
+        }
+    };
+
+    api.createRange = function(doc) {
+        doc = doc || document;
+        return new WrappedRange(api.createNativeRange(doc));
+    };
+
+    api.createRangyRange = function(doc) {
+        doc = doc || document;
+        return new DomRange(doc);
+    };
+
+    api.addCreateMissingNativeApiListener(function(win) {
+        var doc = win.document;
+        if (typeof doc.createRange == "undefined") {
+            doc.createRange = function() {
+                return api.createRange(this);
+            };
+        }
+        doc = win = null;
+    });
+});rangy.createModule("WrappedSelection", function(api, module) {
+    // This will create a selection object wrapper that follows the HTML5 draft spec selections section
+    // (http://dev.w3.org/html5/spec/editing.html#selection) and adds convenience extensions
+
+    api.requireModules( ["DomUtil", "DomRange", "WrappedRange"] );
+
+    api.config.checkSelectionRanges = true;
+
+    var BOOLEAN = "boolean", windowPropertyName = "_rangySelection";
+    var dom = api.dom;
+    var util = api.util;
+    var DomRange = api.DomRange;
+    var WrappedRange = api.WrappedRange;
+    var DOMException = api.DOMException;
+    var DomPosition = dom.DomPosition;
+
+
+    var getSelection, selectionIsCollapsed;
+
+
+
+    // Test for the Range/TextRange and Selection features required
+    // Test for ability to retrieve selection
+    if (api.util.isHostMethod(window, "getSelection")) {
+        getSelection = function(winParam) {
+            return (winParam || window).getSelection();
+        };
+    } else if (api.util.isHostObject(document, "selection")) {
+        getSelection = function(winParam) {
+            return ((winParam || window).document.selection);
+        };
+    } else {
+        module.fail("No means of obtaining a selection object");
+    }
+
+    api.getNativeSelection = getSelection;
+
+    var testSelection = getSelection();
+    var testRange = api.createNativeRange(document);
+    var body = dom.getBody(document);
+
+    // Obtaining a range from a selection
+    var selectionHasAnchorAndFocus = util.areHostObjects(testSelection, ["anchorNode", "focusNode"] &&
+                                     util.areHostProperties(testSelection, ["anchorOffset", "focusOffset"]));
+    api.features.selectionHasAnchorAndFocus = selectionHasAnchorAndFocus;
+
+    // Test for existence of native selection extend() method
+    var selectionHasExtend = util.isHostMethod(testSelection, "extend");
+    api.features.selectionHasExtend = selectionHasExtend;
+
+    // Test if rangeCount exists
+    var selectionHasRangeCount = (typeof testSelection.rangeCount == "number");
+    api.features.selectionHasRangeCount = selectionHasRangeCount;
+
+    var selectionSupportsMultipleRanges = false;
+    var collapsedNonEditableSelectionsSupported = true;
+
+    if (util.areHostMethods(testSelection, ["addRange", "getRangeAt", "removeAllRanges"]) &&
+            typeof testSelection.rangeCount == "number" && api.features.implementsDomRange) {
+
+        // Test whether the native selection is capable of supporting multiple ranges
+        (function() {
+            var textNode1 = body.appendChild(document.createTextNode("One"));
+            var textNode2 = body.appendChild(document.createTextNode("Two"));
+            var testRange2 = api.createNativeRange(document);
+            testRange2.selectNodeContents(textNode1);
+            var testRange3 = api.createNativeRange(document);
+            testRange3.selectNodeContents(textNode2);
+            testSelection.removeAllRanges();
+            testSelection.addRange(testRange2);
+            testSelection.addRange(testRange3);
+            selectionSupportsMultipleRanges = (testSelection.rangeCount == 2);
+            testSelection.removeAllRanges();
+            textNode1.parentNode.removeChild(textNode1);
+            textNode2.parentNode.removeChild(textNode2);
+
+            // Test whether the native selection will allow a collapsed selection within a non-editable element
+            var el = document.createElement("p");
+            el.contentEditable = false;
+            var textNode3 = el.appendChild(document.createTextNode("test"));
+            body.appendChild(el);
+            var testRange4 = api.createRange();
+            testRange4.collapseToPoint(textNode3, 1);
+            testSelection.addRange(testRange4.nativeRange);
+            collapsedNonEditableSelectionsSupported = (testSelection.rangeCount == 1);
+            testSelection.removeAllRanges();
+            body.removeChild(el);
+        })();
+    }
+
+    api.features.selectionSupportsMultipleRanges = selectionSupportsMultipleRanges;
+    api.features.collapsedNonEditableSelectionsSupported = collapsedNonEditableSelectionsSupported;
+
+    // ControlRanges
+    var selectionHasType = util.isHostProperty(testSelection, "type");
+    var implementsControlRange = false, testControlRange;
+
+    if (body && util.isHostMethod(body, "createControlRange")) {
+        testControlRange = body.createControlRange();
+        if (util.areHostProperties(testControlRange, ["item", "add"])) {
+            implementsControlRange = true;
+        }
+    }
+    api.features.implementsControlRange = implementsControlRange;
+
+    // Selection collapsedness
+    if (selectionHasAnchorAndFocus) {
+        selectionIsCollapsed = function(sel) {
+            return sel.anchorNode === sel.focusNode && sel.anchorOffset === sel.focusOffset;
+        };
+    } else {
+        selectionIsCollapsed = function(sel) {
+            return sel.rangeCount ? sel.getRangeAt(sel.rangeCount - 1).collapsed : false;
+        };
+    }
+
+    function updateAnchorAndFocusFromRange(sel, range, backwards) {
+        var anchorPrefix = backwards ? "end" : "start", focusPrefix = backwards ? "start" : "end";
+        sel.anchorNode = range[anchorPrefix + "Container"];
+        sel.anchorOffset = range[anchorPrefix + "Offset"];
+        sel.focusNode = range[focusPrefix + "Container"];
+        sel.focusOffset = range[focusPrefix + "Offset"];
+    }
+
+    function updateAnchorAndFocusFromNativeSelection(sel) {
+        var nativeSel = sel.nativeSelection;
+        sel.anchorNode = nativeSel.anchorNode;
+        sel.anchorOffset = nativeSel.anchorOffset;
+        sel.focusNode = nativeSel.focusNode;
+        sel.focusOffset = nativeSel.focusOffset;
+    }
+
+    function updateEmptySelection(sel) {
+        sel.anchorNode = sel.focusNode = null;
+        sel.anchorOffset = sel.focusOffset = 0;
+        sel.rangeCount = 0;
+        sel.isCollapsed = true;
+        sel._ranges.length = 0;
+    }
+
+    function getNativeRange(range) {
+        var nativeRange;
+        if (range instanceof DomRange) {
+            nativeRange = range._selectionNativeRange;
+            if (!nativeRange) {
+                nativeRange = api.createNativeRange(dom.getDocument(range.startContainer));
+                nativeRange.setEnd(range.endContainer, range.endOffset);
+                nativeRange.setStart(range.startContainer, range.startOffset);
+                range._selectionNativeRange = nativeRange;
+                range.attachListener("detach", function() {
+
+                    this._selectionNativeRange = null;
+                });
+            }
+        } else if (range instanceof WrappedRange) {
+            nativeRange = range.nativeRange;
+        } else if (window.Range && (range instanceof Range)) {
+            nativeRange = range;
+        }
+        return nativeRange;
+    }
+
+    function rangeContainsSingleElement(rangeNodes) {
+        if (!rangeNodes.length || rangeNodes[0].nodeType != 1) {
+            return false;
+        }
+        for (var i = 1, len = rangeNodes.length; i < len; ++i) {
+            if (!dom.isAncestorOf(rangeNodes[0], rangeNodes[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function getSingleElementFromRange(range) {
+        var nodes = range.getNodes();
+        if (!rangeContainsSingleElement(nodes)) {
+            throw new Error("getSingleElementFromRange: range " + range.inspect() + " did not consist of a single element");
+        }
+        return nodes[0];
+    }
+
+    function updateFromControlRange(sel) {
+        // Update the wrapped selection based on what's now in the native selection
+        sel._ranges.length = 0;
+        if (sel.nativeSelection.type == "None") {
+            updateEmptySelection(sel);
+        } else {
+            var controlRange = sel.nativeSelection.createRange();
+            sel.rangeCount = controlRange.length;
+            var range, doc = dom.getDocument(controlRange.item(0));
+            for (var i = 0; i < sel.rangeCount; ++i) {
+                range = api.createRange(doc);
+                range.selectNode(controlRange.item(i));
+                sel._ranges.push(range);
+            }
+            sel.isCollapsed = sel.rangeCount == 1 && sel._ranges[0].collapsed;
+            updateAnchorAndFocusFromRange(sel, sel._ranges[sel.rangeCount - 1], false);
+        }
+    }
+
+    var getSelectionRangeAt;
+
+    if (util.isHostMethod(testSelection,  "getRangeAt")) {
+        getSelectionRangeAt = function(sel, index) {
+            try {
+                return sel.getRangeAt(index);
+            } catch(ex) {
+                return null;
+            }
+        };
+    } else if (selectionHasAnchorAndFocus) {
+        getSelectionRangeAt = function(sel) {
+            var doc = dom.getDocument(sel.anchorNode);
+            var range = api.createRange(doc);
+            range.setStart(sel.anchorNode, sel.anchorOffset);
+            range.setEnd(sel.focusNode, sel.focusOffset);
+
+            // Handle the case when the selection was selected backwards (from the end to the start in the
+            // document)
+            if (range.collapsed !== this.isCollapsed) {
+                range.setStart(sel.focusNode, sel.focusOffset);
+                range.setEnd(sel.anchorNode, sel.anchorOffset);
+            }
+
+            return range;
+        };
+    }
+
+    /**
+     * @constructor
+     */
+    function WrappedSelection(selection) {
+        this.nativeSelection = selection;
+        this._ranges = [];
+        this.refresh();
+    }
+
+    api.getSelection = function(win) {
+        win = win || window;
+        var sel = win[windowPropertyName];
+        if (sel) {
+            sel.nativeSelection = getSelection(win);
+            sel.refresh();
+        } else {
+            sel = new WrappedSelection(getSelection(win));
+            win[windowPropertyName] = sel;
+        }
+        return sel;
+    };
+
+    var selProto = WrappedSelection.prototype;
+
+    // Selecting a range
+    if (selectionHasAnchorAndFocus && util.areHostMethods(testSelection, ["removeAllRanges", "addRange"])) {
+        selProto.removeAllRanges = function() {
+            this.nativeSelection.removeAllRanges();
+            updateEmptySelection(this);
+        };
+
+        var addRangeBackwards = function(sel, range) {
+            var doc = DomRange.getRangeDocument(range);
+            var endRange = api.createRange(doc);
+            endRange.collapseToPoint(range.endContainer, range.endOffset);
+            sel.nativeSelection.addRange(getNativeRange(endRange));
+            sel.nativeSelection.extend(range.startContainer, range.startOffset);
+            sel.refresh();
+        };
+
+        if (selectionHasRangeCount) {
+            selProto.addRange = function(range, backwards) {
+                if (backwards && selectionHasExtend) {
+                    addRangeBackwards(this, range);
+                } else {
+                    var previousRangeCount;
+                    if (selectionSupportsMultipleRanges) {
+                        previousRangeCount = this.rangeCount;
+                    } else {
+                        this.removeAllRanges();
+                        previousRangeCount = 0;
+                    }
+                    this.nativeSelection.addRange(getNativeRange(range));
+
+                    // Check whether adding the range was successful
+                    this.rangeCount = this.nativeSelection.rangeCount;
+
+                    if (this.rangeCount == previousRangeCount + 1) {
+                        // The range was added successfully
+
+                        // Check whether the range that we added to the selection is reflected in the last range extracted from
+                        // the selection
+                        if (api.config.checkSelectionRanges) {
+                            var nativeRange = getSelectionRangeAt(this.nativeSelection, this.rangeCount - 1);
+                            if (nativeRange && !DomRange.rangesEqual(nativeRange, range)) {
+                                // Happens in WebKit with, for example, a selection placed at the start of a text node
+                                range = new WrappedRange(nativeRange);
+                            }
+                        }
+                        this._ranges[this.rangeCount - 1] = range;
+                        updateAnchorAndFocusFromRange(this, range, selectionIsBackwards(this.nativeSelection));
+                        this.isCollapsed = selectionIsCollapsed(this);
+                    } else {
+                        // The range was not added successfully. The simplest thing is to refresh
+                        this.refresh();
+                    }
+                }
+            };
+        } else {
+            selProto.addRange = function(range, backwards) {
+                if (backwards && selectionHasExtend) {
+                    addRangeBackwards(this, range);
+                } else {
+                    this.nativeSelection.addRange(getNativeRange(range));
+                    this.refresh();
+                }
+            };
+        }
+
+        selProto.setRanges = function(ranges) {
+            this.removeAllRanges();
+            for (var i = 0, len = ranges.length; i < len; ++i) {
+                this.addRange(ranges[i]);
+            }
+        };
+    } else if (util.isHostMethod(testSelection, "empty") && util.isHostMethod(testRange, "select") &&
+               selectionHasType && implementsControlRange) {
+
+        selProto.removeAllRanges = function() {
+            // Added try/catch as fix for issue #21
+            try {
+                this.nativeSelection.empty();
+
+                // Check for empty() not working (issue 24)
+                if (this.nativeSelection.type != "None") {
+                    // Work around failure to empty a control selection by instead selecting a TextRange and then
+                    // calling empty()
+                    var doc;
+                    if (this.anchorNode) {
+                        doc = dom.getDocument(this.anchorNode)
+                    } else if (this.nativeSelection.type == "Control") {
+                        var controlRange = this.nativeSelection.createRange();
+                        if (controlRange.length) {
+                            doc = dom.getDocument(controlRange.item(0)).body.createTextRange();
+                        }
+                    }
+                    if (doc) {
+                        var textRange = doc.body.createTextRange();
+                        textRange.select();
+                        this.nativeSelection.empty();
+                    }
+                }
+            } catch(ex) {}
+            updateEmptySelection(this);
+        };
+
+        selProto.addRange = function(range) {
+            if (this.nativeSelection.type == "Control") {
+                var controlRange = this.nativeSelection.createRange();
+                var rangeElement = getSingleElementFromRange(range);
+
+                // Create a new ControlRange containing all the elements in the selected ControlRange plus the element
+                // contained by the supplied range
+                var doc = dom.getDocument(controlRange.item(0));
+                var newControlRange = dom.getBody(doc).createControlRange();
+                for (var i = 0, len = controlRange.length; i < len; ++i) {
+                    newControlRange.add(controlRange.item(i));
+                }
+                try {
+                    newControlRange.add(rangeElement);
+                } catch (ex) {
+                    throw new Error("addRange(): Element within the specified Range could not be added to control selection (does it have layout?)");
+                }
+                newControlRange.select();
+
+                // Update the wrapped selection based on what's now in the native selection
+                updateFromControlRange(this);
+            } else {
+                WrappedRange.rangeToTextRange(range).select();
+                this._ranges[0] = range;
+                this.rangeCount = 1;
+                this.isCollapsed = this._ranges[0].collapsed;
+                updateAnchorAndFocusFromRange(this, range, false);
+            }
+        };
+
+        selProto.setRanges = function(ranges) {
+            this.removeAllRanges();
+            var rangeCount = ranges.length;
+            if (rangeCount > 1) {
+                // Ensure that the selection becomes of type "Control"
+                var doc = dom.getDocument(ranges[0].startContainer);
+                var controlRange = dom.getBody(doc).createControlRange();
+                for (var i = 0, el; i < rangeCount; ++i) {
+                    el = getSingleElementFromRange(ranges[i]);
+                    try {
+                        controlRange.add(el);
+                    } catch (ex) {
+                        throw new Error("setRanges(): Element within the one of the specified Ranges could not be added to control selection (does it have layout?)");
+                    }
+                }
+                controlRange.select();
+
+                // Update the wrapped selection based on what's now in the native selection
+                updateFromControlRange(this);
+            } else if (rangeCount) {
+                this.addRange(ranges[0]);
+            }
+        };
+    } else {
+        module.fail("No means of selecting a Range or TextRange was found");
+        return false;
+    }
+
+    selProto.getRangeAt = function(index) {
+        if (index < 0 || index >= this.rangeCount) {
+            throw new DOMException("INDEX_SIZE_ERR");
+        } else {
+            return this._ranges[index];
+        }
+    };
+
+    var refreshSelection;
+
+    if (util.isHostMethod(testSelection, "getRangeAt") && typeof testSelection.rangeCount == "number") {
+        refreshSelection = function(sel) {
+            sel._ranges.length = sel.rangeCount = sel.nativeSelection.rangeCount;
+            if (sel.rangeCount) {
+                for (var i = 0, len = sel.rangeCount; i < len; ++i) {
+                    sel._ranges[i] = new api.WrappedRange(sel.nativeSelection.getRangeAt(i));
+                }
+                updateAnchorAndFocusFromRange(sel, sel._ranges[sel.rangeCount - 1], selectionIsBackwards(sel.nativeSelection));
+                sel.isCollapsed = selectionIsCollapsed(sel);
+            } else {
+                updateEmptySelection(sel);
+            }
+        };
+    } else if (selectionHasAnchorAndFocus && typeof testSelection.isCollapsed == BOOLEAN && typeof testRange.collapsed == BOOLEAN && api.features.implementsDomRange) {
+        refreshSelection = function(sel) {
+            var range, nativeSel = sel.nativeSelection;
+            if (nativeSel.anchorNode) {
+                range = getSelectionRangeAt(nativeSel, 0);
+                sel._ranges = [range];
+                sel.rangeCount = 1;
+                updateAnchorAndFocusFromNativeSelection(sel);
+                sel.isCollapsed = selectionIsCollapsed(sel);
+            } else {
+                updateEmptySelection(sel);
+            }
+        };
+    } else if (util.isHostMethod(testSelection, "createRange") && api.features.implementsTextRange) {
+        refreshSelection = function(sel) {
+            var range = sel.nativeSelection.createRange(), wrappedRange;
+
+
+            if (sel.nativeSelection.type == "Control") {
+                updateFromControlRange(sel);
+            } else if (range && typeof range.text != "undefined") {
+                // Create a Range from the selected TextRange
+                wrappedRange = new WrappedRange(range);
+                sel._ranges = [wrappedRange];
+
+                updateAnchorAndFocusFromRange(sel, wrappedRange, false);
+                sel.rangeCount = 1;
+                sel.isCollapsed = wrappedRange.collapsed;
+            } else {
+                updateEmptySelection(sel);
+            }
+        };
+    } else {
+        module.fail("No means of obtaining a Range or TextRange from the user's selection was found");
+        return false;
+    }
+
+    selProto.refresh = function(checkForChanges) {
+        var oldRanges = checkForChanges ? this._ranges.slice(0) : null;
+        refreshSelection(this);
+        if (checkForChanges) {
+            var i = oldRanges.length;
+            if (i != this._ranges.length) {
+                return false;
+            }
+            while (i--) {
+                if (!DomRange.rangesEqual(oldRanges[i], this._ranges[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    };
+
+    // Removal of a single range
+    var removeRangeManually = function(sel, range) {
+        var ranges = sel.getAllRanges(), removed = false;
+        //console.log("removeRangeManually with " + ranges.length + " ranges (rangeCount " + sel.rangeCount);
+        sel.removeAllRanges();
+        for (var i = 0, len = ranges.length; i < len; ++i) {
+            if (removed || range !== ranges[i]) {
+                sel.addRange(ranges[i]);
+            } else {
+                // According to the HTML 5 spec, the same range may be added to the selection multiple times.
+                // removeRange should only remove the first instance, so the following ensures only the first
+                // instance is removed
+                removed = true;
+            }
+        }
+        if (!sel.rangeCount) {
+            updateEmptySelection(sel);
+        }
+        //console.log("removeRangeManually finished with rangeCount " + sel.rangeCount);
+    };
+
+    if (selectionHasType && implementsControlRange) {
+        selProto.removeRange = function(range) {
+            if (this.nativeSelection.type == "Control") {
+                var controlRange = this.nativeSelection.createRange();
+                var rangeElement = getSingleElementFromRange(range);
+
+                // Create a new ControlRange containing all the elements in the selected ControlRange minus the
+                // element contained by the supplied range
+                var doc = dom.getDocument(controlRange.item(0));
+                var newControlRange = dom.getBody(doc).createControlRange();
+                var el, removed = false;
+                for (var i = 0, len = controlRange.length; i < len; ++i) {
+                    el = controlRange.item(i);
+                    if (el !== rangeElement || removed) {
+                        newControlRange.add(controlRange.item(i));
+                    } else {
+                        removed = true;
+                    }
+                }
+                newControlRange.select();
+
+                // Update the wrapped selection based on what's now in the native selection
+                updateFromControlRange(this);
+            } else {
+                removeRangeManually(this, range);
+            }
+        };
+    } else {
+        selProto.removeRange = function(range) {
+            removeRangeManually(this, range);
+        };
+    }
+
+    // Detecting if a selection is backwards
+    var selectionIsBackwards;
+    if (selectionHasAnchorAndFocus && api.features.implementsDomRange) {
+        selectionIsBackwards = function(sel) {
+            var backwards = false;
+            if (sel.anchorNode) {
+                backwards = (dom.comparePoints(sel.anchorNode, sel.anchorOffset, sel.focusNode, sel.focusOffset) == 1);
+            }
+            return backwards;
+        };
+
+        selProto.isBackwards = function() {
+            return selectionIsBackwards(this);
+        };
+    } else {
+        selectionIsBackwards = selProto.isBackwards = function() {
+            return false;
+        };
+    }
+
+    // Selection text
+    // This is conformant to the HTML 5 draft spec but differs from WebKit and Mozilla's implementation
+    selProto.toString = function() {
+
+        var rangeTexts = [];
+        for (var i = 0, len = this.rangeCount; i < len; ++i) {
+            rangeTexts[i] = "" + this._ranges[i];
+        }
+        return rangeTexts.join("");
+    };
+
+    function assertNodeInSameDocument(sel, node) {
+        if (sel.anchorNode && (dom.getDocument(sel.anchorNode) !== dom.getDocument(node))) {
+            throw new DOMException("WRONG_DOCUMENT_ERR");
+        }
+    }
+
+    // No current browsers conform fully to the HTML 5 draft spec for this method, so Rangy's own method is always used
+    selProto.collapse = function(node, offset) {
+        assertNodeInSameDocument(this, node);
+        var range = api.createRange(dom.getDocument(node));
+        range.collapseToPoint(node, offset);
+        this.removeAllRanges();
+        this.addRange(range);
+        this.isCollapsed = true;
+    };
+
+    selProto.collapseToStart = function() {
+        if (this.rangeCount) {
+            var range = this._ranges[0];
+            this.collapse(range.startContainer, range.startOffset);
+        } else {
+            throw new DOMException("INVALID_STATE_ERR");
+        }
+    };
+
+    selProto.collapseToEnd = function() {
+        if (this.rangeCount) {
+            var range = this._ranges[this.rangeCount - 1];
+            this.collapse(range.endContainer, range.endOffset);
+        } else {
+            throw new DOMException("INVALID_STATE_ERR");
+        }
+    };
+
+    // The HTML 5 spec is very specific on how selectAllChildren should be implemented so the native implementation is
+    // never used by Rangy.
+    selProto.selectAllChildren = function(node) {
+        assertNodeInSameDocument(this, node);
+        var range = api.createRange(dom.getDocument(node));
+        range.selectNodeContents(node);
+        this.removeAllRanges();
+        this.addRange(range);
+    };
+
+    selProto.deleteFromDocument = function() {
+        if (this.rangeCount) {
+            var ranges = this.getAllRanges();
+            this.removeAllRanges();
+            for (var i = 0, len = ranges.length; i < len; ++i) {
+                ranges[i].deleteContents();
+            }
+            // The HTML5 spec says nothing about what the selection should contain after calling deleteContents on each
+            // range. Firefox moves the selection to where the final selected range was, so we emulate that
+            this.addRange(ranges[len - 1]);
+        }
+    };
+
+    // The following are non-standard extensions
+    selProto.getAllRanges = function() {
+        return this._ranges.slice(0);
+    };
+
+    selProto.setSingleRange = function(range) {
+        this.setRanges( [range] );
+    };
+
+    selProto.containsNode = function(node, allowPartial) {
+        for (var i = 0, len = this._ranges.length; i < len; ++i) {
+            if (this._ranges[i].containsNode(node, allowPartial)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    function inspect(sel) {
+        var rangeInspects = [];
+        var anchor = new DomPosition(sel.anchorNode, sel.anchorOffset);
+        var focus = new DomPosition(sel.focusNode, sel.focusOffset);
+        var name = (typeof sel.getName == "function") ? sel.getName() : "Selection";
+
+        if (typeof sel.rangeCount != "undefined") {
+            for (var i = 0, len = sel.rangeCount; i < len; ++i) {
+                rangeInspects[i] = DomRange.inspect(sel.getRangeAt(i));
+            }
+        }
+        return "[" + name + "(Ranges: " + rangeInspects.join(", ") +
+                ")(anchor: " + anchor.inspect() + ", focus: " + focus.inspect() + "]";
+
+    }
+
+    selProto.getName = function() {
+        return "WrappedSelection";
+    };
+
+    selProto.inspect = function() {
+        return inspect(this);
+    };
+
+    selProto.detach = function() {
+        if (this.anchorNode) {
+            dom.getWindow(this.anchorNode)[windowPropertyName] = null;
+        }
+    };
+
+    WrappedSelection.inspect = inspect;
+
+    api.Selection = WrappedSelection;
+
+    api.addCreateMissingNativeApiListener(function(win) {
+        if (typeof win.getSelection == "undefined") {
+            win.getSelection = function() {
+                return api.getSelection(this);
+            };
+        }
+        win = null;
+    });
+});
+;
+// BEGIN rangy-serializer.js
+/**
+ * @license Serializer module for Rangy.
+ * Serializes Ranges and Selections. An example use would be to store a user's selection on a particular page in a
+ * cookie or local storage and restore it on the user's next visit to the same page.
+ *
+ * Part of Rangy, a cross-browser JavaScript range and selection library
+ * http://code.google.com/p/rangy/
+ *
+ * Depends on Rangy core.
+ *
+ * Copyright 2011, Tim Down
+ * Licensed under the MIT license.
+ * Version: 1.0.1
+ * Build date: 3 January 2011
+ */
+rangy.createModule("Serializer", function(api, module) {
+    api.requireModules( ["WrappedSelection", "WrappedRange"] );
+    var UNDEF = "undefined";
+
+    // encodeURIComponent and decodeURIComponent are required for cookie handling
+    if (typeof encodeURIComponent == UNDEF || typeof decodeURIComponent == UNDEF) {
+        module.fail("Global object is missing encodeURIComponent and/or decodeURIComponent method");
+    }
+
+    // Checksum for checking whether range can be serialized
+    var crc32 = (function() {
+        function utf8encode(str) {
+            var utf8CharCodes = [];
+
+            for (var i = 0, len = str.length, c; i < len; ++i) {
+                c = str.charCodeAt(i);
+                if (c < 128) {
+                    utf8CharCodes.push(c);
+                } else if (c < 2048) {
+                    utf8CharCodes.push((c >> 6) | 192, (c & 63) | 128);
+                } else {
+                    utf8CharCodes.push((c >> 12) | 224, ((c >> 6) & 63) | 128, (c & 63) | 128);
+                }
+            }
+            return utf8CharCodes;
+        }
+
+        var cachedCrcTable = null;
+
+        function buildCRCTable() {
+            var table = [];
+            for (var i = 0, j, crc; i < 256; ++i) {
+                crc = i;
+                j = 8;
+                while (j--) {
+                    if ((crc & 1) == 1) {
+                        crc = (crc >>> 1) ^ 0xEDB88320;
+                    } else {
+                        crc >>>= 1;
+                    }
+                }
+                table[i] = crc >>> 0;
+            }
+            return table;
+        }
+
+        function getCrcTable() {
+            if (!cachedCrcTable) {
+                cachedCrcTable = buildCRCTable();
+            }
+            return cachedCrcTable;
+        }
+
+        return function(str) {
+            var utf8CharCodes = utf8encode(str), crc = -1, crcTable = getCrcTable();
+            for (var i = 0, len = utf8CharCodes.length, y; i < len; ++i) {
+                y = (crc ^ utf8CharCodes[i]) & 0xFF;
+                crc = (crc >>> 8) ^ crcTable[y];
+            }
+            return (crc ^ -1) >>> 0;
+        };
+    })();
+
+    var dom = api.dom;
+
+    function escapeTextForHtml(str) {
+        return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function nodeToInfoString(node, infoParts) {
+        infoParts = infoParts || [];
+        var nodeType = node.nodeType, children = node.childNodes, childCount = children.length;
+        var nodeInfo = [nodeType, node.nodeName, childCount].join(":");
+        var start = "", end = "";
+        switch (nodeType) {
+            case 3: // Text node
+                start = escapeTextForHtml(node.nodeValue);
+                break;
+            case 8: // Comment
+                start = "<!--" + escapeTextForHtml(node.nodeValue) + "-->";
+                break;
+            default:
+                start = "<" + nodeInfo + ">";
+                end = "</>";
+                break;
+        }
+        if (start) {
+            infoParts.push(start);
+        }
+        for (var i = 0; i < childCount; ++i) {
+            nodeToInfoString(children[i], infoParts);
+        }
+        if (end) {
+            infoParts.push(end);
+        }
+        return infoParts;
+    }
+
+    // Creates a string representation of the specified element's contents that is similar to innerHTML but omits all
+    // attributes and comments and includes child node counts. This is done instead of using innerHTML to work around
+    // IE <= 8's policy of including element properties in attributes, which ruins things by changing an element's
+    // innerHTML whenever the user changes an input within the element.
+    function getElementChecksum(el) {
+        var info = nodeToInfoString(el).join("");
+        return crc32(info).toString(16);
+    }
+
+    function serializePosition(node, offset, rootNode) {
+        var pathBits = [], n = node;
+        rootNode = rootNode || dom.getDocument(node).documentElement;
+        while (n && n != rootNode) {
+            pathBits.push(dom.getNodeIndex(n, true));
+            n = n.parentNode;
+        }
+        return pathBits.join("/") + ":" + offset;
+    }
+
+    function deserializePosition(serialized, rootNode, doc) {
+        if (rootNode) {
+            doc = doc || dom.getDocument(rootNode);
+        } else {
+            doc = doc || document;
+            rootNode = doc.documentElement;
+        }
+        var bits = serialized.split(":");
+        var node = rootNode;
+        var nodeIndices = bits[0] ? bits[0].split("/") : [], i = nodeIndices.length, nodeIndex;
+
+        while (i--) {
+            nodeIndex = parseInt(nodeIndices[i], 10);
+            if (nodeIndex < node.childNodes.length) {
+                node = node.childNodes[parseInt(nodeIndices[i], 10)];
+            } else {
+                throw module.createError("deserializePosition failed: node " + dom.inspectNode(node) +
+                        " has no child with index " + nodeIndex + ", " + i);
+            }
+        }
+
+        return new dom.DomPosition(node, parseInt(bits[1], 10));
+    }
+
+    function serializeRange(range, omitChecksum, rootNode) {
+        rootNode = rootNode || api.DomRange.getRangeDocument(range).documentElement;
+        if (!dom.isAncestorOf(rootNode, range.commonAncestorContainer, true)) {
+            throw new Error("serializeRange: range is not wholly contained within specified root node");
+        }
+        var serialized = serializePosition(range.startContainer, range.startOffset, rootNode) + "," +
+            serializePosition(range.endContainer, range.endOffset, rootNode);
+        if (!omitChecksum) {
+            serialized += "{" + getElementChecksum(rootNode) + "}";
+        }
+        return serialized;
+    }
+
+    function deserializeRange(serialized, rootNode, doc) {
+        if (rootNode) {
+            doc = doc || dom.getDocument(rootNode);
+        } else {
+            doc = doc || document;
+            rootNode = doc.documentElement;
+        }
+        var result = /^([^,]+),([^,]+)({([^}]+)})?$/.exec(serialized);
+        var checksum = result[3];
+        if (checksum && checksum !== getElementChecksum(rootNode)) {
+            throw new Error("deserializeRange: checksums of serialized range root node and target root node do not match");
+        }
+        var start = deserializePosition(result[1], rootNode, doc), end = deserializePosition(result[2], rootNode, doc);
+        var range = api.createRange(doc);
+        range.setStart(start.node, start.offset);
+        range.setEnd(end.node, end.offset);
+        return range;
+    }
+
+    function canDeserializeRange(serialized, rootNode, doc) {
+        if (rootNode) {
+            doc = doc || dom.getDocument(rootNode);
+        } else {
+            doc = doc || document;
+            rootNode = doc.documentElement;
+        }
+        var result = /^([^,]+),([^,]+)({([^}]+)})?$/.exec(serialized);
+        var checksum = result[3];
+        return !checksum || checksum === getElementChecksum(rootNode);
+    }
+
+    function serializeSelection(selection, omitChecksum, rootNode) {
+        selection = selection || rangy.getSelection();
+        var ranges = selection.getAllRanges(), serializedRanges = [];
+        for (var i = 0, len = ranges.length; i < len; ++i) {
+            serializedRanges[i] = serializeRange(ranges[i], omitChecksum, rootNode);
+        }
+        return serializedRanges.join("|");
+    }
+
+    function deserializeSelection(serialized, rootNode, win) {
+        if (rootNode) {
+            win = win || dom.getWindow(rootNode);
+        } else {
+            win = win || window;
+            rootNode = win.document.documentElement;
+        }
+        var serializedRanges = serialized.split("|");
+        var sel = api.getSelection(win);
+        var ranges = [];
+
+        for (var i = 0, len = serializedRanges.length; i < len; ++i) {
+            ranges[i] = deserializeRange(serializedRanges[i], rootNode, win.document);
+        }
+        sel.setRanges(ranges);
+
+        return sel;
+    }
+
+    function canDeserializeSelection(serialized, rootNode, win) {
+        var doc;
+        if (rootNode) {
+            doc = win ? win.document : dom.getDocument(rootNode);
+        } else {
+            win = win || window;
+            rootNode = win.document.documentElement;
+        }
+        var serializedRanges = serialized.split("|");
+
+        for (var i = 0, len = serializedRanges.length; i < len; ++i) {
+            if (!canDeserializeRange(serializedRanges[i], rootNode, doc)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    var cookieName = "rangySerializedSelection";
+
+    function getSerializedSelectionFromCookie(cookie) {
+        var parts = cookie.split(/[;,]/);
+        for (var i = 0, len = parts.length, nameVal, val; i < len; ++i) {
+            nameVal = parts[i].split("=");
+            if (nameVal[0].replace(/^\s+/, "") == cookieName) {
+                val = nameVal[1];
+                if (val) {
+                    return decodeURIComponent(val.replace(/\s+$/, ""));
+                }
+            }
+        }
+        return null;
+    }
+
+    function restoreSelectionFromCookie(win) {
+        win = win || window;
+        var serialized = getSerializedSelectionFromCookie(win.document.cookie);
+        if (serialized) {
+            deserializeSelection(serialized, win.doc)
+        }
+    }
+
+    function saveSelectionCookie(win, props) {
+        win = win || window;
+        props = (typeof props == "object") ? props : {};
+        var expires = props.expires ? ";expires=" + props.expires.toUTCString() : "";
+        var path = props.path ? ";path=" + props.path : "";
+        var domain = props.domain ? ";domain=" + props.domain : "";
+        var secure = props.secure ? ";secure" : "";
+        var serialized = serializeSelection(rangy.getSelection(win));
+        win.document.cookie = encodeURIComponent(cookieName) + "=" + encodeURIComponent(serialized) + expires + path + domain + secure;
+    }
+
+    api.serializePosition = serializePosition;
+    api.deserializePosition = deserializePosition;
+
+    api.serializeRange = serializeRange;
+    api.deserializeRange = deserializeRange;
+    api.canDeserializeRange = canDeserializeRange;
+
+    api.serializeSelection = serializeSelection;
+    api.deserializeSelection = deserializeSelection;
+    api.canDeserializeSelection = canDeserializeSelection;
+
+    api.restoreSelectionFromCookie = restoreSelectionFromCookie;
+    api.saveSelectionCookie = saveSelectionCookie;
+
+    api.getElementChecksum = getElementChecksum;
+});
+;
+// BEGIN rangy-init.js
+$(function(){rangy.init();});
+;
+// BEGIN jquery.rangyinputs.js
+/**
+ * @license Rangy Text Inputs, a cross-browser textarea and text input library plug-in for jQuery.
+ *
+ * Part of Rangy, a cross-browser JavaScript range and selection library
+ * http://code.google.com/p/rangy/
+ *
+ * Depends on jQuery 1.0 or later.
+ *
+ * Copyright 2010, Tim Down
+ * Licensed under the MIT license.
+ * Version: 0.1.205
+ * Build date: 5 November 2010
+ */
+(function($) {
+    var UNDEF = "undefined";
+    var getSelection, setSelection, deleteSelectedText, deleteText, insertText;
+    var replaceSelectedText, surroundSelectedText, extractSelectedText, collapseSelection;
+
+    // Trio of isHost* functions taken from Peter Michaux's article:
+    // http://peter.michaux.ca/articles/feature-detection-state-of-the-art-browser-scripting
+    function isHostMethod(object, property) {
+        var t = typeof object[property];
+        return t === "function" || (!!(t == "object" && object[property])) || t == "unknown";
+    }
+
+    function isHostProperty(object, property) {
+        return typeof(object[property]) != UNDEF;
+    }
+
+    function isHostObject(object, property) {
+        return !!(typeof(object[property]) == "object" && object[property]);
+    }
+
+    function fail(reason) {
+        if (window.console && window.console.log) {
+            window.console.log("TextInputs module for Rangy not supported in your browser. Reason: " + reason);
+        }
+    }
+
+    function adjustOffsets(el, start, end) {
+        if (start < 0) {
+            start += el.value.length;
+        }
+        if (typeof end == UNDEF) {
+            end = start;
+        }
+        if (end < 0) {
+            end += el.value.length;
+        }
+        return { start: start, end: end };
+    }
+
+    function makeSelection(el, start, end) {
+        return {
+            start: start,
+            end: end,
+            length: end - start,
+            text: el.value.slice(start, end)
+        };
+    }
+
+    function getBody() {
+        return isHostObject(document, "body") ? document.body : document.getElementsByTagName("body")[0];
+    }
+
+    $(document).ready(function() {
+        var testTextArea = document.createElement("textarea");
+
+        getBody().appendChild(testTextArea);
+
+        if (isHostProperty(testTextArea, "selectionStart") && isHostProperty(testTextArea, "selectionEnd")) {
+            getSelection = function(el) {
+                var start = el.selectionStart, end = el.selectionEnd;
+                return makeSelection(el, start, end);
+            };
+
+            setSelection = function(el, startOffset, endOffset) {
+                var offsets = adjustOffsets(el, startOffset, endOffset);
+                el.selectionStart = offsets.start;
+                el.selectionEnd = offsets.end;
+            };
+
+            collapseSelection = function(el, toStart) {
+                if (toStart) {
+                    el.selectionEnd = el.selectionStart;
+                } else {
+                    el.selectionStart = el.selectionEnd;
+                }
+            };
+        } else if (isHostMethod(testTextArea, "createTextRange") && isHostObject(document, "selection") &&
+                   isHostMethod(document.selection, "createRange")) {
+
+            getSelection = function(el) {
+                var start = 0, end = 0, normalizedValue, textInputRange, len, endRange;
+                var range = document.selection.createRange();
+
+                if (range && range.parentElement() == el) {
+                    len = el.value.length;
+
+                    normalizedValue = el.value.replace(/\r\n/g, "\n");
+                    textInputRange = el.createTextRange();
+                    textInputRange.moveToBookmark(range.getBookmark());
+                    endRange = el.createTextRange();
+                    endRange.collapse(false);
+                    if (textInputRange.compareEndPoints("StartToEnd", endRange) > -1) {
+                        start = end = len;
+                    } else {
+                        start = -textInputRange.moveStart("character", -len);
+                        start += normalizedValue.slice(0, start).split("\n").length - 1;
+                        if (textInputRange.compareEndPoints("EndToEnd", endRange) > -1) {
+                            end = len;
+                        } else {
+                            end = -textInputRange.moveEnd("character", -len);
+                            end += normalizedValue.slice(0, end).split("\n").length - 1;
+                        }
+                    }
+                }
+
+                return makeSelection(el, start, end);
+            };
+
+            // Moving across a line break only counts as moving one character in a TextRange, whereas a line break in
+            // the textarea value is two characters. This function corrects for that by converting a text offset into a
+            // range character offset by subtracting one character for every line break in the textarea prior to the
+            // offset
+            var offsetToRangeCharacterMove = function(el, offset) {
+                return offset - (el.value.slice(0, offset).split("\r\n").length - 1);
+            };
+
+            setSelection = function(el, startOffset, endOffset) {
+                var offsets = adjustOffsets(el, startOffset, endOffset);
+                var range = el.createTextRange();
+                var startCharMove = offsetToRangeCharacterMove(el, offsets.start);
+                range.collapse(true);
+                if (offsets.start == offsets.end) {
+                    range.move("character", startCharMove);
+                } else {
+                    range.moveEnd("character", offsetToRangeCharacterMove(el, offsets.end));
+                    range.moveStart("character", startCharMove);
+                }
+                range.select();
+            };
+
+            collapseSelection = function(el, toStart) {
+                var range = document.selection.createRange();
+                range.collapse(toStart);
+                range.select();
+            };
+        } else {
+            getBody().removeChild(testTextArea);
+            fail("No means of finding text input caret position");
+            return;
+        }
+
+        // Clean up
+        getBody().removeChild(testTextArea);
+
+        deleteText = function(el, start, end, moveSelection) {
+            var val;
+            if (start != end) {
+                val = el.value;
+                el.value = val.slice(0, start) + val.slice(end);
+            }
+            if (moveSelection) {
+                setSelection(el, start, start);
+            }
+        };
+
+        deleteSelectedText = function(el) {
+            var sel = getSelection(el);
+            deleteText(el, sel.start, sel.end, true);
+        };
+
+        extractSelectedText = function(el) {
+            var sel = getSelection(el), val;
+            if (sel.start != sel.end) {
+                val = el.value;
+                el.value = val.slice(0, sel.start) + val.slice(sel.end);
+            }
+            setSelection(el, sel.start, sel.start);
+            return sel.text;
+        };
+
+        insertText = function(el, text, index, moveSelection) {
+            var val = el.value, caretIndex;
+            el.value = val.slice(0, index) + text + val.slice(index);
+            if (moveSelection) {
+                caretIndex = index + text.length;
+                setSelection(el, caretIndex, caretIndex);
+            }
+        };
+
+        replaceSelectedText = function(el, text) {
+            var sel = getSelection(el), val = el.value;
+            el.value = val.slice(0, sel.start) + text + val.slice(sel.end);
+            var caretIndex = sel.start + text.length;
+            setSelection(el, caretIndex, caretIndex);
+        };
+
+        surroundSelectedText = function(el, before, after) {
+            var sel = getSelection(el), val = el.value;
+
+            el.value = val.slice(0, sel.start) + before + sel.text + after + val.slice(sel.end);
+            var startIndex = sel.start + before.length;
+            var endIndex = startIndex + sel.length;
+            setSelection(el, startIndex, endIndex);
+        };
+
+        function jQuerify(func, returnThis) {
+            return function() {
+                var el = this.jquery ? this[0] : this;
+                var nodeName = el.nodeName.toLowerCase();
+
+                if (el.nodeType == 1 && (nodeName == "textarea" || (nodeName == "input" && el.type == "text"))) {
+                    var args = [el].concat(Array.prototype.slice.call(arguments));
+                    var result = func.apply(this, args);
+                    if (!returnThis) {
+                        return result;
+                    }
+                }
+                if (returnThis) {
+                    return this;
+                }
+            };
+        }
+
+        $.fn.extend({
+            getSelection: jQuerify(getSelection, false),
+            setSelection: jQuerify(setSelection, true),
+            collapseSelection: jQuerify(collapseSelection, true),
+            deleteSelectedText: jQuerify(deleteSelectedText, true),
+            deleteText: jQuerify(deleteText, true),
+            extractSelectedText: jQuerify(extractSelectedText, false),
+            insertText: jQuerify(insertText, true),
+            replaceSelectedText: jQuerify(replaceSelectedText, true),
+            surroundSelectedText: jQuerify(surroundSelectedText, true)
+        });
+    });
+})(jQuery);;
 // BEGIN lib/Wikiwyg.js
 /*==============================================================================
 Wikiwyg - Turn any HTML div into a wikitext /and/ wysiwyg edit area.
@@ -228,23 +3664,17 @@ COPYRIGHT:
 
 Wikiwyg is free software. 
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This library is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 2.1 of the License, or (at
+your option) any later version.
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+This library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser
+General Public License for more details.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+    http://www.gnu.org/copyleft/lesser.txt
 
  =============================================================================*/
 
@@ -569,56 +3999,54 @@ proto.resizeEditor = function () {
     this.__resizing = false;
 }
 
-proto.preview_link_text = loc('Preview');
-proto.preview_link_more = loc('Edit More');
+proto.preview_link_text = loc('edit.preview');
+proto.preview_link_more = loc('edit.more');
 
 proto.preview_link_action = function() {
     var self = this;
 
-    if (this.isOffline()) {
-        alert(loc("The browser is currently offline; please connect to the internet and try again."));
-        return;
-    }
+    Wikiwyg.ensureOnline(function(){
+        var preview = self.modeButtonMap[WW_PREVIEW_MODE];
+        var current = self.current_mode;
 
-    var preview = self.modeButtonMap[WW_PREVIEW_MODE];
-    var current = self.current_mode;
+        self.enable_edit_more = function() {
+            jQuery(preview)
+                .html(loc('edit.more'))
+                .unbind('click')
+                .click( function () {
+                    self.switchMode(current.classname, function(){
+                        if (jQuery("#contentRight").is(":visible")) 
+                            jQuery('#st-page-maincontent')
+                                .css({ 'margin-right': '240px'});
+                        self.preview_link_reset();
 
-    self.enable_edit_more = function() {
-        jQuery(preview)
-            .html(loc('Edit More'))
-            .unbind('click')
-            .click( function () {
-                self.switchMode(current.classname, function(){
-                    if (jQuery("#contentRight").is(":visible")) 
-                        jQuery('#st-page-maincontent')
-                            .css({ 'margin-right': '240px'});
-                    self.preview_link_reset();
+                        // This timeout is for IE so the iframe is ready - {bz: 1358}.
+                        setTimeout(function() {
+                            self.resizeEditor();
+                            self.hideScrollbars();
+                        }, 50);
+                    });
 
-                    // This timeout is for IE so the iframe is ready - {bz: 1358}.
-                    setTimeout(function() {
-                        self.resizeEditor();
-                        self.hideScrollbars();
-                    }, 50);
+                    return false;
                 });
+        };
 
-                return false;
-            });
-    };
+        self.modeByName(WW_PREVIEW_MODE).div.innerHTML = "";
+        self.switchMode(WW_PREVIEW_MODE, function(){
+            preview.innerHTML = self.preview_link_more;
+            jQuery("#st-edit-mode-toolbar").hide();
+            self.showScrollbars();
 
-    this.modeByName(WW_PREVIEW_MODE).div.innerHTML = "";
-    this.switchMode(WW_PREVIEW_MODE, function(){
-        preview.innerHTML = self.preview_link_more;
-        jQuery("#st-edit-mode-toolbar").hide();
-        self.showScrollbars();
+            jQuery(preview)
+                .unbind('click')
+                .click(self.button_disabled_func());
+            self.enable_edit_more();
+            self.disable_button(current.classname);
 
-        jQuery(preview)
-            .unbind('click')
-            .click(self.button_disabled_func());
-        self.enable_edit_more();
-        self.disable_button(current.classname);
-
-        jQuery('#st-page-maincontent').attr('marginRight', '0px');
+            jQuery('#st-page-maincontent').attr('marginRight', '0px');
+        });
     });
+
     return false;
 }
 
@@ -630,7 +4058,7 @@ proto.preview_link_reset = function() {
 
     var self = this;
     jQuery(preview)
-        .html(loc('Preview'))
+        .html(loc('edit.preview'))
         .unbind('click')
         .click( function() {
             self.preview_link_action();
@@ -739,19 +4167,19 @@ proto.newpage_save = function(page_name, pagename_editfield) {
     page_name = trim(page_name);
 
     if (page_name.length == 0) {
-        alert(loc('You must specify a page name'));
+        alert(loc('error.page-name-required'));
         if (pagename_editfield) {
             pagename_editfield.focus();
         }
     }
     else if (is_reserved_pagename(page_name)) {
-        alert(loc('"[_1]" is a reserved page name. Please use a different name', page_name));
+        alert(loc('error.reserved-page-name', page_name));
         if (pagename_editfield) {
             pagename_editfield.focus();
         }
     }
     else if (encodeURIComponent(page_name).length > 255) {
-        alert(loc('Page title is too long after URL encoding'));
+        alert(loc('error.page-title-too-long'));
         if (pagename_editfield) {
             pagename_editfield.focus();
         }
@@ -771,49 +4199,30 @@ proto.newpage_save = function(page_name, pagename_editfield) {
     return saved;
 }
 
-proto.isOffline = function () {
-    if (typeof navigator == 'object' && typeof navigator.onLine == 'boolean' && !navigator.onLine) {
-        return true;
-    }
-
-    // WebKit's navigator.onLine is unreliable when VMWare or Parallels is
-    // installed - https://bugs.webkit.org/show_bug.cgi?id=32327
-    // Do a GET on blank.html to determine onlineness instead.
-    var onLine = false;
-    $.ajax({
-        async: false,
-        type: 'GET',
-        url: '/static/html/blank.html?_=' + Math.random(),
-        timeout: 10 * 1000,
-        success: function(data) {
-            onLine = data;
-        }
-    });
-    return !onLine;
-}
-
 proto.saveContent = function() {
+    var self = this;
+
     if (jQuery('#st-save-button-link').is(':hidden')) {
         // Don't allow "Save" to be clicked while saving: {bz: 1718}
-        return;
-    }
-
-    if (this.isOffline()) {
-        alert(loc("The browser is currently offline; please connect to the internet and try again."));
         return;
     }
 
     jQuery("#st-edit-summary").hide();
     jQuery('#st-editing-tools-edit ul').hide();
     jQuery('<div id="saving-message" />')
-        .html(loc('Saving...'))
+        .html(loc('edit.saving'))
         .css('color', 'red')
         .appendTo('#st-editing-tools-edit');
 
-    var self = this;
-    setTimeout(function(){
-        self.saveChanges();
-    }, 1);
+    Wikiwyg.ensureOnline(function(){
+        setTimeout(function(){
+            self.saveChanges();
+        }, 1);
+    }, function(){
+        jQuery("#st-edit-summary").show();
+        jQuery('#st-editing-tools-edit ul').show();
+        jQuery('#saving-message').remove();
+    });
 }
 
 
@@ -835,7 +4244,7 @@ proto.newpage_duplicate_ok = function() {
     var options = ['different', 'suggest', 'append'];
     var option = jQuery('input[name=st-newpage-duplicate-option]:checked').val();
     if (!option) {
-        alert(loc('You must select one of the options or click cancel'));
+        alert(loc('error.select-or-cancel'));
         return;
     }
     switch(option) {
@@ -904,7 +4313,7 @@ proto.saveNewPage = function() {
         }
         else  {
             if (encodeURIComponent(new_page_name).length > 255) {
-                alert(loc('Page title is too long after URL encoding'));
+                alert(loc('error.page-title-too-long'));
                 this.displayNewPageDialog();
                 return;
             }
@@ -982,7 +4391,9 @@ proto.saveChanges = function() {
 
 proto.confirmCancellation = function(msg) {
     return confirm(
-        loc("[_1]\n\nYou have unsaved changes.\n\nPress OK to continue, or Cancel to stay on the current page.", msg)
+        msg + "\n\n"
+        + loc("edit.unsaved-changes") + "\n\n"
+        + loc("edit.ok-or-cancel")
     );
 
 }
@@ -990,7 +4401,7 @@ proto.confirmCancellation = function(msg) {
 proto.confirmLinkFromEdit = function() {
     this.signal_edit_cancel();
     if (wikiwyg.contentIsModified()) {
-        var msg = loc("Are you sure you want to navigate away from this page?");
+        var msg = loc("edit.navigate-away?");
         var response =  wikiwyg.confirmCancellation(msg);
 
         // wikiwyg.confirmed is for the situations when multiple confirmations
@@ -1023,7 +4434,7 @@ proto.enableLinkConfirmations = function() {
             return undefined;
         }
 
-        var msg = loc("You have unsaved changes.");
+        var msg = loc("edit.unsaved-changes");
         if (!ev) ev = window.event;
         if ( wikiwyg.confirmed != true && wikiwyg.contentIsModified() ) {
             if (Wikiwyg.is_safari) {
@@ -1090,7 +4501,7 @@ proto.contentIsModified = function() {
     if (this.originalWikitext.match(clearRegex) && current_wikitext.match(/^\n?$/)) {
         return false;
     }
-    return (current_wikitext != this.originalWikitext);
+    return (current_wikitext.replace(/\r/g, '') != this.originalWikitext.replace(/\r/g, ''));
 }
 
 proto.diffContent = function () {
@@ -1265,6 +4676,37 @@ Wikiwyg.is_safari_unknown = (
     Wikiwyg.ua.indexOf("version/") == -1
 );
 
+Wikiwyg.ensureOnline = function (cbOnline, cbOffline) {
+    if (typeof navigator == 'object' && typeof navigator.onLine == 'boolean' && !navigator.onLine) {
+        alert(loc("error.browser-offline"));
+        if (cbOffline) { cbOffline(); }
+        return false;
+    }
+
+    // WebKit's navigator.onLine is unreliable when VMWare or Parallels is
+    // installed - https://bugs.webkit.org/show_bug.cgi?id=32327
+    // Do a GET on blank.html to determine onlineness instead.
+    var onLine = false;
+    $.ajax({
+        async: true,
+        type: 'GET',
+        url: '/static/html/blank.html?_=' + Math.random(),
+        timeout: 10 * 1000,
+        success: function(data) {
+            onLine = data;
+        },
+        complete: function(){
+            if (onLine) {
+                cbOnline();
+            }
+            else {
+                alert(loc("error.browser-offline"));
+                if (cbOffline) { cbOffline(); }
+            }
+        }
+    });
+}
+
 this.addGlobal().setup_wikiwyg = function() {
     if (! Wikiwyg.browserIsSupported) return;
 
@@ -1311,14 +4753,14 @@ this.addGlobal().setup_wikiwyg = function() {
     var clearRichText = new RegExp(
         ( "^"
         + "\\s*(</?(span|br|div)\\b[^>]*>\\s*)*"
-        + loc("Replace this text with your own.")
+        + loc("edit.default-text")
         + "\\s*(</?(span|br|div)\\b[^>]*>\\s*)*"
         + "$"
         ), "i"
     );
 
     var clearWikiText = new RegExp(
-        "^" + loc("Replace this text with your own.") + "\\s*$"
+        "^" + loc("edit.default-text") + "\\s*$"
     );
 
     // Wikiwyg configuration
@@ -1488,7 +4930,7 @@ this.addGlobal().setup_wikiwyg = function() {
 //          myDiv.innerHTML = $('st-page-content').innerHTML;
 // But IE likes to take our non XHTML formatted lists and make them XHTML.
 // That messes up the wikiwyg formatter. So now we do this line:
-            myDiv.innerHTML =
+            var newHTML =
                 // This lines fixes
                 // https://bugs.socialtext.net:555/show_bug.cgi?id=540
                 "<span></span>" +
@@ -1496,6 +4938,15 @@ this.addGlobal().setup_wikiwyg = function() {
                 // And the variable above is undefined for new pages. This is
                 // what we fallback to.
                 || jQuery('#st-page-content').html());
+
+            myDiv.innerHTML = newHTML.replace(
+                new RegExp(
+                    '(<!--[\\d\\D]*?-->)|(<(span|div)\\sclass="nlw_phrase">)[\\d\\D]*?(<!--\\swiki:\\s[\\d\\D]*?\\s--><\/\\3>)',
+                    'g'
+                ), function(_, _1, _2, _3, _4) {
+                    return(_1 ? _1 : _2 + '&nbsp;' + _4);
+                }
+            );
 
             ww.editMode();
             ww.preview_link_reset();
@@ -1509,13 +4960,6 @@ this.addGlobal().setup_wikiwyg = function() {
             }
 
             ww.is_editing = true;
-
-            if (Wikiwyg.is_safari) {
-                ww.message.display({
-                    title: loc("Socialtext has limited editing capabilities in Safari."),
-                    body: loc("<a target=\"_blank\" href=\"http://www.mozilla.com/firefox/\">Download Firefox</a> for richer Socialtext editing functionality.")
-                });
-            }
 
             if (firstMode == WW_SIMPLE_MODE) {
                 // Give the browser two seconds to render the initial iframe.
@@ -1574,7 +5018,7 @@ this.addGlobal().setup_wikiwyg = function() {
         try {
             if (ww.contentIsModified()) {
                 // If it's not confirmed somewhere else, do it right here.
-                if (ww.confirmed != true && !ww.confirmCancellation(loc("Are you sure you want to cancel?") ))
+                if (ww.confirmed != true && !ww.confirmCancellation(loc("edit.cancel?") ))
                     return false;
             }
 
@@ -1615,11 +5059,13 @@ this.addGlobal().setup_wikiwyg = function() {
 
             var summary = ww.edit_summary();
             summary = ww.word_truncate(summary, 140);
-            var html = ' <strong>' + name + '</strong>';
-            if (!summary)
-                html += ' ' + loc('wants you to know about an edit of') + ' <strong>' + page + '</strong> ' + loc('in') + ' ' + workspace;
-            else
-                html += ', ' + loc('"[_1]"', summary) + ' (' + loc('edited') + ' <strong>' + page + '</strong> ' + loc('in') + ' ' + workspace + ')';
+            var html;
+            if (!summary) {
+                html = loc('edit.summary=name,page,wiki', name, page, workspace);
+            }
+            else {
+                html = loc('edit.summary=name,summary,page,wiki', name, summary, page, workspace);
+            }
 
             jQuery('#st-edit-summary .preview .text')
                 .html(html);
@@ -1713,7 +5159,7 @@ this.addGlobal().setup_wikiwyg = function() {
             .css("text-decoration", "line-through")
             .unbind("click")
             .bind("click", function() {
-                alert(loc("Safari does not support Rich Text editing"));
+                alert(loc("error.safari-rich-text-unsupported"));
                 return false;
             });
     }
@@ -2072,7 +5518,7 @@ proto.get_edit_height = function() {
 proto.enableStarted = function() {
     jQuery('#st-editing-tools-edit ul').hide();
     jQuery('<div id="loading-message" />')
-        .html(loc('Loading...'))
+        .html(loc('edit.loading'))
         .appendTo('#st-editing-tools-edit');
     this.wikiwyg.disable_button(this.classname);
     this.wikiwyg.enable_button(this.wikiwyg.current_mode.classname);
@@ -2084,9 +5530,9 @@ proto.enableFinished = function() {
 }
 
 var WW_ERROR_TABLE_SPEC_BAD =
-    loc("That doesn't appear to be a valid number.");
+    loc("error.invalid-number");
 var WW_ERROR_TABLE_SPEC_HAS_ZERO =
-    loc("Can't have a 0 for a size.");
+    loc("error.size-required");
 proto.parse_input_as_table_spec = function(input) {
     var match = input.match(/^\s*(\d+)(?:\s*x\s*(\d+))?\s*$/i);
     if (match == null)
@@ -2102,8 +5548,8 @@ proto.parse_input_as_table_spec = function(input) {
 proto.prompt_for_table_dimensions = function() {
     var rows, columns;
     var errorText = '';
-    var promptTextMessageForRows = loc('Please enter the number of table rows:');
-    var promptTextMessageForColumns = loc('Please enter the number of table columns:');
+    var promptTextMessageForRows = loc('table.enter-rows:');
+    var promptTextMessageForColumns = loc('table.enter-columns:');
     
     while (!(rows && columns)) {
         var promptText;
@@ -2135,15 +5581,306 @@ proto.prompt_for_table_dimensions = function() {
         }
 
         if (rows && rows > 100) {
-            errorText = loc('Rows is too big. 100 maximum.');
+            errorText = loc('error.rows-too-big');
             rows = null;
         }
         if (columns && columns > 35) {
-            errorText = loc('Columns is too big. 35 maximum.');
+            errorText = loc('error.columns-too-big');
             columns = null;
         }
     }
     return [ rows, columns ];
+}
+
+proto.do_widget_code = function(widget_element) {
+    return this._do_insert_block_dialog({
+        wafl_id: 'code',
+        dialog_title: loc('wafl.insert-code'),
+        dialog_prompt: loc('info.edit-code-block'),
+        dialog_hint: loc('info.html-fragments'),
+        edit_label_function: function(syntax) {
+            if (!syntax || syntax == 'plain') {
+                return loc("wafl.code-title");
+            }
+            else {
+                return loc("wafl.code-title=syntax", syntax);
+            }
+        },
+        widget_element: widget_element
+    });
+}
+
+proto.do_widget_html = function(widget_element) {
+    return this._do_insert_block_dialog({
+        wafl_id: 'html',
+        dialog_title: loc('wafl.insert-html'),
+        dialog_prompt: loc('info.edit-html-block'),
+        dialog_hint: loc('info.html-fragments'),
+        edit_label: loc("wafl.html-title"),
+        widget_element: widget_element
+    });
+}
+
+proto.do_widget_pre = function(widget_element) {
+    return this._do_insert_block_dialog({
+        wafl_id: 'pre',
+        dialog_title: loc('wafl.insert-pre'),
+        dialog_prompt: loc('info.edit-pre-block'),
+        dialog_hint: loc('info.preformatted-text'),
+        edit_label: loc("wafl.pre-edit"),
+        widget_element: widget_element
+    });
+}
+
+proto.do_opensocial_gallery = function() {
+    var self = this;
+
+    get_plugin_lightbox('widgets', 'opensocial-gallery', function () {
+        var gallery = new ST.OpenSocialGallery({
+            container_type: 'page',
+            account_id: Socialtext.current_workspace_account_id,
+            onAddWidget: function(src) {
+                Wikiwyg.Widgets.widget_editing = 1;
+                self.do_opensocial_setup(src);
+            }
+        });
+        gallery.showLightbox();
+    });
+}
+
+proto.do_opensocial_setup = function(src) {
+    var self = this;
+
+    var encoded_prefs = '';
+    var serial = '';
+    var widget_element = null;
+
+    if (src) {
+        serial = self.getNextSerialForOpenSocialWidget(src);
+    }
+    else {
+        // We are editing an existing widget.
+        widget_element = self.currentWidget.element;
+        var matches = self.currentWidget.widget.match(/^\{widget:\s*([^\s#]+)(?:\s*#(\d+))?((?:\s+[^\s=]+=\S*)*)\s*\}$/);
+        if (!matches) { return false; }
+
+        src = matches[1];
+        serial = matches[2] || '';
+        encoded_prefs = matches[3] || '';
+    }
+
+    if (!jQuery('#st-widget-opensocial-setup').size()) {
+        Socialtext.wikiwyg_variables.loc = loc;
+        jQuery('body').append(
+            Jemplate.process(
+                "opensocial-setup.html",
+                Socialtext.wikiwyg_variables
+            )
+        );
+        $('#st-widget-opensocial-setup-cancel').click(function(){
+            jQuery.hideLightbox();
+        });
+    }
+
+    $('#st-widget-opensocial-setup-width-options').val(600);
+    if (encoded_prefs) {
+        var match = encoded_prefs.match(/\b__width__=(\d+%?)\b/);
+        if (match) {
+            $('#st-widget-opensocial-setup-width-options').val(match[1]);
+        }
+    }
+
+    $('#st-widget-opensocial-setup-buttons').hide();
+    $('#st-widget-opensocial-setup-save').unbind('click').click(function(){
+        var prefHash = $(this).data('prefHash') || '';
+
+        var srcField = src.replace(/^local:widgets:/, '');
+        if (serial && serial > 1) {
+            srcField += '#' + serial;
+        }
+
+        var title = $(this).data('title') || srcField;
+        var width = $('#st-widget-opensocial-setup-width-options').val();
+        var args = [srcField, '__title__='+encodeURI(title), '__width__='+encodeURI(width)];
+        $.each(prefHash, function(key, val) {
+            args.push(key + '=' + encodeURI(val));
+        });
+
+        self.wikiwyg.current_mode.insert_widget('{widget: ' + args.join(' ') + '}', widget_element);
+
+        jQuery.hideLightbox();
+        return false;
+    });
+
+    $('#st-widget-opensocial-setup-widgets').text('');
+
+    jQuery.showLightbox({
+        content: '#st-widget-opensocial-setup',
+        close: '#st-widget-opensocial-setup-cancel',
+        width: '640px',
+        callback: function(){ 
+            $('#st-widget-opensocial-setup-widgets').append(
+                $('<iframe />', {
+                    src: '/?action=widget_setup_screen'
+                        + ';widget=' + encodeURIComponent(src)
+                        + ';workspace_name=' + encodeURIComponent(Socialtext.wiki_id)
+                        + ';page_id=' + encodeURIComponent(Socialtext.page_id)
+                        + ';serial=' + encodeURIComponent(serial)
+                        + ';encoded_prefs=' + encodeURIComponent(encoded_prefs)
+                        + ';_=' + Math.random(),
+                    width: '600px',
+                    height: '400px'
+                }).one('load', function(){
+                    // Workaround the bug that prevented containers from rendering
+                    // correctly the first time.
+                    if ( $(this).contents().find(".st-savebutton").size() == 0 ) {
+                        $(this.contentWindow.document.body).html('');
+                        this.contentWindow.location.reload(true);
+                    }
+                })
+            );
+        }
+    });
+
+
+    $('#lightbox').unbind('lightbox-unload').bind('lightbox-unload', function(){
+        Wikiwyg.Widgets.widget_editing = 0;
+    });
+}
+
+proto.preserveSelection = $.noop;
+proto.restoreSelection = $.noop;
+
+proto._do_insert_block_dialog = function(opts) {
+    var self = this;
+
+    self.preserveSelection();
+    if (!jQuery('#st-widget-block-dialog').size()) {
+        Socialtext.wikiwyg_variables.loc = loc;
+        jQuery('body').append(
+            Jemplate.process(
+                "add-a-block.html",
+                Socialtext.wikiwyg_variables
+            )
+        );
+    }
+
+    $('#st-widget-block-title').text(opts.dialog_title);
+    $('#st-widget-block-prompt').text(opts.dialog_prompt);
+//    $('#st-widget-block-hint').text(opts.dialog_hint);
+
+    var currentWidgetId;
+    if (opts.widget_element) {
+        var widget = this.parseWidgetElement(opts.widget_element) || { widget : '' };
+        $('#st-widget-block-content').val(
+            (widget.widget || '').replace(/^\.[-\w]+\n/, '').replace(/\n\.[-\w]+\n?$/, '')
+        );
+        currentWidgetId = self.currentWidget.id;
+    }
+    else if (self.get_lines && self.get_selection_text() && self.get_lines() && self.sel) {
+        // {bz: 4843}: In Wikitext mode, if there is some text selected,
+        // and that text begins with .html/.pre and ends with .html/.pre,
+        // then we pre-fill the lightbox with the inner content.
+        var text = self.sel.replace(/\r/g, '');
+        switch (opts.wafl_id) {
+            case 'code': {
+                var match = text.match(/^\.(code(-\w+)?)\n(?:[\d\D]*\n)?\.code\2$/);
+                if (match) {
+                    currentWidgetId = match[1];
+                }
+                text = text.replace(/^\.code(-\w+)?\n([\d\D]*\n)?\.code\1$/, '$2');
+                break;
+            }
+            case 'html': {
+                text = text.replace(/^\.html\n([\d\D]*\n)?\.html$/, '$1');
+                break;
+            }
+            case 'pre': {
+                text = text.replace(/^\.pre\n([\d\D]*\n)?\.pre$/, '$1');
+                break;
+            }
+        }
+
+        // Otherwise, if there is some text selected, we open the lightbox
+        // with the content pre-filled with the selection.
+        $('#st-widget-block-content').val(text);
+    }
+    else {
+        $('#st-widget-block-content').val('');
+    }
+
+    $('#st-widget-block-syntax-div').hide();
+
+    if (opts.wafl_id == 'code') {
+        $('#st-widget-block-syntax option').remove();
+        currentWidgetId = (currentWidgetId || '').replace(/^code-?/, '');
+        $('#st-widget-block-syntax-options option').each(function(){
+            if ($(this).attr('value') == currentWidgetId) {
+                $(this).clone().appendTo($('#st-widget-block-syntax'))
+                               .attr('selected', true);
+                return;
+            }
+            else if ($(this).data('alias')) {
+                return;
+            }
+
+            $(this).clone().appendTo($('#st-widget-block-syntax'));
+        });
+        $('#st-widget-block-syntax-options').hide();
+        $('#st-widget-block-syntax').show();
+        $('#st-widget-block-syntax-div').show();
+    }
+
+    $('#add-a-block-form')
+        .unbind('reset')
+        .unbind('submit')
+        .bind('reset', function() {
+            $('#st-widget-block-content').val('');
+            jQuery.hideLightbox();
+            Wikiwyg.Widgets.widget_editing = 0;
+            return false;
+        })
+        .submit(function() {
+            if (jQuery.browser.msie)
+                jQuery("<input type='text' />").appendTo('body').focus().remove();
+
+            var close = function() {
+                var text = $('#st-widget-block-content').val();
+                $('#st-widget-block-content').val('');
+                jQuery.hideLightbox();
+                var id = opts.wafl_id;
+                if (id == 'code' && $('#st-widget-block-syntax').val()) {
+                    id += '-' + $('#st-widget-block-syntax').val();
+                }
+                self.restoreSelection();
+                self.insert_block(
+                    "." + id + "\n"
+                        + text.replace(/\n?$/, "\n." + id),
+                        (opts.edit_label || opts.edit_label_function(
+                            $('#st-widget-block-syntax option:selected').text()
+                        )),
+                    opts.widget_element
+                );
+            }
+
+            if (jQuery.browser.msie)
+                setTimeout(close, 50);
+            else
+                close();
+
+            return false;
+        });
+
+    $('#st-widget-block-save').unbind('click').click(function(){
+        $('#add-a-block-form').trigger('submit');
+        return false;
+    });
+
+    self.showWidgetEditingLightbox({
+        content: '#st-widget-block-dialog',
+        focus: '#st-widget-block-content',
+        close: '#st-widget-block-cancel'
+    })
 }
 
 proto._do_link = function(widget_element) {
@@ -2205,7 +5942,7 @@ proto._do_link = function(widget_element) {
                 404: function () {
                     var ws = jQuery('#st-widget-workspace_id').val() ||
                              Socialtext.wiki_id;
-                    return(loc('Workspace "[_1]" does not exist on wiki', ws));
+                    return(loc('error.no-wiki-on-server=wiki', ws));
                 }
             }
         });
@@ -2261,21 +5998,10 @@ proto._do_link = function(widget_element) {
 
     jQuery('#add-a-link-error').hide();
 
-    jQuery.showLightbox({
+    self.showWidgetEditingLightbox({
         content: '#st-widget-link-dialog',
         close: '#st-widget-link-cancelbutton'
     })
-
-    var self = this;
-
-    // Set the unload handle explicitly so when user clicks the overlay gray
-    // area to close lightbox, widget_editing will still be set to false.
-    jQuery('#lightbox').bind('lightbox-unload', function(){
-        Wikiwyg.Widgets.widget_editing = 0;
-        if (self.wikiwyg && self.wikiwyg.current_mode && self.wikiwyg.current_mode.set_focus) {
-            self.wikiwyg.current_mode.set_focus();
-        }
-    });
 
     this.load_add_a_link_focus_handlers("add-wiki-link");
     this.load_add_a_link_focus_handlers("add-web-link");
@@ -2284,6 +6010,19 @@ proto._do_link = function(widget_element) {
     var callback = function(element) {
         var form    = jQuery("#add-a-link-form").get(0);
     }
+}
+
+proto.showWidgetEditingLightbox = function(opts) {
+    var self = this;
+    $.showLightbox(opts);
+    // Set the unload handle explicitly so when user clicks the overlay gray
+    // area to close lightbox, widget_editing will still be set to false.
+    $('#lightbox').one('lightbox-unload', function(){
+        Wikiwyg.Widgets.widget_editing = 0;
+        if (self.wikiwyg && self.wikiwyg.current_mode && self.wikiwyg.current_mode.set_focus) {
+            self.wikiwyg.current_mode.set_focus();
+        }
+    });
 }
 
 proto.load_add_a_link_focus_handlers = function(radio_id) {
@@ -2314,7 +6053,7 @@ proto.create_link_wafl = function(label, workspace, pagename, section) {
 ;
 // BEGIN Widgets.js
 // BEGIN Widgets.yaml
-Wikiwyg.Widgets = {"widgets":["link2","link2_hyperlink","link2_section","image","file","toc","include","section","recent_changes","hashtag","tag","tag_list","blog","blog_list","weblog","weblog_list","fetchrss","fetchatom","search","googlesoap","googlesearch","technorati","aim","yahoo","skype","user","date","asis","new_form_page","ss"],"api_for_title":{"workspace_id":"/data/workspaces/:workspace_id"},"match":{"skype_id":"^(\\S+)$","workspace_id":"^[a-z0-9_\\-]+$","user_email":"^([a-zA-Z0-9_\\+\\.\\-\\&\\!\\%\\+\\$\\*\\^\\']+\\@(([a-zA-Z0-9\\-])+\\.)+([a-zA-Z0-9:]{2,4})+)$","yahoo_id":"^(\\S+)$","aim_id":"^(\\S+)$","date_string":"^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.*)$"},"fields":{"search_term":"Search term","blog_name":"Blog name","tag_name":"Tag name","image_name":"Image name","form_name":"Form name","date_string":"YYYY-MM-DD&nbsp;HH:MM:SS","section_name":"Section name","file_name":"File name","form_text":"Link text","user_email":"User\\'s email","page_title":"Page title","workspace_id":"Workspace","skype_id":"Skype name","relative_url":"Relative URL","spreadsheet_title":"Spreadsheet title","rss_url":"RSS feed URL","atom_url":"Atom feed URL","spreadsheet_cell":"Spreadsheet cell","asis_content":"Unformatted content","label":"Link text","aim_id":"AIM screen name","yahoo_id":"Yahoo! ID"},"synonyms":{"callto":"skype","category_list":"tag_list","callme":"skype","ymsgr":"yahoo","category":"tag"},"regexps":{"workspace-value":"^(?:(\\S+);)?\\s*(.*?)?\\s*$","three-part-link":"^(\\S*)?\\s*\\[([^\\]]*)\\]\\s*(.*?)?\\s*$"},"widget":{"search":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","search_term"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"gold4","required":["search_term"],"desc":"Display the search results for the given phrase within a workspace. Use this form to edit the properties for the search.","id":"search","image_text":[{"text":"search: %search_term","field":"default"}],"labels":{"seach_term":"Search for","workspace_id":"In"},"more_desc":"Optional properties include the name of the workspace to search, whether to search in the page title, text or tags, and whether to display full results or just page titles.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{search: <%workspace_id> %search_term}","fields":["search_term","workspace_id"],"title":{"default":"Search for '$search_term'. Click to edit.","full":"Display result for searching '$search_term'. Click to edit."},"label":"Search Results"},"date":{"more_desc":"There are no optional properties for a date display.","pattern":"{date: %date_string}","color":"royalblue","desc":"Display the given date and time in the individually-set time zone for each reader. Use this form to edit the date and time to be displayed","title":"Display '$date_string' in reader's time zone. Click to edit.","label":"Date in Local Time","id":"date","image_text":[{"text":"date: %date_string","field":"default"}],"field":"date_string"},"tag_list":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","tag_name"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"darkviolet","required":["tag_name"],"desc":"Display a list of the most recently changed pages in a workspace that have a specific tag. By default only the page title is displayed. Use this form to edit the list properties.","id":"tag_list","image_text":[{"text":"tag list: %tag_name","field":"default"}],"labels":{"workspace_id":"Pages in"},"more_desc":"Optional properties include specifying which workspace to use and whether to display page titles or whole pages.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{tag_list: <%workspace_id> %tag_name}","fields":["tag_name","workspace_id"],"title":{"default":"Pages with the '$tag_name' tag. Click to edit.","full":"Display pages with the '$tag_name' tag. Click to edit."},"label":"Tag List"},"file":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio"},"parse":{"fields":["workspace_id","page_title","file_name"],"regexp":"?three-part-link","no_match":"file_name"},"pdfields":["workspace_id","page_title","label"],"color":"brown","required":["file_name"],"desc":"Display a link to a file attached to a page. Use this form to edit the properities of the link.","id":"file","image_text":[{"text":"file: %label","field":"label"},{"text":"file: %file_name","field":"default"}],"labels":{"workspace_id":"Page in","file_name":"Attachment filename","page_title":"File attached to"},"more_desc":"Optional properties include specifying a different page for the attachment, and link text.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"\"%label\"{file: %workspace_id [%page_title] %file_name}","fields":["file_name","workspace_id","page_title","label"],"title":"Link to file '$file_name'. Click to edit.","label":"Attachment Link"},"hashtag":{"pattern":"{hashtag: %tag}","color":"green","required":["tag"],"fields":["tag"],"title":"Link to tag '$tag'. Click to edit.","label":"Signal Tag Link","id":"hashtag","image_text":[{"text":"#%tag","field":"tag"}]},"ss":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio"},"parse":{"regexp":"?three-part-link"},"pdfields":[],"color":"pink","required":["spreadsheet_title"],"desc":"Display the contents of a spreadsheet within the current page. Use this form to edit the properties for the spreadsheet include.","id":"ss","image_text":[{"text":"ss: %spreadsheet_title (%spreadsheet_cell)","field":"default"}],"labels":{"workspace_id":"Other spreadsheet in"},"more_desc":"There are no optional properties for spreadsheet include.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"{ss: %workspace_id [%spreadsheet_title] %spreadsheet_cell}","fields":["workspace_id","spreadsheet_title","spreadsheet_cell"],"title":"Include the page '$spreadsheete_title'. Click to edit.","label":"Spreadsheet Include"},"irc":{"color":"darkorange","title":"IRC link. Edit in Wiki Text mode.","id":"irc","uneditable":"true"},"http":{"color":"darkorange","title":"Relative HTTP link. Edit in Wiki Text mode.","id":"http","uneditable":"true"},"link2_hyperlink":{"more_desc":"Optional properties include the text to display for the link.","hide_in_menu":"true","primary_field":"url","pdfields":["label","url"],"color":"blue","pattern":"\"%label\"{link: %workspace_id [%page_title] %section_name}","required":["url"],"fields":["label","url"],"desc":"Use this form to edit the properties of the link to a web page.","title":"Link to '$url'. Click to edit.","id":"link2_hyperlink","label":"Link to a Web Page","labels":{"url":"Link destination","label":"Linked text"}},"user":{"more_desc":"There are no optional properties for a user name.","pattern":"{user: %user_email}","color":"darkgoldenrod","required":["user_email"],"desc":"Display the full name for the given email address or user name. Use this form to edit the properties of the user name.","title":"User mention. Click to edit.","label":"User Name","id":"user","image_text":[{"text":"user: %user_email","field":"default"}],"field":"user_email"},"tag":{"more_desc":"Optional properties include link text, and the name of a different workspace for the tags.","input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","tag_name"],"regexp":"?workspace-value","no_match":"tag_name"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["label","workspace_id"],"color":"green","pattern":"\"%label\"{tag: %workspace_id; %tag_name}","required":["tag_name"],"fields":["tag_name","label","workspace_id"],"desc":"Display a link to a list of pages with a specific tag. Use this form to edit the properties of the link.","id":"tag","label":"Tag Link","title":"Link to tag '$tag_name'. Click to edit.","image_text":[{"text":"tag: %label","field":"label"},{"text":"tag: %tag_name","field":"tag_name"}],"labels":{"workspace_id":"Search"}},"yahoo":{"more_desc":"There are no optional properties for a Yahoo! link.","pattern":"yahoo:%yahoo_id","required":["yahoo_id"],"desc":"Display a link to a Yahoo! instant message ID. The icon will show whether the person is online. Clicking the link will start an IM conversation with the person if your IM client is properly configured. Use this form to edit the properties of the link.","markup":["bound_phrase","yahoo:",""],"title":"Instant message to '$yahoo_id' using Yahoo! Click to edit.","label":"Yahoo! IM Link","id":"yahoo","image_text":[{"text":"Yahoo! IM: %yahoo_id","field":"default"}],"field":"yahoo_id"},"blog_list":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","blog_name"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"forestgreen","required":["blog_name"],"desc":"Display a list of the most recent entries from a blog in a workspace. By default only the blog entry names are displayed. Use this form to edit the list properties.","id":"blog_list","image_text":[{"text":"blog list: %blog_name","field":"default"}],"labels":{"workspace_id":"in"},"more_desc":"Optional parameters include specifying which workspace to use and whether to display page titles or whole pages.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{blog_list: <%workspace_id> %blog_name}","fields":["workspace_id","blog_name"],"title":{"default":"Include the blog '$blog_name'. Click to edit.","full":"Display the blog '$blog_name'. Click to edit."},"label":"Blog List"},"googlesoap":{"more_desc":"There are no optional properties for an Google search.","color":"saddlebrown","pattern":"{googlesoap: %search_term}","desc":"Display the results from a Google search. Use this form to edit the properties for the search.","id":"googlesoap","label":"Google Search","title":"Search Google for '$search_term'. Click to edit.","labels":{"search_term":"Search for"},"image_text":[{"text":"Google: %search_term","field":"default"}],"field":"search_term"},"new_form_page":{"more_desc":"There are no optional properties for a new form page.","parse":{"regexp":"^\\s*(\\S+)\\s+(.+)\\s*$"},"on_menu":"false","color":"maroon","pattern":"{new_form_page: %form_name %form_text}","fields":["form_name","form_text"],"required":["form_name","form_text"],"desc":"Select a form and generates a new form page.","id":"new_form_page","label":"New Form Page","title":"Use $form_name to generate a form. Click to edit.","image_text":[{"text":"form: %form_name","field":"default"}]},"sharepoint":{"color":"red","title":"Sharepoint link. Edit in Wiki Text mode.","id":"sharepoint","uneditable":"true"},"skype":{"more_desc":"There are no optional properties for a Skype link.","pattern":"skype:%skype_id","required":["skype_id"],"desc":"Display a link to a Skype name. Clicking the link will start a Skype call with the person if your Skype client is properly configured. Use this form to edit the properties of the link.","markup":["bound_phrase","skype:",""],"title":"Call '$skype_id' using Skype. Click to edit.","label":"Skype Link","id":"skype","image_text":[{"text":"Skype: %skype_id","field":"default"}],"field":"skype_id"},"https":{"color":"darkorange","title":"HTTP relative link. Edit in Wiki Text mode.","id":"https","uneditable":"true"},"recent_changes":{"more_desc":"Optionally, specify that the page contents should be displayed.","input":{"workspace_id":"radio"},"parse":{"regexp":"^\\s*(.*?)?\\s*$"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","color":"gold","pattern":"{recent_changes: %workspace_id}","fields":["workspace_id"],"desc":"Display a list of pages recently changed in a workspace. By default only the page titles are displayed. Use this form to edit the list properties.","id":"recent_changes","label":"What\\'s New","title":{"default":"What's new in the '$workspace_id' workspace. Click to edit.","full":"Display what's new in the '$workspace_id' workspace. Click to edit."},"image_text":[{"text":"recent changes: %workspace_id","field":"workspace_id"},{"text":"recent changes","field":"default"}],"labels":{"workspace_id":"Workspace"}},"include":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio"},"parse":{"regexp":"^(\\S*)?\\s*\\[([^\\]]*)\\]\\s*$"},"pdfields":[],"color":"darkblue","required":["page_title"],"desc":"Display the contents of another page within the current page. Use this form to edit the properties for the page include.","id":"include","image_text":[{"text":"include: %page_title","field":"default"}],"labels":{"workspace_id":"Other page in"},"more_desc":"There are no optional properties for page include.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"{include: %workspace_id [%page_title]}","fields":["workspace_id","page_title"],"title":"Include the page '$page_title'. Click to edit.","label":"Page Include"},"googlesearch":{"more_desc":"There are no optional properties for an Google search.","color":"saddlebrown","pattern":"{googlesearch: %search_term}","desc":"Display the results from a Google search. Use this form to edit the properties for the search.","id":"googlesearch","label":"Google Search","title":"Search Google for '$search_term'. Click to edit.","labels":{"search_term":"Search for"},"image_text":[{"text":"Google: %search_term","field":"default"}],"field":"search_term"},"section":{"more_desc":"There are no optional properties for a section marker.","pattern":"{section: %section_name}","color":"darkred","desc":"Add a section marker at the current cursor location. You can link to a section marker using a \"Section Link\". Use this form to edit the properties for the section marker.","title":"Section marker '$section_name'. Click to edit.","label":"Section Marker","id":"section","image_text":[{"text":"section: %section_name","field":"default"}],"field":"section_name"},"weblog_list":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","blog_name"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"forestgreen","required":["blog_name"],"desc":"Display a list of the most recent entries from a blog in a workspace. By default only the blog entry names are displayed. Use this form to edit the list properties.","id":"weblog_list","image_text":[{"text":"blog list: %blog_name","field":"default"}],"labels":{"workspace_id":"in"},"more_desc":"Optional parameters include specifying which workspace to use and whether to display page titles or whole pages.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{weblog_list: <%workspace_id> %blog_name}","fields":["workspace_id","blog_name"],"title":{"default":"Include the blog '$blog_name'. Click to edit.","full":"Display the blog '$blog_name'. Click to edit."},"label":"Blog List"},"ftp":{"color":"darkorange","title":"FTP link. Edit in Wiki Text mode.","id":"ftp","uneditable":"true"},"html":{"color":"indianred","title":"Raw HTML section. Edit in Wiki Text mode.","id":"html","uneditable":"true"},"unknown":{"color":"darkslategrey","title":"Unknown widget '$unknown_id'. Edit in Wiki Text mode.","id":"unknown","uneditable":"true"},"technorati":{"more_desc":"There are no optional properties for a Technorati search.","color":"darkmagenta","pattern":"{technorati: %search_term}","desc":"Display the results for a Technorati search. Use this form to edit the properties for the search.","id":"technorati","label":"Technorati Search","title":"Search Technorati for '$search_term'. Click to edit.","labels":{"search_term":"Search for"},"image_text":[{"text":"Technorati: %search_term","field":"default"}],"field":"search_term"},"toc":{"more_desc":"Optionally, specify which page\\'s headers and sections to use for the table of contents.","checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio"},"parse":{"regexp":"^(\\S*)?\\s*\\[([^\\]]*)\\]\\s*$","no_match":"workspace_id"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["workspace_id","page_title"],"color":"darkseagreen","pattern":"{toc: %workspace_id [%page_title]}","fields":["workspace_id","page_title"],"desc":"Display a table of contents for a page. Each header or section on the page is listed as a link in the table of contents. Click \"Save\" now, or click \"More options\" to edit the properties for the table of contents.","id":"toc","label":"Table of Contents","title":"Table of contents for '$page_title'. Click to edit.","image_text":[{"text":"toc: %page_title","field":"page_title"},{"text":"toc","field":"default"}],"labels":{"workspace_id":"Page in","page_title":"Headers and<br/>sections in"}},"link2":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio"},"parse":{"fields":["workspace_id","page_title","section_name"],"regexp":"?three-part-link","no_match":"section_name"},"primary_field":"section_name","pdfields":["label","workspace_id","page_title"],"color":"blue","select_if":{"blank":["workspace_id"]},"required":["section_name"],"desc":"Use this form to edit the properties of the link to a page section.","id":"link2","image_text":[{"text":"link: %label","field":"label"},{"text":"link: %page_title (%section_name )","field":"page_title"},{"text":"link: %section_name","field":"default"}],"labels":{"workspace_id":"Workspace"},"more_desc":"Optional properties include the text to display for the link, and the title of a different page.","hide_in_menu":"true","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"\"%label\"{link: %workspace_id [%page_title] %section_name}","fields":["section_name","label","workspace_id","page_title"],"label":"Link to a Wiki page","title":"Link to $workspace_id: '$page_title' $section_name. Click to edit."},"weblog":{"more_desc":"Optional properties include link text, and the name of a different workspace for the blog.","input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","blog_name"],"regexp":"?workspace-value","no_match":"blog_name"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["label","workspace_id"],"color":"purple","pattern":"\"%label\"{weblog: %workspace_id; %blog_name}","required":["blog_name"],"fields":["label","blog_name","workspace_id"],"desc":"Display a link to a blog. Use this form to edit the properties of the link.","id":"weblog","label":"Blog Link","title":"Link to blog '$blog_name'. Click to edit.","image_text":[{"text":"blog: %label","field":"label"},{"text":"blog: %blog_name","field":"default"}],"labels":{"workspace_id":"Blog on"}},"blog":{"more_desc":"Optional properties include link text, and the name of a different workspace for the blog.","input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","blog_name"],"regexp":"?workspace-value","no_match":"blog_name"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["label","workspace_id"],"color":"purple","pattern":"\"%label\"{blog: %workspace_id; %blog_name}","required":["blog_name"],"fields":["label","blog_name","workspace_id"],"desc":"Display a link to a blog. Use this form to edit the properties of the link.","id":"blog","label":"Blog Link","title":"Link to blog '$blog_name'. Click to edit.","image_text":[{"text":"blog: %label","field":"label"},{"text":"blog: %blog_name","field":"default"}],"labels":{"workspace_id":"Blog on"}},"fetchatom":{"more_desc":"There are no optional properties for an Atom feed.","pattern":"{fetchatom: %atom_url}","color":"darkgreen","desc":"Display the content of an Atom feed. Use this form to edit the properties of the inline Atom feed.","title":"Include the '$atom_url' Atom feed. Click to edit.","label":"Inline Atom","id":"fetchatom","image_text":[{"text":"feed: %atom_url","field":"default"}],"field":"atom_url"},"fetchrss":{"more_desc":"There are no optional properties for an RSS feed.","pattern":"{fetchrss: %rss_url}","color":"orange","desc":"Display the content of an RSS feed. Use this form to edit the properties of the inline RSS feed.","title":"Include the '$rss_url' RSS feed. Click to edit.","label":"Inline RSS","id":"fetchrss","image_text":[{"text":"feed: %rss_url","field":"default"}],"field":"rss_url"},"aim":{"more_desc":"There are no optional properties for an AIM link.","pattern":"aim:%aim_id","required":["aim_id"],"desc":"Display a link to an AIM screen name. The icon will show whether the person is online. Clicking the link will start an IM conversation with the person if your IM client is properly configured. Use this form to edit the properties of the link.","markup":["bound_phrase","aim:",""],"title":"Instant message to '$aim_id' using AIM. Click to edit.","label":"AIM Link","id":"aim","image_text":[{"text":"AIM: %aim_id","field":"default"}],"field":"aim_id"},"image":{"extra_fields":["width","height"],"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio","size":"size"},"parse":{"fields":["workspace_id","page_title","image_name"],"regexp":"?three-part-link","no_match":"image_name"},"pdfields":["workspace_id","page_title","label"],"color":"red","required":["image_name"],"desc":"Display an image on this page. The image must be already uploaded as an attachment to this page or another page. Use this form to edit the properties of the displayed image.","id":"image","image_text":[{"text":"image: %label","field":"label"},{"text":"image: %image_name","field":"default"}],"labels":{"workspace_id":"Page in","image_name":"Image filename","page_title":"Attached to","size":"Size"},"more_desc":"Optional properties include the title of another page to which the image is attached, and link text. If link text is specified then a link to the image is displayed instead of the image.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"\"%label\"{image: %workspace_id [%page_title] %image_name size=%size}","fields":["image_name","workspace_id","page_title","label","size"],"label":"Attached Image","title":"Display image '$image_name'. Click to edit."},"link2_section":{"more_desc":"Optional properties include the text to display for the link.","hide_in_menu":"true","primary_field":"url","pdfields":["label","url"],"color":"blue","pattern":"\"%label\"{link: %workspace_id [%page_title] %section_name}","required":["url"],"fields":["label","url"],"desc":"Use this form to edit the properties of the link to a section.","title":"Link to '$url'. Click to edit.","id":"link2_section","label":"Link to a Section","labels":{"url":"Link destination","label":"Linked text"}},"asis":{"more_desc":"There are no optional properties for unformatted text.","pattern":"{{%asis_content}}","color":"darkslateblue","required":["asis_content"],"desc":"Include unformatted text in the page. This text will not be treated as wiki text. Use this form to edit the text.","markup":["bound_phrase","{{","}}"],"title":"Unformatted Content","label":"Unformatted","id":"asis","image_text":[{"text":"unformatted: %asis_content","field":"default"}],"field":"asis_content"}},"menu_hierarchy":[{"widget":"ss","label":"Spreadsheet"},{"widget":"image","label":"Image"},{"insert":"table","label":"Table"},{"insert":"hr","label":"Horizontal Line"},{"sub_menu":[{"widget":"file","label":"A file attached to this page"},{"widget":"link2_section","label":"A section in this page"},{"widget":"link2","label":"A different wiki page"},{"widget":"blog","label":"A person's blog"},{"widget":"tag","label":"Pages related to a tag"},{"widget":"link2_hyperlink","label":"A page on the web"}],"label":"A link to..."},{"sub_menu":[{"widget":"include","label":"A page include"},{"widget":"ss","label":"A spreadsheet include"},{"widget":"tag_list","label":"Tagged pages"},{"widget":"recent_changes","label":"Recent changes"},{"widget":"blog_list","label":"Blog postings"},{"widget":"search","label":"Wiki search results"}],"label":"From workspaces..."},{"sub_menu":[{"widget":"googlesearch","label":"Google search results"},{"widget":"technorati","label":"Technorati results"},{"widget":"fetchrss","label":"RSS feed items"},{"widget":"fetchatom","label":"Atom feed items"}],"label":"From the web..."},{"sub_menu":[{"widget":"toc","label":"Table of contents"},{"widget":"section","label":"Section marker"},{"insert":"hr","label":"Horizontal line"}],"label":"Organizing your page..."},{"sub_menu":[{"widget":"skype","label":"Skype link"},{"widget":"aim","label":"AIM link"},{"widget":"yahoo","label":"Yahoo! Messenger link"}],"label":"Communicating..."},{"sub_menu":[{"widget":"user","label":"User name"},{"widget":"date","label":"Local Date & Time"}],"label":"Name & Date..."},{"widget":"asis","label":"Unformatted text..."}]};;
+Wikiwyg.Widgets = {"widgets":["link2","link2_hyperlink","link2_section","image","video","file","toc","include","section","recent_changes","hashtag","tag","tag_list","blog","blog_list","weblog","weblog_list","fetchrss","fetchatom","search","googlesoap","googlesearch","technorati","aim","yahoo","skype","user","date","asis","new_form_page","ss"],"api_for_title":{"workspace_id":"/data/workspaces/:workspace_id"},"match":{"skype_id":"^(\\S+)$","workspace_id":"^[a-z0-9_\\-]+$","user_email":"^([a-zA-Z0-9_\\+\\.\\-\\&\\!\\%\\+\\$\\*\\^\\']+\\@(([a-zA-Z0-9\\-])+\\.)+([a-zA-Z0-9:]{2,4})+)$","yahoo_id":"^(\\S+)$","aim_id":"^(\\S+)$","date_string":"^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.*)$"},"fields":{"search_term":"Search term","blog_name":"Blog name","tag_name":"Tag name","image_name":"Image name","form_name":"Form name","date_string":"YYYY-MM-DD&nbsp;HH:MM:SS","section_name":"Section name","file_name":"File name","form_text":"Link text","user_email":"User\\'s email","page_title":"Page title","workspace_id":"Workspace","skype_id":"Skype name","relative_url":"Relative URL","video_url":"Video URL","spreadsheet_title":"Spreadsheet title","rss_url":"RSS feed URL","atom_url":"Atom feed URL","spreadsheet_cell":"Spreadsheet cell","asis_content":"Unformatted content","label":"Link text","aim_id":"AIM screen name","yahoo_id":"Yahoo! ID"},"synonyms":{"callto":"skype","category_list":"tag_list","callme":"skype","ymsgr":"yahoo","category":"tag"},"regexps":{"workspace-value":"^(?:(\\S+);)?\\s*(.*?)?\\s*$","three-part-link":"^(\\S*)?\\s*\\[([^\\]]*)\\]\\s*(.*?)?\\s*$"},"widget":{"date":{"more_desc":"There are no optional properties for a date display.","pattern":"{date: %date_string}","color":"royalblue","desc":"Display the given date and time in the individually-set time zone for each reader. Use this form to edit the date and time to be displayed","title":"Display '$date_string' in reader's time zone. Click to edit.","label":"Date in Local Time","id":"date","image_text":[{"text":"date: %date_string","field":"default"}],"field":"date_string"},"file":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio"},"parse":{"fields":["workspace_id","page_title","file_name"],"regexp":"?three-part-link","no_match":"file_name"},"pdfields":["workspace_id","page_title","label"],"color":"brown","required":["file_name"],"desc":"Display a link to a file attached to a page. Use this form to edit the properities of the link.","id":"file","image_text":[{"text":"file: %label","field":"label"},{"text":"file: %file_name","field":"default"}],"labels":{"workspace_id":"Page in","file_name":"Attachment filename","page_title":"File attached to"},"more_desc":"Optional properties include specifying a different page for the attachment, and link text.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"\"%label\"{file: %workspace_id [%page_title] %file_name}","fields":["file_name","workspace_id","page_title","label"],"title":"Link to file '$file_name'. Click to edit.","label":"Attachment Link"},"link2_hyperlink":{"more_desc":"Optional properties include the text to display for the link.","hide_in_menu":"true","primary_field":"url","pdfields":["label","url"],"color":"blue","pattern":"\"%label\"{link: %workspace_id [%page_title] %section_name}","required":["url"],"fields":["label","url"],"desc":"Use this form to edit the properties of the link to a web page.","title":"Link to '$url'. Click to edit.","id":"link2_hyperlink","label":"Link to a Web Page","labels":{"url":"Link destination","label":"Linked text"}},"code-coldfusion":{"color":"indianred","title":"Code block with ColdFusion syntax. Click to edit.","id":"code-codefusion","use_title_as_text":"true"},"code-java":{"color":"indianred","title":"Code block with Java syntax. Click to edit.","id":"code-java","use_title_as_text":"true"},"code":{"color":"indianred","title":"Code block. Click to edit.","id":"code","use_title_as_text":"true"},"yahoo":{"more_desc":"There are no optional properties for a Yahoo! link.","pattern":"yahoo:%yahoo_id","required":["yahoo_id"],"desc":"Display a link to a Yahoo! instant message ID. The icon will show whether the person is online. Clicking the link will start an IM conversation with the person if your IM client is properly configured. Use this form to edit the properties of the link.","markup":["bound_phrase","yahoo:",""],"title":"Instant message to '$yahoo_id' using Yahoo! Click to edit.","label":"Yahoo! IM Link","id":"yahoo","image_text":[{"text":"Yahoo! IM: %yahoo_id","field":"default"}],"field":"yahoo_id"},"code-diff":{"color":"indianred","title":"Code block with Diff syntax. Click to edit.","id":"code-diff","use_title_as_text":"true"},"googlesoap":{"more_desc":"There are no optional properties for an Google search.","color":"saddlebrown","pattern":"{googlesoap: %search_term}","desc":"Display the results from a Google search. Use this form to edit the properties for the search.","id":"googlesoap","label":"Google Search","title":"Search Google for '$search_term'. Click to edit.","labels":{"search_term":"Search for"},"image_text":[{"text":"Google: %search_term","field":"default"}],"field":"search_term"},"video":{"more_desc":"Optional properties include the size for displaying this video.","extra_fields":[],"checks":["require_valid_video_url"],"input":{"size":"video_size"},"pdfields":[],"color":"red","pattern":"{video: %video_url size=%size}","required":["video_url"],"fields":["video_url","size"],"desc":"Embed video from YouTube, Vimeo, SlideShare or GoogleVideo on this page.","title":"Embed video to '$video_url'. Click to edit.","id":"video","label":"Video","image_text":[{"text":"video: %video_url","field":"video_url"}],"labels":{"url":"Video URL","size":"Size"}},"code-groovy":{"color":"indianred","title":"Code block with Groovy syntax. Click to edit.","id":"code-groovy","use_title_as_text":"true"},"code-bash":{"color":"indianred","title":"Code block with Bash syntax. Click to edit.","id":"code-bash","use_title_as_text":"true"},"code-powershell":{"color":"indianred","title":"Code block with PowerShell syntax. Click to edit.","id":"code-powershell","use_title_as_text":"true"},"sharepoint":{"color":"red","title":"Sharepoint link. Edit in Wiki Text mode.","id":"sharepoint","uneditable":"true"},"code-yaml":{"color":"indianred","title":"Code block with YAML syntax. Click to edit.","id":"code-yaml","use_title_as_text":"true"},"skype":{"more_desc":"There are no optional properties for a Skype link.","pattern":"skype:%skype_id","required":["skype_id"],"desc":"Display a link to a Skype name. Clicking the link will start a Skype call with the person if your Skype client is properly configured. Use this form to edit the properties of the link.","markup":["bound_phrase","skype:",""],"title":"Call '$skype_id' using Skype. Click to edit.","label":"Skype Link","id":"skype","image_text":[{"text":"Skype: %skype_id","field":"default"}],"field":"skype_id"},"code-xml":{"color":"indianred","title":"Code block with XML syntax. Click to edit.","id":"code-xml","use_title_as_text":"true"},"https":{"color":"darkorange","title":"HTTP relative link. Edit in Wiki Text mode.","id":"https","uneditable":"true"},"code-json":{"color":"indianred","title":"Code block with JSON syntax. Click to edit.","id":"code-json","use_title_as_text":"true"},"code-python":{"color":"indianred","title":"Code block with Python syntax. Click to edit.","id":"code-python","use_title_as_text":"true"},"code-csharp":{"color":"indianred","title":"Code block with C# syntax. Click to edit.","id":"code-csharp","use_title_as_text":"true"},"googlesearch":{"more_desc":"There are no optional properties for an Google search.","color":"saddlebrown","pattern":"{googlesearch: %search_term}","desc":"Display the results from a Google search. Use this form to edit the properties for the search.","id":"googlesearch","label":"Google Search","title":"Search Google for '$search_term'. Click to edit.","labels":{"search_term":"Search for"},"image_text":[{"text":"Google: %search_term","field":"default"}],"field":"search_term"},"code-cf":{"color":"indianred","title":"Code block with ColdFusion syntax. Click to edit.","id":"code-cf","use_title_as_text":"true"},"section":{"more_desc":"There are no optional properties for a section marker.","pattern":"{section: %section_name}","color":"darkred","desc":"Add a section marker at the current cursor location. You can link to a section marker using a \"Section Link\". Use this form to edit the properties for the section marker.","title":"Section marker '$section_name'. Click to edit.","label":"Section Marker","id":"section","image_text":[{"text":"section: %section_name","field":"default"}],"field":"section_name"},"code-sql":{"color":"indianred","title":"Code block with SQL syntax. Click to edit.","id":"code-sql","use_title_as_text":"true"},"weblog_list":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","blog_name"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"forestgreen","required":["blog_name"],"desc":"Display a list of the most recent entries from a blog in a workspace. By default only the blog entry names are displayed. Use this form to edit the list properties.","id":"weblog_list","image_text":[{"text":"blog list: %blog_name","field":"default"}],"labels":{"workspace_id":"in"},"more_desc":"Optional parameters include specifying which workspace to use and whether to display page titles or whole pages.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{weblog_list: <%workspace_id> %blog_name}","fields":["workspace_id","blog_name"],"title":{"default":"Include the blog '$blog_name'. Click to edit.","full":"Display the blog '$blog_name'. Click to edit."},"label":"Blog List"},"html":{"color":"indianred","title":"Raw HTML block. Click to edit.","id":"html","use_title_as_text":"true"},"technorati":{"more_desc":"There are no optional properties for a Technorati search.","color":"darkmagenta","pattern":"{technorati: %search_term}","desc":"Display the results for a Technorati search. Use this form to edit the properties for the search.","id":"technorati","label":"Technorati Search","title":"Search Technorati for '$search_term'. Click to edit.","labels":{"search_term":"Search for"},"image_text":[{"text":"Technorati: %search_term","field":"default"}],"field":"search_term"},"fetchatom":{"more_desc":"There are no optional properties for an Atom feed.","pattern":"{fetchatom: %atom_url}","color":"darkgreen","desc":"Display the content of an Atom feed. Use this form to edit the properties of the inline Atom feed.","title":"Include the '$atom_url' Atom feed. Click to edit.","label":"Inline Atom","id":"fetchatom","image_text":[{"text":"feed: %atom_url","field":"default"}],"field":"atom_url"},"aim":{"more_desc":"There are no optional properties for an AIM link.","pattern":"aim:%aim_id","required":["aim_id"],"desc":"Display a link to an AIM screen name. The icon will show whether the person is online. Clicking the link will start an IM conversation with the person if your IM client is properly configured. Use this form to edit the properties of the link.","markup":["bound_phrase","aim:",""],"title":"Instant message to '$aim_id' using AIM. Click to edit.","label":"AIM Link","id":"aim","image_text":[{"text":"AIM: %aim_id","field":"default"}],"field":"aim_id"},"image":{"extra_fields":["width","height"],"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio","size":"size"},"parse":{"fields":["workspace_id","page_title","image_name"],"regexp":"?three-part-link","no_match":"image_name"},"pdfields":["workspace_id","page_title","label"],"color":"red","required":["image_name"],"desc":"Display an image on this page. The image must be already uploaded as an attachment to this page or another page. Use this form to edit the properties of the displayed image.","id":"image","image_text":[{"text":"image: %label","field":"label"},{"text":"image: %image_name","field":"default"}],"labels":{"workspace_id":"Page in","image_name":"Image filename","page_title":"Attached to","size":"Size"},"more_desc":"Optional properties include the title of another page to which the image is attached, and link text. If link text is specified then a link to the image is displayed instead of the image.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"\"%label\"{image: %workspace_id [%page_title] %image_name size=%size}","fields":["image_name","workspace_id","page_title","label","size"],"label":"Attached Image","title":"Display image '$image_name'. Click to edit."},"code-xhtml":{"color":"indianred","title":"Code block with XHTML syntax. Click to edit.","id":"code-xhtml","use_title_as_text":"true"},"code-as3":{"color":"indianred","title":"Code block with ActionScript3 syntax. Click to edit.","id":"code-as3","use_title_as_text":"true"},"link2_section":{"more_desc":"Optional properties include the text to display for the link.","hide_in_menu":"true","primary_field":"url","pdfields":["label","url"],"color":"blue","pattern":"\"%label\"{link: %workspace_id [%page_title] %section_name}","required":["url"],"fields":["label","url"],"desc":"Use this form to edit the properties of the link to a section.","title":"Link to '$url'. Click to edit.","id":"link2_section","label":"Link to a Section","labels":{"url":"Link destination","label":"Linked text"}},"widget":{"color":"indianred","title":"__title__ Widget. Click to configure.","id":"widget","use_title_as_text":"true"},"asis":{"more_desc":"There are no optional properties for unformatted text.","pattern":"{{%asis_content}}","color":"darkslateblue","required":["asis_content"],"desc":"Include unformatted text in the page. This text will not be treated as wiki text. Use this form to edit the text.","markup":["bound_phrase","{{","}}"],"title":"Unformatted content. Click to edit.","label":"Unformatted","id":"asis","image_text":[{"text":"unformatted: %asis_content","field":"default"}],"field":"asis_content"},"search":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","search_term"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"gold4","required":["search_term"],"desc":"Display the search results for the given phrase within a workspace. Use this form to edit the properties for the search.","id":"search","image_text":[{"text":"search: %search_term","field":"default"}],"labels":{"seach_term":"Search for","workspace_id":"In"},"more_desc":"Optional properties include the name of the workspace to search, whether to search in the page title, text or tags, and whether to display full results or just page titles.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{search: <%workspace_id> %search_term}","fields":["search_term","workspace_id"],"title":{"default":"Search for '$search_term'. Click to edit.","full":"Display result for searching '$search_term'. Click to edit."},"label":"Search Results"},"tag_list":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","tag_name"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"darkviolet","required":["tag_name"],"desc":"Display a list of the most recently changed pages in a workspace that have a specific tag. By default only the page title is displayed. Use this form to edit the list properties.","id":"tag_list","image_text":[{"text":"tag list: %tag_name","field":"default"}],"labels":{"workspace_id":"Pages in"},"more_desc":"Optional properties include specifying which workspace to use and whether to display page titles or whole pages.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{tag_list: <%workspace_id> %tag_name}","fields":["tag_name","workspace_id"],"title":{"default":"Pages with the '$tag_name' tag. Click to edit.","full":"Display pages with the '$tag_name' tag. Click to edit."},"label":"Tag List"},"code-actionscript3":{"color":"indianred","title":"Code block with ActionScript3 syntax. Click to edit.","id":"code-actionscript3","use_title_as_text":"true"},"code-html":{"color":"indianred","title":"Code block with HTML syntax. Click to edit.","id":"code-html","use_title_as_text":"true"},"code-py":{"color":"indianred","title":"Code block with Python syntax. Click to edit.","id":"code-py","use_title_as_text":"true"},"hashtag":{"pattern":"{hashtag: %tag}","color":"green","required":["tag"],"fields":["tag"],"title":"Link to tag '$tag'. Click to edit.","label":"Signal Tag Link","id":"hashtag","image_text":[{"text":"#%tag","field":"tag"}]},"ss":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio"},"parse":{"regexp":"?three-part-link"},"pdfields":[],"color":"pink","required":["spreadsheet_title"],"desc":"Display the contents of a spreadsheet within the current page. Use this form to edit the properties for the spreadsheet include.","id":"ss","image_text":[{"text":"ss: %spreadsheet_title (%spreadsheet_cell)","field":"default"}],"labels":{"workspace_id":"Other spreadsheet in"},"more_desc":"There are no optional properties for spreadsheet include.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"{ss: %workspace_id [%spreadsheet_title] %spreadsheet_cell}","fields":["workspace_id","spreadsheet_title","spreadsheet_cell"],"title":"Include the page '$spreadsheete_title'. Click to edit.","label":"Spreadsheet Include"},"irc":{"color":"darkorange","title":"IRC link. Edit in Wiki Text mode.","id":"irc","uneditable":"true"},"http":{"color":"darkorange","title":"Relative HTTP link. Edit in Wiki Text mode.","id":"http","uneditable":"true"},"code-css":{"color":"indianred","title":"Code block with CSS syntax. Click to edit.","id":"code-css","use_title_as_text":"true"},"user":{"more_desc":"There are no optional properties for a user name.","pattern":"{user: %user_email}","color":"darkgoldenrod","required":["user_email"],"desc":"Display the full name for the given email address or user name. Use this form to edit the properties of the user name.","title":"User mention. Click to edit.","label":"User Name","id":"user","image_text":[{"text":"user: %user_email","field":"default"}],"field":"user_email"},"tag":{"more_desc":"Optional properties include link text, and the name of a different workspace for the tags.","input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","tag_name"],"regexp":"?workspace-value","no_match":"tag_name"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["label","workspace_id"],"color":"green","pattern":"\"%label\"{tag: %workspace_id; %tag_name}","required":["tag_name"],"fields":["tag_name","label","workspace_id"],"desc":"Display a link to a list of pages with a specific tag. Use this form to edit the properties of the link.","id":"tag","label":"Tag Link","title":"Link to tag '$tag_name'. Click to edit.","image_text":[{"text":"tag: %label","field":"label"},{"text":"tag: %tag_name","field":"tag_name"}],"labels":{"workspace_id":"Search"}},"code-php":{"color":"indianred","title":"Code block with PHP syntax. Click to edit.","id":"code-php","use_title_as_text":"true"},"blog_list":{"input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","blog_name"],"regexp":"^(?:<(\\S+)>)?\\s*(.*?)?\\s*$"},"pdfields":["workspace_id"],"color":"forestgreen","required":["blog_name"],"desc":"Display a list of the most recent entries from a blog in a workspace. By default only the blog entry names are displayed. Use this form to edit the list properties.","id":"blog_list","image_text":[{"text":"blog list: %blog_name","field":"default"}],"labels":{"workspace_id":"in"},"more_desc":"Optional parameters include specifying which workspace to use and whether to display page titles or whole pages.","title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","pattern":"{blog_list: <%workspace_id> %blog_name}","fields":["workspace_id","blog_name"],"title":{"default":"Include the blog '$blog_name'. Click to edit.","full":"Display the blog '$blog_name'. Click to edit."},"label":"Blog List"},"code-js":{"color":"indianred","title":"Code block with JavaScript syntax. Click to edit.","id":"code-js","use_title_as_text":"true"},"code-c":{"color":"indianred","title":"Code block with C syntax. Click to edit.","id":"code-c","use_title_as_text":"true"},"new_form_page":{"more_desc":"There are no optional properties for a new form page.","parse":{"regexp":"^\\s*(\\S+)\\s+(.+)\\s*$"},"on_menu":"false","color":"maroon","pattern":"{new_form_page: %form_name %form_text}","fields":["form_name","form_text"],"required":["form_name","form_text"],"desc":"Select a form and generates a new form page.","id":"new_form_page","label":"New Form Page","title":"Use $form_name to generate a form. Click to edit.","image_text":[{"text":"form: %form_name","field":"default"}]},"code-shell":{"color":"indianred","title":"Code block with Shell syntax. Click to edit.","id":"code-shell","use_title_as_text":"true"},"code-vb":{"color":"indianred","title":"Code block with VisualBasic syntax. Click to edit.","id":"code-vb","use_title_as_text":"true"},"code-xslt":{"color":"indianred","title":"Code block with XSLT syntax. Click to edit.","id":"code-xslt","use_title_as_text":"true"},"code-erlang":{"color":"indianred","title":"Code block with Erlang syntax. Click to edit.","id":"code-erlang","use_title_as_text":"true"},"code-delphi":{"color":"indianred","title":"Code block with Delphi syntax. Click to edit.","id":"code-delphi","use_title_as_text":"true"},"code-pascal":{"color":"indianred","title":"Code block with Pascal syntax. Click to edit.","id":"code-pascal","use_title_as_text":"true"},"recent_changes":{"more_desc":"Optionally, specify that the page contents should be displayed.","input":{"workspace_id":"radio"},"parse":{"regexp":"^\\s*(.*?)?\\s*$"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"full":"off","color":"gold","pattern":"{recent_changes: %workspace_id}","fields":["workspace_id"],"desc":"Display a list of pages recently changed in a workspace. By default only the page titles are displayed. Use this form to edit the list properties.","id":"recent_changes","label":"What\\'s New","title":{"default":"What's new in the '$workspace_id' workspace. Click to edit.","full":"Display what's new in the '$workspace_id' workspace. Click to edit."},"image_text":[{"text":"recent changes: %workspace_id","field":"workspace_id"},{"text":"recent changes","field":"default"}],"labels":{"workspace_id":"Workspace"}},"code-patch":{"color":"indianred","title":"Code block with Patch syntax. Click to edit.","id":"code-patch","use_title_as_text":"true"},"pre":{"color":"indianred","title":"Preformatted text. Click to edit.","id":"pre","use_title_as_text":"true"},"include":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio"},"parse":{"regexp":"^(\\S*)?\\s*\\[([^\\]]*)\\]\\s*$"},"pdfields":[],"color":"darkblue","required":["page_title"],"desc":"Display the contents of another page within the current page. Use this form to edit the properties for the page include.","id":"include","image_text":[{"text":"include: %page_title","field":"default"}],"labels":{"workspace_id":"Other page in"},"more_desc":"There are no optional properties for page include.","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"{include: %workspace_id [%page_title]}","fields":["workspace_id","page_title"],"title":"Include the page '$page_title'. Click to edit.","label":"Page Include"},"code-javascript":{"color":"indianred","title":"Code block with JavaScript syntax. Click to edit.","id":"code-javascript","use_title_as_text":"true"},"ftp":{"color":"darkorange","title":"FTP link. Edit in Wiki Text mode.","id":"ftp","uneditable":"true"},"code-ruby":{"color":"indianred","title":"Code block with Ruby syntax. Click to edit.","id":"code-ruby","use_title_as_text":"true"},"unknown":{"color":"darkslategrey","title":"Unknown widget '$unknown_id'. Edit in Wiki Text mode.","id":"unknown","uneditable":"true"},"toc":{"more_desc":"Optionally, specify which page\\'s headers and sections to use for the table of contents.","checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio"},"parse":{"regexp":"^(\\S*)?\\s*\\[([^\\]]*)\\]\\s*$","no_match":"workspace_id"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["workspace_id","page_title"],"color":"darkseagreen","pattern":"{toc: %workspace_id [%page_title]}","fields":["workspace_id","page_title"],"desc":"Display a table of contents for a page. Each header or section on the page is listed as a link in the table of contents. Click \"Save\" now, or click \"More options\" to edit the properties for the table of contents.","id":"toc","label":"Table of Contents","title":"Table of contents for '$page_title'. Click to edit.","image_text":[{"text":"toc: %page_title","field":"page_title"},{"text":"toc","field":"default"}],"labels":{"workspace_id":"Page in","page_title":"Headers and<br/>sections in"}},"link2":{"checks":["require_page_if_workspace"],"input":{"workspace_id":"radio","page_title":"radio"},"parse":{"fields":["workspace_id","page_title","section_name"],"regexp":"?three-part-link","no_match":"section_name"},"primary_field":"section_name","pdfields":["label","workspace_id","page_title"],"color":"blue","select_if":{"blank":["workspace_id"]},"required":["section_name"],"desc":"Use this form to edit the properties of the link to a page section.","id":"link2","image_text":[{"text":"link: %label","field":"label"},{"text":"link: %page_title (%section_name)","field":"page_title"},{"text":"link: %section_name","field":"default"}],"labels":{"workspace_id":"Workspace"},"more_desc":"Optional properties include the text to display for the link, and the title of a different page.","hide_in_menu":"true","title_and_id":{"workspace_id":{"title":null,"id":null}},"pattern":"\"%label\"{link: %workspace_id [%page_title] %section_name}","fields":["section_name","label","workspace_id","page_title"],"label":"Link to a Wiki page","title":"Link to $workspace_id: '$page_title' $section_name. Click to edit."},"code-perl":{"color":"indianred","title":"Code block with Perl syntax. Click to edit.","id":"code-perl","use_title_as_text":"true"},"blog":{"more_desc":"Optional properties include link text, and the name of a different workspace for the blog.","input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","blog_name"],"regexp":"?workspace-value","no_match":"blog_name"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["label","workspace_id"],"color":"purple","pattern":"\"%label\"{blog: %workspace_id; %blog_name}","required":["blog_name"],"fields":["label","blog_name","workspace_id"],"desc":"Display a link to a blog. Use this form to edit the properties of the link.","id":"blog","label":"Blog Link","title":"Link to blog '$blog_name'. Click to edit.","image_text":[{"text":"blog: %label","field":"label"},{"text":"blog: %blog_name","field":"default"}],"labels":{"workspace_id":"Blog on"}},"weblog":{"more_desc":"Optional properties include link text, and the name of a different workspace for the blog.","input":{"workspace_id":"radio"},"parse":{"fields":["workspace_id","blog_name"],"regexp":"?workspace-value","no_match":"blog_name"},"title_and_id":{"workspace_id":{"title":null,"id":null}},"pdfields":["label","workspace_id"],"color":"purple","pattern":"\"%label\"{weblog: %workspace_id; %blog_name}","required":["blog_name"],"fields":["label","blog_name","workspace_id"],"desc":"Display a link to a blog. Use this form to edit the properties of the link.","id":"weblog","label":"Blog Link","title":"Link to blog '$blog_name'. Click to edit.","image_text":[{"text":"blog: %label","field":"label"},{"text":"blog: %blog_name","field":"default"}],"labels":{"workspace_id":"Blog on"}},"fetchrss":{"more_desc":"There are no optional properties for an RSS feed.","pattern":"{fetchrss: %rss_url}","color":"orange","desc":"Display the content of an RSS feed. Use this form to edit the properties of the inline RSS feed.","title":"Include the '$rss_url' RSS feed. Click to edit.","label":"Inline RSS","id":"fetchrss","image_text":[{"text":"feed: %rss_url","field":"default"}],"field":"rss_url"},"code-scala":{"color":"indianred","title":"Code block with Scala syntax. Click to edit.","id":"code-scala","use_title_as_text":"true"},"code-cpp":{"color":"indianred","title":"Code block with C++ syntax. Click to edit.","id":"code-cpp","use_title_as_text":"true"},"code-javafx":{"color":"indianred","title":"Code block with JavaFX syntax. Click to edit.","id":"code-javafx","use_title_as_text":"true"}},"menu_hierarchy":[{"widget":"ss","label":"Spreadsheet"},{"widget":"image","label":"Image"},{"insert":"table","label":"Table"},{"insert":"hr","label":"Horizontal Line"},{"sub_menu":[{"widget":"file","label":"A file attached to this page"},{"widget":"link2_section","label":"A section in this page"},{"widget":"link2","label":"A different wiki page"},{"widget":"blog","label":"A person's blog"},{"widget":"tag","label":"Pages related to a tag"},{"widget":"link2_hyperlink","label":"A page on the web"}],"label":"A link to..."},{"sub_menu":[{"widget":"include","label":"A page include"},{"widget":"ss","label":"A spreadsheet include"},{"widget":"tag_list","label":"Tagged pages"},{"widget":"recent_changes","label":"Recent changes"},{"widget":"blog_list","label":"Blog postings"},{"widget":"search","label":"Wiki search results"}],"label":"From workspaces..."},{"sub_menu":[{"widget":"googlesearch","label":"Google search results"},{"widget":"technorati","label":"Technorati results"},{"widget":"fetchrss","label":"RSS feed items"},{"widget":"fetchatom","label":"Atom feed items"}],"label":"From the web..."},{"sub_menu":[{"widget":"toc","label":"Table of contents"},{"widget":"section","label":"Section marker"},{"insert":"hr","label":"Horizontal line"}],"label":"Organizing your page..."},{"sub_menu":[{"widget":"skype","label":"Skype link"},{"widget":"aim","label":"AIM link"},{"widget":"yahoo","label":"Yahoo! Messenger link"}],"label":"Communicating..."},{"sub_menu":[{"widget":"user","label":"User name"},{"widget":"date","label":"Local Date & Time"}],"label":"Name & Date..."},{"widget":"asis","label":"Unformatted text..."}]};;
 ;
 // BEGIN lib/Wikiwyg/Widgets.js
 /* This file needs to be loaded after Widgets.js. */
@@ -2551,7 +6290,7 @@ proto.get_lines = function() {
 
     this.selection_start = this.find_left(our_text, selection_start, /[\r\n]/);
     this.selection_end = this.find_right(our_text, selection_end, /[\r\n]/);
-    this.setSelectionRange(selection_start, selection_end);
+    this.setSelectionRange(this.selection_start, this.selection_end);
     t.focus();
 
     this.start = our_text.substr(0,this.selection_start);
@@ -2659,6 +6398,23 @@ proto.insert_widget = function (widget_string) {
      * Changed use spaces mainly for signals, but it shouldn't break {bz: 1116}.
      */
     this.insert_text_at_cursor(widget_string + ' ', { assert_preceding_wordbreak: true });
+}
+
+proto.getNextSerialForOpenSocialWidget = function(src) {
+    var max = 0;
+    var matches = (this.canonicalText() || '').match(
+        /\{widget:\s*[^\s#]+(?:\s*#\d+)?(?:\s+[^\s=]+=\S*)*\s*\}/g
+    );
+    if (!matches) { return 1 }
+    for (var ii = 0; ii < matches.length; ii++) {
+        var match = (matches[ii] || '').match(
+            /^\{widget:\s*([^\s#]+)(?:\s*#(\d+))?((?:\s+[^\s=]+=\S*)*)\s*\}$/
+        );
+        if (match && match[1].replace(/^local:widgets:/, '') == src.replace(/^local:widgets:/, '')) {
+            max = Math.max( max, (match[2] || 1) );
+        }
+    }
+    return max+1;
 }
 
 proto.insert_text_at_cursor = function(text, opts) {
@@ -2958,7 +6714,9 @@ proto.make_web_link = function(url, url_text) {
 
 proto.get_selection_text = function() {
     if (Wikiwyg.is_ie) {
-        return this.sel;
+        var element = this.area;
+        var sRange = element.document.selection.createRange();
+        return sRange.text;
     }
 
     var t = this.area;
@@ -3401,18 +7159,29 @@ proto.squish_style_object_into_string = function(style) {
 }
 
 proto.href_is_wiki_link = function(href) {
-    if (! this.looks_like_a_url(href))
+    if (! this.looks_like_a_url(href)) {
         return true;
-    if (! href.match(/\?/))
-        return false;
+    }
     if (href.match(/\/static\//) && href.match(/\/skin\/js-test\//))
         href = location.href;
-    var no_arg_input   = href.split('?')[0];
-    var no_arg_current = location.href.split('?')[0];
-    if (no_arg_current == location.href)
-        no_arg_current =
-          location.href.replace(new RegExp(location.hash), '');
-    return no_arg_input == no_arg_current;
+
+    // check that the url is in this workspace
+    var up_to_wksp = /^https?:\/\/([^:\/]+)[^\/]*\/(?!(?:nlw|challenge|data|feed|js|m|settings|soap|st|wsdl)\/)[^\/#]+\//;
+    var no_page_input   = href.match(up_to_wksp);
+
+    // This url is nothing like a wikilink
+    if (!no_page_input) return false;
+
+    // This url may be a wikilink, but is it under our domain?
+    if (no_page_input[1].toLowerCase() != location.hostname.toLowerCase()) {
+        return false;
+    }
+
+    // We are on the current domain
+    // Check to make sure CGI params aren't pointing to something else
+    var query = href.split('?')[1];
+    if (!query) return true;
+    return ((! query.match(/=/)) || query.match(/action=display\b/));
 }
 
 proto.looks_like_a_url = function(string) {
@@ -3430,6 +7199,14 @@ proto.getSelectionStart = function () {
 proto.getSelectionEnd = function () {
     return this.area.selectionEnd;
 }
+
+proto.preserveSelection = function() {
+    this.saved_range = $(this.area).getSelection();
+};
+
+proto.restoreSelection =  function() {
+    $(this.area).setSelection(this.saved_range.start, this.saved_range.end);
+};
 
 
 /*==============================================================================
@@ -3617,7 +7394,9 @@ proto.markupRules = {
     h6: ['start_line', '^^^^^^ '],
     www: ['bound_phrase', '"', '"<http://...>'],
     attach: ['bound_phrase', '{file: ', '}'],
-    image: ['bound_phrase', '{image: ', '}']
+    image: ['bound_phrase', '{image: ', '}'],
+    video: ['bound_phrase', '{video: ', '}'],
+    widget: ['bound_phrase', '{widget: ', '}']
 }
 
 for (var ii in proto.markupRules) {
@@ -3711,6 +7490,10 @@ proto.setHeightOfEditor = function() {
 proto.do_www = Wikiwyg.Wikitext.make_do('www');
 proto.do_attach = Wikiwyg.Wikitext.make_do('attach');
 proto.do_image = Wikiwyg.Wikitext.make_do('image');
+proto.do_video = Wikiwyg.Wikitext.make_do('video');
+proto.do_widget = function(command) {
+    this.do_opensocial_gallery();
+};
 
 proto.convertWikitextToHtml = function(wikitext, func, onError) {
     // TODO: This could be as simple as:
@@ -3727,6 +7510,7 @@ proto.convertWikitextToHtml = function(wikitext, func, onError) {
         url: uri,
         async: false,
         type: 'POST',
+        timeout: 30 * 1000,
         data: {
             action: 'wikiwyg_wikitext_to_html',
             page_name: jQuery('#st-newpage-pagename-edit, #st-page-editing-pagename').val(),
@@ -3741,15 +7525,9 @@ proto.convertWikitextToHtml = function(wikitext, func, onError) {
     });
 
     if (!isSuccess) {
-        alert(loc("Operation failed due to server error; please try again later."));
-        if (onError) { onError(xhr); }
+        alert(loc("error.server-error"));
+        if (onError) { onError(); }
     }
-}
-
-proto.href_is_really_a_wiki_link = function(href) {
-    var query = href.split('?')[1];
-    if (!query) return false;
-    return ((! query.match(/=/)) || query.match(/action=display\b/));
 }
 
 proto.href_label_similar = function(elem, href, label) {
@@ -3768,6 +7546,29 @@ proto.make_table_wikitext = function(rows, columns) {
         text += row.join(' ') + '\n';
     }
     return text;
+}
+
+proto.insert_block = function (text) {
+    if (this.get_selection_text()) {
+        this.selection_mangle(function(that){
+            // Add surrounding newlines only when needed
+            that.sel = "";
+            if (that.start && !(/(^|\r?\n)\r?\n$/.test(that.start))) {
+                that.sel += "\n";
+            }
+            that.sel += text;
+            if (that.finish && !(/^\r?\n(\r?\n|$)/.test(that.finish))) {
+                that.sel += "\n";
+            }
+            return true;
+        });
+        return;
+    }
+
+    this.markup_line_alone([
+        "block",
+        "\n" + text + "\n"
+    ]);
 }
 
 proto.do_table = function() {
@@ -3920,7 +7721,7 @@ proto.convert_html_to_wikitext = function(html, isWholeDocument) {
 
         // {bz: 4738}: Don't run _format_one_line on top-level tables, HRs and PREs.
         $(dom).find('td, hr, pre')
-            .parents('span, a, h1, h2, h3, h4, h5, h6, b, strong, i, em, strike, del, s, tt, code, kbd, samp, var, u')
+            .parents('span:not(.nlw_phrase), a, h1, h2, h3, h4, h5, h6, b, strong, i, em, strike, del, s, tt, code, kbd, samp, var, u')
             .addClass('_st_format_div');
 
         $(dom).find('._st_walked').removeClass('_st_walked');
@@ -4185,17 +7986,25 @@ proto.assert_trailing_space = function(part, text) {
         )
     ) return;
 
-    if (this.wikitext.match(/ $/)) return;
+    if (/ $/.test(this.wikitext)) return;
 
-    if (this.wikitext.match(/\n$/)) {
+    if (/\n$/.test(this.wikitext)) {
         if (part.previousSibling &&
-            part.previousSibling.nodeName == 'BR'
+            (part.previousSibling.nodeName == 'BR'
+            || part.previousSibling.nodeName == 'HR')
         ) return;
+        if (part.top_level_block) return;
         this.wikitext = this.wikitext.replace(/\n$/, '');
     }
 
-    if (! text.match(/^\s/))
+    if (/^\s/.test(text)) return;
+
+    if (part.top_level_block) {
+        this.wikitext += '\n';
+    }
+    else {
         this.wikitext += ' ';
+    }
 }
 
 proto._css_to_px = function(val) {
@@ -4379,7 +8188,13 @@ proto.format_img = function(elem) {
     if (/^st-widget-/.test(widget)) {
         widget = widget.replace(/^st-widget-/, '');
         if (Wikiwyg.is_ie) widget = Wikiwyg.htmlUnescape( widget );
-        if (widget.match(/^\.\w+\n/))
+        if ($.browser.webkit) widget = widget.replace(
+            /&#x([a-fA-F\d]{2,5});/g, 
+            function($_, $1) { 
+                return String.fromCharCode(parseInt($1, 16));
+            }
+        );
+        if (widget.match(/^\.[-\w]+\n/))
             elem.top_level_block = true;
         else
             elem.is_widget = true;
@@ -4408,7 +8223,7 @@ proto.format_img = function(elem) {
 
         text = this.handle_include(text, elem);
 
-        if (widget.match(/^\.\w+\n/))
+        if (widget.match(/^\.[-\w]+\n/))
             text = text.replace(/\n*$/, '\n');
 
         // Dirty hack for {{{ ... }}} wikitext
@@ -4666,12 +8481,19 @@ proto.format_a = function(elem) {
 
     var href = elem.getAttribute('href');
 
+    // Workaround relative links from FF: {bz: 5010}
+    href = href.replace(/^(?:\.\.\/)+/, 
+        location.protocol + '//' + location.hostname
+            + (((location.port == 80) || (location.port == '')) ? '' : ':' + location.port)
+            + '/'
+    );
+
     if (! href) href = ''; // Necessary for <a name="xyz"></a>'s
     var link = this.make_wikitext_link(label, href, elem);
 
     // For [...] links, we need to ensure there are surrounding spaces
     // because it won't take effect when put adjacent to word characters.
-    if (link.match(/^\[/)) {
+    if (/^[\[{]/.test(link)) {
         // Turns "foo[bar]" into "foo [bar]"
         var prev_node = this.getPreviousTextNode(elem);
         if (prev_node && prev_node.nodeValue.match(/\w$/)) {
@@ -4735,19 +8557,16 @@ proto.is_italic = function(elem) {
     );
 }
 
-proto.elem_is_wiki_link = function (elem) {
-    var href = elem.getAttribute('href') || ''
+proto.elem_is_wiki_link = function (elem, href) {
+    href = href || elem.getAttribute('href') || ''
     return jQuery(elem).attr('wiki_page')
-        || (
-            this.href_is_wiki_link(href)
-            && this.href_is_really_a_wiki_link(href)
-          );
+        || this.href_is_wiki_link(href);
 }
 
 proto.make_wikitext_link = function(label, href, elem) {
     var mailto = href.match(/^mailto:(.*)/);
 
-    if (this.elem_is_wiki_link(elem)) {
+    if (this.elem_is_wiki_link(elem, href)) {
         return this.handle_wiki_link(label, href, elem);
     }
     else if (mailto) {
@@ -4774,24 +8593,45 @@ proto.make_wikitext_link = function(label, href, elem) {
 }
 
 proto.handle_wiki_link = function(label, href, elem) {
+    var up_to_wksp = /^https?:\/\/[^\/]+\/([^\/#]+)\/(?:(?:index.cgi)?\?)?/;
+
+    var match = href.match(up_to_wksp);
+    var wksp = match ? match[1] : Socialtext.wiki_id;
+
     var href_orig = href;
-    href = href.replace(/\baction=display;is_incipient=1;page_name=/, '');
-    href = href.replace(/.*\?/, '');
+    href = href.replace(/.*\baction=display;is_incipient=1;page_name=/, '');
+    href = href.replace(up_to_wksp, '');
     href = decodeURIComponent(href);
     href = href.replace(/_/g, ' ');
     // XXX more conversion/normalization poo
     // We don't yet have a smart way to get to page->Subject->metadata
     // from page->id
     var wiki_page = jQuery(elem).attr('wiki_page');
+    var prefix = '';
+    var page = '';
 
     if (label == href_orig && (label.indexOf('=') == -1)) {
-        return '[' + (wiki_page || href) + ']';
+        page = wiki_page || href;
     }
     else if (this.href_label_similar(elem, href, label)) {
-        return '[' + (wiki_page || label) + ']';
+        page = wiki_page || label;
     }
     else {
-        return '"' + label + '"[' + (wiki_page || href) + ']';
+        page = wiki_page || href;
+        prefix = '"' + label + '"';
+    }
+
+    if (/#/.test(page)) {
+        var segments = page.split(/#/, 2);
+        var section = segments[1];
+        page = segments[0];
+        return prefix + '{link: ' + wksp + ' [' + page + '] ' + section + '}';
+    }
+    else if (wksp != Socialtext.wiki_id) {
+        return prefix + '{link: ' + wksp + ' [' + page + ']}';
+    }
+    else {
+        return prefix + '[' + page + ']';
     }
 }
 
@@ -4921,23 +8761,17 @@ COPYRIGHT:
 
 Wikiwyg is free software.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This library is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 2.1 of the License, or (at
+your option) any later version.
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+This library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser
+General Public License for more details.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+    http://www.gnu.org/copyleft/lesser.txt
 
  =============================================================================*/
 
@@ -5401,7 +9235,7 @@ proto.get_inner_html_async = function( cb, tries ) {
                 }, 500);
             }
             else {
-                html = loc('Sorry, an edit error occured; please re-edit this page.');
+                html = loc('error.edit-again');
             }
         }
         if (html != null) {
@@ -5486,23 +9320,17 @@ COPYRIGHT:
 
 Wikiwyg is free software.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This library is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 2.1 of the License, or (at
+your option) any later version.
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+This library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser
+General Public License for more details.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+    http://www.gnu.org/copyleft/lesser.txt
 
  =============================================================================*/
 
@@ -5581,6 +9409,89 @@ proto.on_key_enter = function(e) {
     if (jQuery(node).is("li")) {
         jQuery(node).find("br:last-child").remove();
     }
+}
+
+proto.enable_table_navigation_bindings = function() {
+    var self = this;
+    var event_name = "keydown";
+    if (jQuery.browser.mozilla && navigator.oscpu.match(/Mac/)) {
+        event_name = "keypress";
+    }
+
+    self.bind( event_name, function (e) {
+        if (e.metaKey || e.ctrlKey) { return true; }
+        switch (e.keyCode) {
+            case 9: { // Tab
+                var $cell = self.find_table_cell_with_cursor();
+                if (!$cell) { return; }
+                e.preventDefault();
+
+                var $new_cell;
+                if (e.shiftKey) {
+                    $new_cell = $cell.prev('td');
+                    if (!$new_cell.length) {
+                        $new_cell = $cell.parents('tr:first').prev('tr').find('td:last');
+                        if (!$new_cell.length) {
+                            return;
+                        }
+                    }
+                }
+                else {
+                    $new_cell = $cell.next('td');
+                    if (!$new_cell.length) {
+                        $new_cell = $cell.parents('tr:first').next('tr').find('td:first');
+                        if (!$new_cell.length) {
+                            // Extend the table now we're at the last cell
+                            var doc = self.get_edit_document();
+                            var $tr = jQuery(doc.createElement('tr'));
+                            $cell.parents("tr").find("td").each(function() {
+                                $tr.append('<td style="border: 1px solid black; padding: 0.2em;">&nbsp;</td>');
+                            });
+                            $tr.insertAfter( $cell.parents('tr:first') );
+                            $new_cell = $tr.find('td:first');
+                        }
+                    }
+                }
+
+                self.set_focus_on_cell($new_cell);
+                break;
+            }
+            case 38: { // Up
+                self._do_table_up_or_down(e, 'prev', ':first');
+                break;
+            }
+            case 40: { // Down
+                self._do_table_up_or_down(e, 'next', ':last');
+                break;
+            }
+        }
+    });
+}
+
+proto._do_table_up_or_down = function(e, direction, selector) {
+    var self = this;
+    if (e.shiftKey) { return; }
+
+    var $cell = self.find_table_cell_with_cursor();
+    if (!$cell) { return; }
+
+    var col = self._find_column_index($cell);
+    if (!col) { return; }
+
+    var $tr = $cell.parents('tr:first')[direction]('tr:first');
+    var $new_cell;
+    if ($tr.length) {
+        var tds = $tr.find('td');
+        $new_cell = $(tds[col-1]);
+        e.preventDefault();
+    }
+    else {
+        // At the top/bottom row - move to the first/last cell,
+        // and do not preventDefault, so we can move outside the table
+        $new_cell = $cell.parents('table:first').find('tr'+selector+' td'+selector);
+    }
+
+    self.set_focus_on_cell($new_cell);
 }
 
 proto.enable_pastebin = function () {
@@ -5747,7 +9658,7 @@ proto._unbindHandler = function(event_name) {
 }
 
 proto._bindHandler = function(event_name, callback) {
-    if (Wikiwyg.is_ie && event_name == 'blur') {
+    if ((Wikiwyg.is_ie || $.browser.webkit) && event_name == 'blur') {
         jQuery(this.get_edit_window()).bind(event_name, callback);
     }
     else {
@@ -5824,6 +9735,8 @@ proto.enableThis = function() {
         }
 
         self.enable_keybindings();
+        self.enable_table_navigation_bindings();
+
         self.enable_pastebin();
         if (!self.wikiwyg.config.noAutoFocus) {
             self.set_focus();
@@ -6055,51 +9968,34 @@ proto.set_clear_handler = function () {
     } catch (e) {};
 }
 
-proto.show_messages = function(html) {
-    var advanced_link = this.advanced_link_html();
-    var message_titles = {
-        wiki:  loc('Advanced Content in Grey Border'),
-        table: loc('Table Edit Tip'),
-        both:  loc('Table & Advanced Editing')
-    };
-    var message_bodies = {
-        wiki:
-            loc('Advanced content is shown inside a grey border. Switch to [_1] to edit areas inside a grey border.',advanced_link),
-        table: loc('Use [_1] to change the number of rows and columns in a table.', advanced_link),
-        both: ''
-    };
-    message_bodies.both = message_bodies.table + ' ' + message_bodies.wiki;
-
-    var wiki    = html.match(/<!--\s*wiki:/);
-    var table   = html.match(/<table /i);
-    var message = null;
-    if      (wiki && table) message = 'both'
-    else if (table)         message = 'table'
-    else if (wiki)          message = 'wiki';
-
-    if (message) {
-        this.wikiwyg.message.display({
-            title: message_titles[message],
-            body: message_bodies[message],
-            timeout: 60
-        });
-    }
-}
+proto.show_messages = function(html) {}
 
 proto.do_p = function() {
     this.format_command("p");
-}
-
-proto.do_attach = function() {
-    this.wikiwyg.message.display(this.use_advanced_mode_message(loc('Attachments')));
 }
 
 proto.do_image = function() {
     this.do_widget_image();
 }
 
+proto.do_video = function() {
+    this.do_widget_video();
+}
+
 proto.do_link = function(widget_element) {
     this._do_link(widget_element);
+}
+
+proto.do_video = function() {
+    this.do_widget_video();
+}
+
+proto.do_widget = function(widget_element) {
+    if (widget_element && widget_element.nodeName) {
+        this.do_opensocial_setup(widget_element);
+        return;
+    }
+    this.do_opensocial_gallery();
 }
 
 proto.add_wiki_link = function(widget_element, dummy_widget) {
@@ -6172,78 +10068,22 @@ proto.make_web_link = function(url, link_text) {
     this.make_link(link_text, false, url);
 }
 
+
 proto.make_link = function(label, page_name, url) {
-    var span_node = document.createElement("span");
-    var link_node = document.createElement("a");
 
-    // Anchor text
     var text = label || page_name || url;
-    link_node.appendChild( document.createTextNode(text.replace(/"/g, '\uFF02')) );
-
-    // Anchor HREF
-    link_node.href = url || "?" + encodeURIComponent(page_name);
-
+    var href = url || encodeURIComponent(page_name);
+    var attr = "";
     if (page_name) {
-        jQuery(link_node).attr('wiki_page', page_name)
+        attr = " wiki_page=\"" + html_escape(page_name).replace(/"/g, "&quot;") + "\"";
     }
-
-    span_node.appendChild( link_node );
-    span_node.appendChild( document.createTextNode('\u00A0') );
-
-    this.insert_element_at_cursor(span_node);
-}
-
-if (Wikiwyg.is_ie) {
-    proto.make_link = function(label, page_name, url) {
-
-        var text = label || page_name || url;
-        var href = url || "?" + encodeURIComponent(page_name);
-        var attr = "";
-        if (page_name) {
-            attr = " wiki_page=\"" + html_escape(page_name).replace(/"/g, "&quot;") + "\"";
-        }
-        var html = "<a href=\"" + href + "\"" + attr + ">" + html_escape( text.replace(/"/g, '\uFF02').replace(/"/g, "&quot;") );
+    var html = "<a href=\"" + href + "\"" + attr + ">" + html_escape( text.replace(/"/g, '\uFF02').replace(/"/g, "&quot;") );
 
 
-        html += "</a>";
+    html += "</a>";
 
-        this.set_focus(); // Need this before .insert_html
-        this.insert_html(html);
-    }
-}
-
-proto.insert_element_at_cursor = function(ele) {
-    var selection = this.get_edit_window().getSelection();
-    if (selection.toString().length > 0) {
-        selection.deleteFromDocument();
-    }
-
-    selection  = this.get_edit_window().getSelection();
-    var anchor = selection.anchorNode;
-    var offset = selection.anchorOffset;
-
-    if (anchor.nodeName == '#text') {  // Insert into a text element.
-        var secondNode = anchor.splitText(offset);
-        anchor.parentNode.insertBefore(ele, secondNode);
-    } else {  // Insert at the start of the line.
-        var children = selection.anchorNode.childNodes;
-        if (children.length > offset) {
-            selection.anchorNode.insertBefore(ele, children[offset]);
-        } else {
-            anchor.appendChild(ele);
-        }
-    }
-}
-
-proto.use_advanced_mode_message = function(subject) {
-    return {
-        title: loc('Use Advanced Mode for [_1]', subject),
-        body: loc('Switch to [_1] to use this feature.',  this.advanced_link_html()) 
-    }
-}
-
-proto.advanced_link_html = function() {
-    return '<a onclick="wikiwyg.wikitext_link.onclick(); return false" href="#">' + loc('Advanced Mode') + '</a>';
+    this.set_focus(); // Need this before .insert_html
+    this.insert_html(html);
 }
 
 proto.insert_table_html = function(rows, columns, options) {
@@ -6273,6 +10113,20 @@ proto.insert_table_html = function(rows, columns, options) {
             var $table = jQuery('#'+id, self.get_edit_document());
             $table.removeAttr('id');
             self.applyTableOptions($table, options);
+
+            // Skip the <br/> padding around tables for Selenium so we can test with the cursor in tables.
+            if (Wikiwyg.is_selenium) { return; } 
+
+            if ($table.prev().length == 0) {
+                // Table is the first element in document - add a <br/> so
+                // navigation is possible beyond the table.
+                $table.before('<br />');
+            }
+            if ($table.next().length == 0) {
+                // Table is the last element in document - add a <br/> so
+                // navigation is possible beyond the table.
+                $table.after('<br />');
+            }
         },
         500, 10000
     );
@@ -6293,25 +10147,25 @@ proto.do_new_table = function() {
         var rows = jQuery('.table-create input[name=rows]').val();
         var cols = jQuery('.table-create input[name=columns]').val();
         if (! rows.match(/^\d+$/))
-            return $error.text(loc('Rows is invalid.'));
+            return $error.text(loc('error.invalid-rows'));
         if (! cols.match(/^\d+$/))
-            return $error.text(loc('Columns is invalid.'));
+            return $error.text(loc('error.invalid-columns'));
         rows = Number(rows);
         cols = Number(cols);
         if (! (rows && cols))
-            return $error.text(loc('Rows and Columns must be non-zero.'));
+            return $error.text(loc('error.rows-and-columns-required'));
         if (rows > 100)
-            return $error.text(loc('Rows is too big. 100 maximum.'));
+            return $error.text(loc('error.rows-too-big'));
         if (cols > 35)
-            return $error.text(loc('Columns is too big. 35 maximum.'));
+            return $error.text(loc('error.columns-too-big'));
         self.set_focus(); // Need this before .insert_html
         var options = self.tableOptionsFromNode(jQuery('.table-create'));
         self.insert_table_html(rows, cols, options);
         self.closeTableDialog();
     }
     var setup = function() {
-        jQuery('.table-create input[name=columns]').focus();
-        jQuery('.table-create input[name=columns]').select();
+        jQuery('.table-create input[name=rows]').focus();
+        jQuery('.table-create input[name=rows]').select();
         jQuery('.table-create .save')
             .unbind("click")
             .bind("click", function() {
@@ -6390,6 +10244,37 @@ proto.find_table_cell_with_cursor = function() {
     return $cell;
 }
 
+proto.set_focus_on_cell = function($new_cell) {
+    var self = this;
+    self.set_focus();
+
+    if (Wikiwyg.is_gecko) {
+        var $span = $new_cell.find("span");
+        if ($span.length > 0) {
+            if ($span.html() == '') {
+                $span.html('&nbsp;');
+            }
+        }
+        else {
+            $span = $new_cell;
+        }
+
+        var r = self.get_edit_document().createRange();
+        r.setStart( $span.get(0), 0 );
+        r.setEnd( $span.get(0), 0 );
+
+        var s = self.get_edit_window().getSelection();
+        s.removeAllRanges();
+        s.addRange(r);
+    }
+    else if (jQuery.browser.msie) {
+        var r = self.get_edit_document().selection.createRange();
+        r.moveToElementText( $new_cell.get(0) );
+        r.collapse(true);
+        r.select();
+    }
+}
+
 proto._do_table_manip = function(callback) {
     var self = this;
     setTimeout(function() {
@@ -6400,32 +10285,7 @@ proto._do_table_manip = function(callback) {
 
         if ($new_cell) {
             $cell = $new_cell;
-            self.set_focus();
-            if (Wikiwyg.is_gecko) {
-                var $span = $new_cell.find("span");
-                if ($span.length > 0) {
-                    if ($span.html() == '') {
-                        $span.html('&nbsp;');
-                    }
-                }
-                else {
-                    $span = $new_cell;
-                }
-
-                var r = self.get_edit_document().createRange();
-                r.setStart( $span.get(0), 0 );
-                r.setEnd( $span.get(0), 0 );
-
-                var s = self.get_edit_window().getSelection();
-                s.removeAllRanges();
-                s.addRange(r);
-            }
-            else if (jQuery.browser.msie) {
-                var r = self.get_edit_document().selection.createRange();
-                r.moveToElementText( $new_cell.get(0) );
-                r.collapse(true);
-                r.select();
-            }
+            self.set_focus_on_cell($new_cell);
         }
 
         setTimeout(function() {
@@ -6532,10 +10392,10 @@ proto.do_add_row_below = function() {
     this._do_table_manip(function($cell) {
         var doc = this.get_edit_document();
         var $tr = jQuery(doc.createElement('tr'));
-        $cell.parents("tr").find("td").each(function() {
+        $cell.parents("tr:first").find("td").each(function() {
             $tr.append('<td style="border: 1px solid black; padding: 0.2em;">&nbsp;</td>');
         });
-        $tr.insertAfter( $cell.parents("tr") );
+        $tr.insertAfter( $cell.parents("tr:first") );
     });
 }
 
@@ -6545,10 +10405,10 @@ proto.do_add_row_above = function() {
         var doc = this.get_edit_document();
         var $tr = jQuery(doc.createElement('tr'));
 
-        $cell.parents("tr").find("td").each(function() {
+        $cell.parents("tr:first").find("td").each(function() {
             $tr.append('<td style="border: 1px solid black; padding: 0.2em;">&nbsp;</td>');
         });
-        $tr.insertBefore( $cell.parents("tr") );
+        $tr.insertBefore( $cell.parents("tr:first") );
     });
 }
 
@@ -6797,7 +10657,7 @@ proto.socialtext_wikiwyg_image = function(image_name) {
 proto.get_link_selection_text = function() {
     var selection = this.get_selection_text();
     if (! selection) {
-        alert(loc("Please select the text you would like to turn into a link."));
+        alert(loc("error.link-selection-required"));
         return;
     }
     return selection;
@@ -6970,6 +10830,15 @@ var widget_data = Wikiwyg.Widgets.widget;
 
 proto.fromHtml = function(html) {
     if (typeof html != 'string') html = '';
+
+    html = html.replace(
+        new RegExp(
+            '(<!--[\\d\\D]*?-->)|(<(span|div)\\sclass="nlw_phrase">)[\\d\\D]*?(<!--\\swiki:\\s[\\d\\D]*?\\s--><\/\\3>)',
+            'g'
+        ), function(_, _1, _2, _3, _4) {
+            return(_1 ? _1 : _2 + '&nbsp;' + _4);
+        }
+    );
 
     if (Wikiwyg.is_ie) {
         html = html.replace(/<DIV class=wiki>([\s\S]*)<\/DIV>/gi, "$1");
@@ -7151,11 +11020,24 @@ proto.toHtml = function(func) {
             var br = "<br class=\"p\"/>";
 
             html = self.remove_padding_material(html);
-            html = html
-                .replace(/\n*<p>\n?/ig, "")
-                .replace(/<\/p>(?:<br class=padding>)?/ig, br)
 
-            func(html);
+            /* {bz: 4812}: Don't replace <p> and <br> tags inside WAFL alt text */
+            var separator = '<<<'+Math.random()+'>>>';
+            var chunks = html.replace(/\balt="st-widget-[^"]*"/ig, separator + '$&' + separator).split(separator);
+            var escapedHtml = '';
+            for(var i=0;i<chunks.length;i++) {
+                var chunk = chunks[i];
+                if (/^alt="st-widget-/.test(chunk) && /"$/.test(chunk)) {
+                    escapedHtml += chunk;
+                }
+                else {
+                    escapedHtml += chunk
+                        .replace(/\n*<p>\n?/ig, "")
+                        .replace(/<\/p>(?:<br class=padding>)?/ig, br)
+                }
+            }
+
+            func(escapedHtml);
         });
     }
     else {
@@ -7171,6 +11053,20 @@ proto.toHtml = function(func) {
         delete this._white_page_fixer_interval_id;
     }
     */
+}
+
+proto.getNextSerialForOpenSocialWidget = function(src) {
+    var max = 0;
+    var imgs = this.get_edit_document().getElementsByTagName('img');
+    for (var ii = 0; ii < imgs.length; ii++) {
+        var match = (imgs[ii].getAttribute('alt') || '').match(
+            /^st-widget-\{widget:\s*([^\s#]+)(?:\s*#(\d+))?((?:\s+[^\s=]+=\S*)*)\s*\}$/
+        );
+        if (match && match[1].replace(/^local:widgets:/, '') == src.replace(/^local:widgets:/, '')) {
+            max = Math.max( max, (match[2] || 1) );
+        }
+    }
+    return max+1;
 }
 
 proto.setWidgetHandlers = function() {
@@ -7201,7 +11097,7 @@ proto.setWidgetHandlers = function() {
             self.currentWidget = self.parseWidgetElement(e.target);
             var id = self.currentWidget.id;  
             if (widget_data[id] && widget_data[id].uneditable) {
-                alert(loc("This is not an editable widget. Please edit it in Wiki Text mode."))  
+                alert(loc("info.wafl-uneditable"))  
             }
             else {
                 self.getWidgetInput(e.target, false, false);
@@ -7249,6 +11145,22 @@ proto.revert_widget_images = function() {
 proto.sanitize_dom = function(dom) {
     Wikiwyg.Mode.prototype.sanitize_dom.call(this, dom);
     this.widget_walk(dom);
+
+    // Skip the <br/> padding around tables for Selenium so we can test with the cursor in tables.
+    if (Wikiwyg.is_selenium) { return; } 
+
+    // Table is the first element in document - prepend a <br/> so
+    // navigation is possible beyond the table.
+    var $firstTable = $('table:first', dom);
+    if ($firstTable.length && ($firstTable.prev().length == 0)) {
+        $firstTable.before('<br />');
+    }
+    // Table is the last element in document - append a <br/> so
+    // navigation is possible beyond the table.
+    var $lastTable = $('table:last', dom);
+    if ($lastTable.length && ($lastTable.next().length == 0)) {
+        $firstTable.after('<br />');
+    }
 }
 
 proto.attachTooltip = function(elem) {
@@ -7405,6 +11317,12 @@ proto.setTitleAndId = function (widget) {
 proto.parseWidgetElement = function(element) {
     var widget = element.getAttribute('alt').replace(/^st-widget-/, '');
     if (Wikiwyg.is_ie) widget = Wikiwyg.htmlUnescape( widget );
+    if ($.browser.webkit) widget = widget.replace(
+        /&#x([a-fA-F\d]{2,5});/g, 
+        function($_, $1) { 
+            return String.fromCharCode(parseInt($1, 16));
+        }
+    );
     return this.parseWidget(widget);
 }
 
@@ -7416,8 +11334,8 @@ proto.parseWidget = function(widget) {
     if ((matches = widget.match(/^(aim|yahoo|ymsgr|skype|callme|callto|http|irc|file|ftp|https):([\s\S]*?)\s*$/)) ||
         (matches = widget.match(/^\{(\{([\s\S]+)\})\}$/)) || // AS-IS
         (matches = widget.match(/^"(.+?)"<(.+?)>$/)) || // Named Links
-        (matches = widget.match(/^(?:"(.*)")?\{(\w+):?\s*([\s\S]*?)\s*\}$/)) ||
-        (matches = widget.match(/^\.(\w+)\s*?\n([\s\S]*?)\1\s*?$/))
+        (matches = widget.match(/^(?:"(.*)")?\{([-\w]+):?\s*([\s\S]*?)\s*\}$/)) ||
+        (matches = widget.match(/^\.([-\w]+)\s*?\n([\s\S]*?)\1\s*?$/))
     ) {
         var widget_id = matches[1];
         var full = false;
@@ -7480,7 +11398,7 @@ proto.parseWidget = function(widget) {
         return widget_parse;
     }
     else
-        throw(loc('Unexpected Widget >>[_1]<< in parseWidget', widget));
+        throw(loc('error.unexpected-parse=widget', widget));
 }
 
 for (var i = 0; i < widgets_list.length; i++) {
@@ -7513,32 +11431,35 @@ for (var i = 0; i < widgets_list.length; i++) {
             if (! (data.field || data.parse)) {
                 data.field = data.fields[0];
             }
-
             if (data.field) {
                 widget_parse[ data.field ] = widget_args;
-                return widget_parse;
             }
 
-            var widgetFields = data.parse.fields || data.fields;
-            var regexp = data.parse.regexp;
-            var regexp2 = regexp.replace(/^\?/, '');
-            if (regexp != regexp2)
-                regexp = Wikiwyg.Widgets.regexps[regexp2];
-            var tokens = widget_args.match(regexp);
-            if (tokens) {
-                for (var i = 0; i < widgetFields.length; i++)
-                    widget_parse[ widgetFields[i] ] = tokens[i+1];
+            var widgetFields = data.parse ? (data.parse.fields || data.fields) : data.fields;
+
+            if (data.parse) {
+                var regexp = data.parse.regexp;
+                var regexp2 = regexp.replace(/^\?/, '');
+                if (regexp != regexp2)
+                    regexp = Wikiwyg.Widgets.regexps[regexp2];
+                var tokens = widget_args.match(regexp);
+                if (tokens) {
+                    for (var i = 0; i < widgetFields.length; i++)
+                        widget_parse[ widgetFields[i] ] = tokens[i+1];
+                }
+                else {
+                    if (data.parse.no_match)
+                        widget_parse[ data.parse.no_match ] = widget_args;
+                }
             }
-            else {
-                if (data.parse.no_match)
-                    widget_parse[ data.parse.no_match ] = widget_args;
-            }
+
             if (widget_parse.size) {
                 if (widget_parse.size.match(/^(\d+)(?:x(\d+))?$/)) {
                     widget_parse.width = RegExp.$1 || '';
                     widget_parse.height = RegExp.$2 || '';
                 }
             }
+
             if (widget_parse.search_term) {
                 var term = widget_parse.search_term;
                 var term2 = term.replace(/^(tag|category|title):/, '');
@@ -7606,21 +11527,30 @@ proto.replace_widget = function(elem) {
     var widget_image;
     var src;
 
-    if ( (matches = widget.match(/^"([\s\S]+?)"<(.+?)>$/m)) || // Named Links
-        (matches = widget.match(/^(?:"([\s\S]*)")?\{(\w+):?\s*([\s\S]*?)\s*\}$/m))) {
-        // For labeled links or wafls, remove all newlines/returns
-        widget = widget.replace(/[\r\n]/g, ' ');
-    }
-    if (widget.match(/^{image:/)) {
-        var orig = elem.firstChild;
-        if (orig.src) src = orig.src;
+    if (/nlw_phrase/.test(elem.className)) {
+        if ($.browser.webkit) widget = widget.replace(
+            /&#x([a-fA-F\d]{2,5});/g, 
+            function($_, $1) { 
+                return String.fromCharCode(parseInt($1, 16));
+            }
+        );
+        if ( (matches = widget.match(/^"([\s\S]+?)"<(.+?)>$/m)) || // Named Links
+            (matches = widget.match(/^(?:"([\s\S]*)")?\{([-\w]+):?\s*([\s\S]*?)\s*\}$/m))) {
+            // For labeled links or wafls, remove all newlines/returns
+            widget = widget.replace(/[\r\n]/g, ' ');
+        }
+        if (widget.match(/^{image:/)) {
+            var orig = elem.firstChild;
+            if (orig.src) src = orig.src;
+        }
     }
 
     if (!src) src = this.getWidgetImageUrl(widget);
 
     widget_image = Wikiwyg.createElementWithAttrs('img', {
         'src': src,
-        'alt': 'st-widget-' + (Wikiwyg.is_ie? Wikiwyg.htmlEscape(widget) : widget)
+        'alt': 'st-widget-' + (Wikiwyg.is_ie? Wikiwyg.htmlEscape(widget) : widget),
+        'title': this.getWidgetTooltip(widget)
     });
     elem.parentNode.replaceChild(widget_image, elem);
     return widget_image;
@@ -7707,6 +11637,16 @@ proto.insert_image = function (src, widget, widget_element, cb) {
         cb();
 }
 
+proto.insert_block = function (text, label, elem) {
+    if (!elem) { this.insert_html('<br />'); }
+    this.insert_image(
+        this.getWidgetImageUrl(label),
+        text,
+        elem
+    );
+    if (!elem) { this.insert_html('<br />'); }
+}
+
 proto.insert_widget = function(widget, widget_element, cb) {
     var self = this;
 
@@ -7736,9 +11676,18 @@ proto.insert_widget = function(widget, widget_element, cb) {
 
 proto.getWidgetImageText = function(widget_text, widget) {
     var text = widget_text;
-    // XXX Hack for html block. Should key off of 'uneditable' flag.
-    if (widget.id == 'html') {
-        text = widget_data.html.title;
+    var config = widget_data[ widget.id ];
+    if (config && config.use_title_as_text) {
+        text = config.title;
+        if (/__title__/.test(text)) {
+            var match = widget_text.replace(/-=/g, '-').replace(/==/g, '=').match(/\s__title__=(\S+)[\s}]/);
+            if (match) {
+                text = text.replace(/__title__/g, decodeURI(match[1]));
+            }
+            else {
+                text = text.replace(/__title__\s+/g, '');
+            }
+        }
     }
     else if (widget_text.match(/^"([^"]+)"{/)) {
         text = RegExp.$1;
@@ -7786,6 +11735,21 @@ proto.getWidgetImageLocalizeText = function(widget, text) {
     return newtext;
 }
 
+proto.getWidgetTooltip = function(widget_text) {
+    var uneditable = false;
+    try {
+        var widget = this.parseWidget(widget_text);
+        uneditable = widget_data[widget.id].uneditable;
+        widget_text = this.getWidgetImageText(widget_text, widget);
+    }
+    catch (e) {
+        // parseWidget can throw an error
+        // Just ignore and set the text to be the widget text
+    }
+
+    return widget_text;
+}
+
 proto.getWidgetImageUrl = function(widget_text) {
     var uneditable = false;
     try {
@@ -7807,8 +11771,8 @@ proto.create_wafl_string = function(widget, form) {
 
     var values = this.form_values(widget, form);
     var fields =
-        data.field ? [ data.field ] :
         data.fields ? data.fields :
+        data.field ? [ data.field ] :
         [];
     if (data.other_fields) {
         jQuery.each(data.other_fields, function (){ fields.push(this) });
@@ -7825,9 +11789,9 @@ proto.create_wafl_string = function(widget, form) {
         replace(/\(\s*\)/, '').
         replace(/\s;\s/, ' ').
         replace(/\s\s+/g, ' ').
-        replace(/^\{(\w+)\: \}$/,'{$1}');
+        replace(/^\{([-\w]+)\: \}$/,'{$1}');
     if (values.full)
-        result = result.replace(/^(\{\w+)/, '$1_full');
+        result = result.replace(/^(\{[-\w]+)/, '$1_full');
     return result;
 }
 
@@ -7846,8 +11810,8 @@ for (var i = 0; i < widgets_list.length; i++) {
 proto.form_values = function(widget, form) {
     var data = widget_data[widget];
     var fields =
-        data.field ? [ data.field ] :
         data.fields ? data.fields :
+        data.field ? [ data.field ] :
         [];
     var values = {};
 
@@ -7906,7 +11870,7 @@ proto.validate_fields = function(widget, values) {
             var field = required[i];
             if (! values[field].length) {
                 var label = Wikiwyg.Widgets.fields[field];
-                throw(loc("'[_1]' is a required field", label));
+                throw(loc("error.widget-field-required=label", label));
             }
         }
     }
@@ -7923,7 +11887,7 @@ proto.validate_fields = function(widget, values) {
                 found++;
         }
         if (! found)
-            throw(loc("Requires one of: [_1]", labels.join(', ')));
+            throw(loc("error.field-required=labels", labels.join(', ')));
     }
 
     for (var field in values) {
@@ -7938,7 +11902,7 @@ proto.validate_fields = function(widget, values) {
 
         if (!fieldOk) {
             var label = Wikiwyg.Widgets.fields[field];
-            throw(loc("'[_1]' has an invalid value", label));
+            throw(loc("error.invalid-widget-field=label", label));
         }
     }
 
@@ -7951,18 +11915,53 @@ proto.validate_fields = function(widget, values) {
     }
 }
 
+proto.require_valid_video_url = function(values) {
+    if (!values.video_url || !values.video_url.length) {
+        throw(loc("error.video-url-required"));
+    }
+
+    var error = null;
+    jQuery.ajax({
+        type: 'get',
+        async: false,
+        url: 'index.cgi',
+        dataType: 'json',
+        data: {
+            action: 'check_video_url',
+            video_url: values.video_url.replace(/^<|>$/g, '')
+        },
+        success: function(data) {
+            if (data.title) {
+                return true;
+            }
+            else {
+                error = data.error || loc("error.invalid-video-url");
+            }
+        },
+        error: function(xhr) {
+            error = loc("error.check-video-url");
+        }
+    });
+
+    if (error) {
+        throw(error);
+    }
+
+    return true;
+}
+
 proto.require_page_if_workspace = function(values) {
     if (values.spreadsheet_title) {
         return this.require_spreadsheet_if_workspace(values);
     }
 
     if (values.workspace_id.length && ! values.page_title.length)
-        throw(loc("Page Title required if Workspace Id specified"));
+        throw(loc("edit.page-title-required-for-wiki"));
 }
 
 proto.require_spreadsheet_if_workspace = function(values) {
     if (values.workspace_id.length && ! values.spreadsheet_title.length)
-        throw(loc("Spreadsheet Title required if Workspace Id specified"));
+        throw(loc("edit.spreadsheet-title-required-for-wiki"));
 }
 
 
@@ -8107,6 +12106,22 @@ proto.getWidgetInput = function(widget_element, selection, new_widget) {
         jQuery('#web-link-text').focus();
         return;
     }
+    else if (widget == 'pre') {
+        this.do_widget_pre(widget_element);
+        return;
+    }
+    else if (widget == 'html') {
+        this.do_widget_html(widget_element);
+        return;
+    }
+    else if (/^code(?:-\w+)?$/.test(widget)) {
+        this.do_widget_code(widget_element);
+        return;
+    }
+    else if (widget == 'widget') {
+        this.do_opensocial_setup();
+        return;
+    }
 
     var template = 'widget_' + widget + '_edit.html';
     var html = Jemplate.process(template, this.currentWidget);
@@ -8138,21 +12153,20 @@ proto.getWidgetInput = function(widget_element, selection, new_widget) {
                     : '#st-widget-' + field;
                 jQuery(selector).select().focus();
             }
+
+            if (widget == 'video') {
+                self._preload_video_dimensions();
+            }
         }
     });
 
     var self = this;
     var form = jQuery('#widget-' + widget + ' form').get(0);
 
-    // When the lightbox is closed, decrement widget_editing so lightbox can pop up again. 
-    jQuery('#lightbox').bind("lightbox-unload", function(){
-        Wikiwyg.Widgets.widget_editing--;
-        if (self.wikiwyg && self.wikiwyg.current_mode && self.wikiwyg.current_mode.set_focus) {
-            self.wikiwyg.current_mode.set_focus();
-        }
-    });
-
     var intervalId = setInterval(function () {
+        if (widget == 'video') {
+            $('#st-widget-video_url').triggerHandler('change');
+        }
         jQuery('#'+widget+'_wafl_text')
             .html(
                 ' <span>' +
@@ -8162,17 +12176,26 @@ proto.getWidgetInput = function(widget_element, selection, new_widget) {
             );
     }, 500);
 
+    // When the lightbox is closed, decrement widget_editing so lightbox can pop up again. 
+    jQuery('#lightbox').unbind('lightbox-unload').bind("lightbox-unload", function(){
+        clearInterval(intervalId);
+        Wikiwyg.Widgets.widget_editing--;
+        if (self.wikiwyg && self.wikiwyg.current_mode && self.wikiwyg.current_mode.set_focus) {
+            self.wikiwyg.current_mode.set_focus();
+        }
+    });
+
     jQuery('#st-widgets-moreoptions').unbind('click').toggle(
         function () {
             jQuery('#st-widgets-moreoptions')
-                .html(loc('Fewer options'))
+                .html(loc('wafl.fewer-options'))
             jQuery('#st-widgets-optionsicon')
                 .attr('src', nlw_make_s2_path('/images/st/hide_more.gif'));
             jQuery('#st-widgets-moreoptionspanel').show();
         },
         function () {
             jQuery('#st-widgets-moreoptions')
-                .html(loc('More options'))
+                .html(loc('wafl.more-options'))
             jQuery('#st-widgets-optionsicon')
                 .attr('src', nlw_make_s2_path('/images/st/show_more.gif'));
             jQuery('#st-widgets-moreoptionspanel').hide();
@@ -8248,14 +12271,18 @@ proto.getWidgetInput = function(widget_element, selection, new_widget) {
 
     if (form.size) {
         jQuery(form.width).click(function (){
-            form.size[4].checked = true;
+            form.size[form.size.length-1].checked = true;
             disable(form.height);
             enable(form.width);
+        }).focus(function() {
+            $(this).triggerHandler('click');
         });
         jQuery(form.height).click(function () {
-            form.size[4].checked = true;
+            form.size[form.size.length-1].checked = true;
             disable(form.width);
             enable(form.height);
+        }).focus(function() {
+            $(this).triggerHandler('click');
         });
         if (!Number(form.height.value))
             disable(form.height);
@@ -8263,5 +12290,59 @@ proto.getWidgetInput = function(widget_element, selection, new_widget) {
             disable(form.width);
     }
 }
+
+proto._preload_video_dimensions = function() {
+    var previousURL = null;
+    var loading = false;
+    var queued = false;
+
+    $('#st-widget-video_url').unbind('change').change(function(){
+        var url = $(this).val();
+        if (!/^[-+.\w]+:\/\/[^\/]+\//.test(url)) {
+            $('#st-widget-video-original-width').text('');
+            url = null;
+        }
+        if (url == previousURL) { return; }
+        previousURL = url;
+
+        if (loading) { queued = true; return; }
+        queued = false;
+
+        if (!url) { return; }
+        loading = true;
+
+        $('#st-widget-video-original-width').text(loc('edit.loading'));
+        $('#video_widget_edit_error_msg').text('').hide();
+
+        jQuery.ajax({
+            type: 'get',
+            async: true,
+            url: 'index.cgi',
+            dataType: 'json',
+            data: {
+                action: 'check_video_url',
+                video_url: url.replace(/^<|>$/g, '')
+            },
+            success: function(data) {
+                loading = false;
+                if (queued) {
+                    $('#st-widget-video_url').triggerHandler('change');
+                    return;
+                }
+                if (data.title) {
+                    $('#st-widget-video-original-width').text(
+                        loc('wafl.width=px', data.width)
+                            + ' ' +
+                        loc('wafl.height=px', data.height)
+                    );
+                }
+                else {
+                    $('#st-widget-video-original-width').text('');
+                }
+            }
+        });
+    });
+}
+
 
 ;

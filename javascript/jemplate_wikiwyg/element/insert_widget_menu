@@ -2,6 +2,7 @@
   <li class="main">Insert
     <ul>
       <li do="do_widget_image">Image</li>
+      <li do="do_widget_video">Video</li>
       <li do="do_table">Table</li>
       <li do="do_hr">Horizontal&nbsp;Line</li>
       <li>Link

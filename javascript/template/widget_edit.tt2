@@ -18,7 +18,7 @@
 <div id="<! type !>_widget_edit_error_msg" class="widget_edit_error_msg"></div>
 <div class="st-widgets-options">
     <img id="st-widgets-optionsicon" src="[% skin_path %]/images/st/show_more.gif">
-    <a id="st-widgets-moreoptions" href="#">[% loc('More options') %]</a>
+    <a id="st-widgets-moreoptions" href="#">[% loc('wafl.more-options') %]</a>
 </div>
 <div id="st-widgets-moreoptionspanel">
 <p class="st-widget-description">[% loc('<! widget.more_desc !>') %]</p>
@@ -30,18 +30,18 @@
 <! IF type == 'search' !>
 <tr>
 <td class="label">
-[% loc('Search type:') %]
+[% loc('wafl.search-type:') %]
 </td>
 <td class="st-widget-dialog-editfield">
 <input type="radio" name="search_type" value="text"
 [% IF search_type == 'text' || search_type == '' %]checked="checked"[% END %]
-/>[% loc('Text') %]
+/>[% loc('wafl.text') %]
 <input type="radio" name="search_type" value="category"
 [% IF search_type == 'category' %]checked="checked"[% END %]
-/>[% loc('Tag') %]
+/>[% loc('wafl.tag') %]
 <input type="radio" name="search_type" value="title"
 [% IF search_type == 'title' %]checked="checked"[% END %]
-/>[% loc('Title') %]
+/>[% loc('wafl.title') %]
 </td>
 </tr>
 <! END !>
@@ -49,7 +49,7 @@
 <! IF widget.full !>
 <tr>
 <td class="label">
-  [% loc('Full results:') %]
+  [% loc('wafl.full-results:') %]
 </td>
 <td class="st-widget-dialog-editfield">
 <input type="checkbox" name="full"[% IF full %] checked="checked"[% END %] />
@@ -58,15 +58,15 @@
 <! END !>
 </table>
 <div class="st-widgetdialog-wikitext">
-    <span class="label">[% loc('wiki text') %][% <! widget.id !>_st_widgetdialog_wikitext %]
+    <span class="label">[% loc('wafl.wiki-text') %][% <! widget.id !>_st_widgetdialog_wikitext %]
 </span>
     <span class="wikitext" id="<! type !>_wafl_text">&nbsp;</span>
 </div>
 </div>
 </div>
 <div class="buttons">
-    <input id="st-widget-savebutton" type="submit" value=[% loc('Save') %] />
-    <input id="st-widget-cancelbutton" type="reset" value=[% loc('Cancel') %] />
+    <input id="st-widget-savebutton" type="submit" value=[% loc('do.save') %] />
+    <input id="st-widget-cancelbutton" type="reset" value=[% loc('do.cancel') %] />
 </div>
 </form>
 
@@ -75,6 +75,8 @@
 <! PROCESS RADIO -!>
 <! ELSIF widget.input.$field == 'size' -!>
 <! PROCESS SIZE -!>
+<! ELSIF widget.input.$field == 'video_size' -!>
+<! PROCESS VIDEO_SIZE -!>
 <! ELSE -!>
 <tr>
 <td class="label">[% loc('<! widget.labels.$field || data.fields.$field !>:') %]</td>
@@ -89,23 +91,23 @@
 <tr>
   <td class="label">[% loc('<! widget.labels.$field || data.fields.$field !>:') %]</td>
   <td class="st-widget-dialog-editfield">
-    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-<! field !>-rb" value="current" [% <! field !> ? '' : "checked" %]>
+    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-<! field !>-rb" value="current" [% <! field !> ? '' : "checked" %]>
 <! IF field == 'workspace_id' -!>
-[% loc('the current workspace') %]
+[% loc('wafl.wiki-this') %]
 <! ELSE -!>
-[% loc('the current page') %]
+[% loc('wafl.page-this') %]
 <! END -!>
-<i>&nbsp;&nbsp;[% loc('or') %]</i></p>
-<p class="st-widget-dialog-choiceradio">
+<i>&nbsp;&nbsp;[% loc('wafl.or') %]</i></label></p>
+<p class="st-widget-dialog-choiceradio"><label>
   <input type="radio" name="st-widget-<! field !>-rb" value="other" [% <! field !> ? "checked" : '' %] ?>
   <! IF field == 'workspace_id' -!>
-[% loc('the workspace named') %]
+[% loc('wiki.wiki-named') %]
 [%- <! widget.id !>_st_widget_<! field !>_rb -%] 
 <! ELSE -!>
-[% loc('the page titled') %]
+[% loc('wafl.page-titled') %]
 [%- <! widget.id !>_st_widget_<! field !>_rb -%] 
 <! END -!>&nbsp;
-<input size="25" type="text" id="st-widget-<! field !>" name="<! field !>" value="[% <! field !> | html %]"/>
+</label><input size="25" type="text" id="st-widget-<! field !>" name="<! field !>" value="[% <! field !> | html %]"/>
 </p>
 </td>
 </tr>
@@ -119,37 +121,85 @@
   <td class="st-widget-dialog-editfield">
     [% IF !size %][% size='scaled' %][% END %]
     [% sizes = [
-        ['small', 'Small', 100],
-        ['medium', 'Medium', 300],
-        ['large', 'Large', 600],
-        ['scaled', 'Scaled to fit', 0]
+        ['small', loc('wikiwyg.small'), 100],
+        ['medium', loc('wikiwyg.medium'), 300],
+        ['large', loc('wikiwyg.large'), 600],
+        ['scaled', loc('wikiwyg.scaled-to-fit'), 0]
        ]
     %]
     <table>
     [% FOR choice = sizes %]
       <tr>
-        <td>
+        <td><label>
           <input type="radio" name="size" value="[% choice.0 %]"
             [% IF choice.0 == size %] checked="1" [% END %]/>
           [% loc(choice.1) %]
-        </td>
+        </label></td>
         <td style="color:#999999">
           [% IF choice.2 %]
-            [% loc('width: [_1]', choice.2) %]
+            [% loc('wafl.width=px', choice.2) %]
           [% END %]
         </td>
       </tr>
     [% END %]
       <tr>
-        <td>
+        <td><label>
           <input type="radio" [% IF width OR height %]checked="1"[% END %]
                  name="size" value="custom"/>
-          [% loc('Custom') %]
-        </td>
+          [% loc('wafl.custom') %]
+        </label></td>
         <td style="color:#999999">
-          [% loc('width:') %]
+          [% loc('wafl.width:') %]
           <input size="3" name="width" value="[% width %]"/>
-          [% loc('height:') %]
+        </td>
+      </td>
+    </table>
+  </td>
+</tr>
+<! END -!>
+
+<! BLOCK VIDEO_SIZE -!>
+<tr>
+  <td class="label">
+    [% loc('<! widget.labels.$field || data.fields.$field !>:') %]
+  </td>
+  <td class="st-widget-dialog-editfield">
+    [% IF !size %][% size='original' %][% END %]
+    [% sizes = [
+        ['small', loc('wikiwyg.small'), 240],
+        ['medium', loc('wikiwyg.medium'), 480],
+        ['large', loc('wikiwyg.large'), 640],
+        ['original', loc('wikiwyg.original-size'), 0]
+       ]
+    %]
+    <table>
+    [% FOR choice = sizes %]
+      <tr>
+        <td><label>
+          <input type="radio" name="size" value="[% choice.0 %]"
+            [% IF choice.0 == size %] checked="1" [% END %]/>
+          [% loc(choice.1) %]
+          &nbsp;
+        </label></td>
+        <td style="color:#999999">
+          [% IF choice.2 %]
+            [% loc('wafl.width=px', choice.2) %]
+          [% ELSE %]
+            <span id="st-widget-video-original-width">&nbsp;</span>
+          [% END %]
+        </td>
+      </tr>
+    [% END %]
+      <tr>
+        <td><label>
+          <input type="radio" [% IF width OR height %]checked="1"[% END %]
+                 name="size" value="custom"/>
+          [% loc('wafl.custom') %]
+        </abel></td>
+        <td style="color:#999999">
+          [% loc('wafl.width:') %]
+          <input size="3" name="width" value="[% width %]"/>
+          [% loc('wafl.height:') %]
           <input size="3" name="height" value="[% height %]"/>
         </td>
       </td>

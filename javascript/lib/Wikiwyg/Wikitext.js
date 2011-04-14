@@ -171,7 +171,7 @@ proto.get_lines = function() {
 
     this.selection_start = this.find_left(our_text, selection_start, /[\r\n]/);
     this.selection_end = this.find_right(our_text, selection_end, /[\r\n]/);
-    this.setSelectionRange(selection_start, selection_end);
+    this.setSelectionRange(this.selection_start, this.selection_end);
     t.focus();
 
     this.start = our_text.substr(0,this.selection_start);
@@ -279,6 +279,23 @@ proto.insert_widget = function (widget_string) {
      * Changed use spaces mainly for signals, but it shouldn't break {bz: 1116}.
      */
     this.insert_text_at_cursor(widget_string + ' ', { assert_preceding_wordbreak: true });
+}
+
+proto.getNextSerialForOpenSocialWidget = function(src) {
+    var max = 0;
+    var matches = (this.canonicalText() || '').match(
+        /\{widget:\s*[^\s#]+(?:\s*#\d+)?(?:\s+[^\s=]+=\S*)*\s*\}/g
+    );
+    if (!matches) { return 1 }
+    for (var ii = 0; ii < matches.length; ii++) {
+        var match = (matches[ii] || '').match(
+            /^\{widget:\s*([^\s#]+)(?:\s*#(\d+))?((?:\s+[^\s=]+=\S*)*)\s*\}$/
+        );
+        if (match && match[1].replace(/^local:widgets:/, '') == src.replace(/^local:widgets:/, '')) {
+            max = Math.max( max, (match[2] || 1) );
+        }
+    }
+    return max+1;
 }
 
 proto.insert_text_at_cursor = function(text, opts) {
@@ -578,7 +595,9 @@ proto.make_web_link = function(url, url_text) {
 
 proto.get_selection_text = function() {
     if (Wikiwyg.is_ie) {
-        return this.sel;
+        var element = this.area;
+        var sRange = element.document.selection.createRange();
+        return sRange.text;
     }
 
     var t = this.area;
@@ -1021,18 +1040,29 @@ proto.squish_style_object_into_string = function(style) {
 }
 
 proto.href_is_wiki_link = function(href) {
-    if (! this.looks_like_a_url(href))
+    if (! this.looks_like_a_url(href)) {
         return true;
-    if (! href.match(/\?/))
-        return false;
+    }
     if (href.match(/\/static\//) && href.match(/\/skin\/js-test\//))
         href = location.href;
-    var no_arg_input   = href.split('?')[0];
-    var no_arg_current = location.href.split('?')[0];
-    if (no_arg_current == location.href)
-        no_arg_current =
-          location.href.replace(new RegExp(location.hash), '');
-    return no_arg_input == no_arg_current;
+
+    // check that the url is in this workspace
+    var up_to_wksp = /^https?:\/\/([^:\/]+)[^\/]*\/(?!(?:nlw|challenge|data|feed|js|m|settings|soap|st|wsdl)\/)[^\/#]+\//;
+    var no_page_input   = href.match(up_to_wksp);
+
+    // This url is nothing like a wikilink
+    if (!no_page_input) return false;
+
+    // This url may be a wikilink, but is it under our domain?
+    if (no_page_input[1].toLowerCase() != location.hostname.toLowerCase()) {
+        return false;
+    }
+
+    // We are on the current domain
+    // Check to make sure CGI params aren't pointing to something else
+    var query = href.split('?')[1];
+    if (!query) return true;
+    return ((! query.match(/=/)) || query.match(/action=display\b/));
 }
 
 proto.looks_like_a_url = function(string) {
@@ -1050,6 +1080,14 @@ proto.getSelectionStart = function () {
 proto.getSelectionEnd = function () {
     return this.area.selectionEnd;
 }
+
+proto.preserveSelection = function() {
+    this.saved_range = $(this.area).getSelection();
+};
+
+proto.restoreSelection =  function() {
+    $(this.area).setSelection(this.saved_range.start, this.saved_range.end);
+};
 
 
 /*==============================================================================
@@ -1237,7 +1275,9 @@ proto.markupRules = {
     h6: ['start_line', '^^^^^^ '],
     www: ['bound_phrase', '"', '"<http://...>'],
     attach: ['bound_phrase', '{file: ', '}'],
-    image: ['bound_phrase', '{image: ', '}']
+    image: ['bound_phrase', '{image: ', '}'],
+    video: ['bound_phrase', '{video: ', '}'],
+    widget: ['bound_phrase', '{widget: ', '}']
 }
 
 for (var ii in proto.markupRules) {
@@ -1331,6 +1371,10 @@ proto.setHeightOfEditor = function() {
 proto.do_www = Wikiwyg.Wikitext.make_do('www');
 proto.do_attach = Wikiwyg.Wikitext.make_do('attach');
 proto.do_image = Wikiwyg.Wikitext.make_do('image');
+proto.do_video = Wikiwyg.Wikitext.make_do('video');
+proto.do_widget = function(command) {
+    this.do_opensocial_gallery();
+};
 
 proto.convertWikitextToHtml = function(wikitext, func, onError) {
     // TODO: This could be as simple as:
@@ -1347,6 +1391,7 @@ proto.convertWikitextToHtml = function(wikitext, func, onError) {
         url: uri,
         async: false,
         type: 'POST',
+        timeout: 30 * 1000,
         data: {
             action: 'wikiwyg_wikitext_to_html',
             page_name: jQuery('#st-newpage-pagename-edit, #st-page-editing-pagename').val(),
@@ -1361,15 +1406,9 @@ proto.convertWikitextToHtml = function(wikitext, func, onError) {
     });
 
     if (!isSuccess) {
-        alert(loc("Operation failed due to server error; please try again later."));
-        if (onError) { onError(xhr); }
+        alert(loc("error.server-error"));
+        if (onError) { onError(); }
     }
-}
-
-proto.href_is_really_a_wiki_link = function(href) {
-    var query = href.split('?')[1];
-    if (!query) return false;
-    return ((! query.match(/=/)) || query.match(/action=display\b/));
 }
 
 proto.href_label_similar = function(elem, href, label) {
@@ -1388,6 +1427,29 @@ proto.make_table_wikitext = function(rows, columns) {
         text += row.join(' ') + '\n';
     }
     return text;
+}
+
+proto.insert_block = function (text) {
+    if (this.get_selection_text()) {
+        this.selection_mangle(function(that){
+            // Add surrounding newlines only when needed
+            that.sel = "";
+            if (that.start && !(/(^|\r?\n)\r?\n$/.test(that.start))) {
+                that.sel += "\n";
+            }
+            that.sel += text;
+            if (that.finish && !(/^\r?\n(\r?\n|$)/.test(that.finish))) {
+                that.sel += "\n";
+            }
+            return true;
+        });
+        return;
+    }
+
+    this.markup_line_alone([
+        "block",
+        "\n" + text + "\n"
+    ]);
 }
 
 proto.do_table = function() {
@@ -1540,7 +1602,7 @@ proto.convert_html_to_wikitext = function(html, isWholeDocument) {
 
         // {bz: 4738}: Don't run _format_one_line on top-level tables, HRs and PREs.
         $(dom).find('td, hr, pre')
-            .parents('span, a, h1, h2, h3, h4, h5, h6, b, strong, i, em, strike, del, s, tt, code, kbd, samp, var, u')
+            .parents('span:not(.nlw_phrase), a, h1, h2, h3, h4, h5, h6, b, strong, i, em, strike, del, s, tt, code, kbd, samp, var, u')
             .addClass('_st_format_div');
 
         $(dom).find('._st_walked').removeClass('_st_walked');
@@ -1805,17 +1867,25 @@ proto.assert_trailing_space = function(part, text) {
         )
     ) return;
 
-    if (this.wikitext.match(/ $/)) return;
+    if (/ $/.test(this.wikitext)) return;
 
-    if (this.wikitext.match(/\n$/)) {
+    if (/\n$/.test(this.wikitext)) {
         if (part.previousSibling &&
-            part.previousSibling.nodeName == 'BR'
+            (part.previousSibling.nodeName == 'BR'
+            || part.previousSibling.nodeName == 'HR')
         ) return;
+        if (part.top_level_block) return;
         this.wikitext = this.wikitext.replace(/\n$/, '');
     }
 
-    if (! text.match(/^\s/))
+    if (/^\s/.test(text)) return;
+
+    if (part.top_level_block) {
+        this.wikitext += '\n';
+    }
+    else {
         this.wikitext += ' ';
+    }
 }
 
 proto._css_to_px = function(val) {
@@ -1999,7 +2069,13 @@ proto.format_img = function(elem) {
     if (/^st-widget-/.test(widget)) {
         widget = widget.replace(/^st-widget-/, '');
         if (Wikiwyg.is_ie) widget = Wikiwyg.htmlUnescape( widget );
-        if (widget.match(/^\.\w+\n/))
+        if ($.browser.webkit) widget = widget.replace(
+            /&#x([a-fA-F\d]{2,5});/g, 
+            function($_, $1) { 
+                return String.fromCharCode(parseInt($1, 16));
+            }
+        );
+        if (widget.match(/^\.[-\w]+\n/))
             elem.top_level_block = true;
         else
             elem.is_widget = true;
@@ -2028,7 +2104,7 @@ proto.format_img = function(elem) {
 
         text = this.handle_include(text, elem);
 
-        if (widget.match(/^\.\w+\n/))
+        if (widget.match(/^\.[-\w]+\n/))
             text = text.replace(/\n*$/, '\n');
 
         // Dirty hack for {{{ ... }}} wikitext
@@ -2286,12 +2362,19 @@ proto.format_a = function(elem) {
 
     var href = elem.getAttribute('href');
 
+    // Workaround relative links from FF: {bz: 5010}
+    href = href.replace(/^(?:\.\.\/)+/, 
+        location.protocol + '//' + location.hostname
+            + (((location.port == 80) || (location.port == '')) ? '' : ':' + location.port)
+            + '/'
+    );
+
     if (! href) href = ''; // Necessary for <a name="xyz"></a>'s
     var link = this.make_wikitext_link(label, href, elem);
 
     // For [...] links, we need to ensure there are surrounding spaces
     // because it won't take effect when put adjacent to word characters.
-    if (link.match(/^\[/)) {
+    if (/^[\[{]/.test(link)) {
         // Turns "foo[bar]" into "foo [bar]"
         var prev_node = this.getPreviousTextNode(elem);
         if (prev_node && prev_node.nodeValue.match(/\w$/)) {
@@ -2355,19 +2438,16 @@ proto.is_italic = function(elem) {
     );
 }
 
-proto.elem_is_wiki_link = function (elem) {
-    var href = elem.getAttribute('href') || ''
+proto.elem_is_wiki_link = function (elem, href) {
+    href = href || elem.getAttribute('href') || ''
     return jQuery(elem).attr('wiki_page')
-        || (
-            this.href_is_wiki_link(href)
-            && this.href_is_really_a_wiki_link(href)
-          );
+        || this.href_is_wiki_link(href);
 }
 
 proto.make_wikitext_link = function(label, href, elem) {
     var mailto = href.match(/^mailto:(.*)/);
 
-    if (this.elem_is_wiki_link(elem)) {
+    if (this.elem_is_wiki_link(elem, href)) {
         return this.handle_wiki_link(label, href, elem);
     }
     else if (mailto) {
@@ -2394,24 +2474,45 @@ proto.make_wikitext_link = function(label, href, elem) {
 }
 
 proto.handle_wiki_link = function(label, href, elem) {
+    var up_to_wksp = /^https?:\/\/[^\/]+\/([^\/#]+)\/(?:(?:index.cgi)?\?)?/;
+
+    var match = href.match(up_to_wksp);
+    var wksp = match ? match[1] : Socialtext.wiki_id;
+
     var href_orig = href;
-    href = href.replace(/\baction=display;is_incipient=1;page_name=/, '');
-    href = href.replace(/.*\?/, '');
+    href = href.replace(/.*\baction=display;is_incipient=1;page_name=/, '');
+    href = href.replace(up_to_wksp, '');
     href = decodeURIComponent(href);
     href = href.replace(/_/g, ' ');
     // XXX more conversion/normalization poo
     // We don't yet have a smart way to get to page->Subject->metadata
     // from page->id
     var wiki_page = jQuery(elem).attr('wiki_page');
+    var prefix = '';
+    var page = '';
 
     if (label == href_orig && (label.indexOf('=') == -1)) {
-        return '[' + (wiki_page || href) + ']';
+        page = wiki_page || href;
     }
     else if (this.href_label_similar(elem, href, label)) {
-        return '[' + (wiki_page || label) + ']';
+        page = wiki_page || label;
     }
     else {
-        return '"' + label + '"[' + (wiki_page || href) + ']';
+        page = wiki_page || href;
+        prefix = '"' + label + '"';
+    }
+
+    if (/#/.test(page)) {
+        var segments = page.split(/#/, 2);
+        var section = segments[1];
+        page = segments[0];
+        return prefix + '{link: ' + wksp + ' [' + page + '] ' + section + '}';
+    }
+    else if (wksp != Socialtext.wiki_id) {
+        return prefix + '{link: ' + wksp + ' [' + page + ']}';
+    }
+    else {
+        return prefix + '[' + page + ']';
     }
 }
 

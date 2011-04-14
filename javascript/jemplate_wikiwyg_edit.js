@@ -42,7 +42,7 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="link2_widget_edit_err
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_link2_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_link2_edit.html"
 output += stash.get(['loc', [ 'Optional properties include the text to display for the link, and the title of a different page.' ]]);
@@ -64,24 +64,24 @@ output += stash.get('label');
 output += '"/>\n  </td>\n</tr>\n<tr>\n  <td class="label">';
 //line 30 "widget_link2_edit.html"
 output += stash.get(['loc', [ 'Workspace:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 32 "widget_link2_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 33 "widget_link2_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 34 "widget_link2_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 36 "widget_link2_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 37 "widget_link2_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 38 "widget_link2_edit.html"
 output += stash.get('link2_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 40 "widget_link2_edit.html"
 
 // FILTER
@@ -96,24 +96,24 @@ output += stash.get('workspace_id');
 output += '"/>\n</p>\n</td>\n</tr>\n<tr>\n  <td class="label">';
 //line 45 "widget_link2_edit.html"
 output += stash.get(['loc', [ 'Page title:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-page_title-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-page_title-rb" value="current" ';
 //line 47 "widget_link2_edit.html"
 output += stash.get('page_title') ? '' : 'checked';
 output += '>\n';
 //line 48 "widget_link2_edit.html"
-output += stash.get(['loc', [ 'the current page' ]]);
+output += stash.get(['loc', [ 'wafl.page-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 49 "widget_link2_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-page_title-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-page_title-rb" value="other" ';
 //line 51 "widget_link2_edit.html"
 output += stash.get('page_title') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 52 "widget_link2_edit.html"
-output += stash.get(['loc', [ 'the page titled' ]]);
+output += stash.get(['loc', [ 'wafl.page-titled' ]]);
 //line 53 "widget_link2_edit.html"
 output += stash.get('link2_st_widget_page_title_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-page_title" name="page_title" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-page_title" name="page_title" value="';
 //line 55 "widget_link2_edit.html"
 
 // FILTER
@@ -127,16 +127,16 @@ output += stash.get('page_title');
 
 output += '"/>\n</p>\n</td>\n</tr>\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 65 "widget_link2_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 65 "widget_link2_edit.html"
 output += stash.get('link2_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="link2_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 72 "widget_link2_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 73 "widget_link2_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -163,7 +163,7 @@ output += '</p>\n<div id="st-widgets-standardoptionspanel">\n<table class="st-wi
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 12 "widget_link2_hyperlink_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 15 "widget_link2_hyperlink_edit.html"
 output += stash.get(['loc', [ 'Optional properties include the text to display for the link.' ]]);
@@ -199,16 +199,16 @@ output += stash.get('url');
 
 output += '"/>\n  </td>\n</tr>\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 35 "widget_link2_hyperlink_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 35 "widget_link2_hyperlink_edit.html"
 output += stash.get('link2_hyperlink_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="link2_hyperlink_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 42 "widget_link2_hyperlink_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 43 "widget_link2_hyperlink_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -235,7 +235,7 @@ output += '</p>\n<div id="st-widgets-standardoptionspanel">\n<table class="st-wi
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 12 "widget_link2_section_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 15 "widget_link2_section_edit.html"
 output += stash.get(['loc', [ 'Optional properties include the text to display for the link.' ]]);
@@ -271,16 +271,16 @@ output += stash.get('url');
 
 output += '"/>\n  </td>\n</tr>\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 35 "widget_link2_section_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 35 "widget_link2_section_edit.html"
 output += stash.get('link2_section_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="link2_section_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 42 "widget_link2_section_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 43 "widget_link2_section_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -329,7 +329,7 @@ stash.set('size', 'scaled');
 
 output += '\n    ';
 //line 19 "widget_image_edit.html"
-stash.set('sizes', [ [ 'small', 'Small', 100 ], [ 'medium', 'Medium', 300 ], [ 'large', 'Large', 600 ], [ 'scaled', 'Scaled to fit', 0 ] ]);
+stash.set('sizes', [ [ 'small', stash.get(['loc', [ 'wikiwyg.small' ]]), 100 ], [ 'medium', stash.get(['loc', [ 'wikiwyg.medium' ]]), 300 ], [ 'large', stash.get(['loc', [ 'wikiwyg.large' ]]), 600 ], [ 'scaled', stash.get(['loc', [ 'wikiwyg.scaled-to-fit' ]]), 0 ] ]);
 output += '\n    <table>\n    ';
 //line 40 "widget_image_edit.html"
 
@@ -346,7 +346,7 @@ output += '\n    <table>\n    ';
     try {
         while (! done) {
             stash.data['choice'] = value;
-output += '\n      <tr>\n        <td>\n          <input type="radio" name="size" value="';
+output += '\n      <tr>\n        <td><label>\n          <input type="radio" name="size" value="';
 //line 30 "widget_image_edit.html"
 output += stash.get(['choice', 0, 0, 0]);
 output += '"\n            ';
@@ -358,12 +358,12 @@ output += ' checked="1" ';
 output += '/>\n          ';
 //line 32 "widget_image_edit.html"
 output += stash.get(['loc', [ stash.get(['choice', 0, 1, 0]) ]]);
-output += '\n        </td>\n        <td style="color:#999999">\n          ';
+output += '\n        </label></td>\n        <td style="color:#999999">\n          ';
 //line 37 "widget_image_edit.html"
 if (stash.get(['choice', 0, 2, 0])) {
 output += '\n            ';
 //line 36 "widget_image_edit.html"
-output += stash.get(['loc', [ 'width: [_1]', stash.get(['choice', 0, 2, 0]) ]]);
+output += stash.get(['loc', [ 'wafl.width=px', stash.get(['choice', 0, 2, 0]) ]]);
 output += '\n          ';
 }
 
@@ -379,7 +379,7 @@ output += '\n        </td>\n      </tr>\n    ';;
     stash.set('loop', oldloop);
 })();
 
-output += '\n      <tr>\n        <td>\n          <input type="radio" ';
+output += '\n      <tr>\n        <td><label>\n          <input type="radio" ';
 //line 43 "widget_image_edit.html"
 if (stash.get('width') || stash.get('height')) {
 output += 'checked="1"';
@@ -387,50 +387,44 @@ output += 'checked="1"';
 
 output += '\n                 name="size" value="custom"/>\n          ';
 //line 45 "widget_image_edit.html"
-output += stash.get(['loc', [ 'Custom' ]]);
-output += '\n        </td>\n        <td style="color:#999999">\n          ';
+output += stash.get(['loc', [ 'wafl.custom' ]]);
+output += '\n        </label></td>\n        <td style="color:#999999">\n          ';
 //line 48 "widget_image_edit.html"
-output += stash.get(['loc', [ 'width:' ]]);
+output += stash.get(['loc', [ 'wafl.width:' ]]);
 output += '\n          <input size="3" name="width" value="';
 //line 49 "widget_image_edit.html"
 output += stash.get('width');
-output += '"/>\n          ';
-//line 50 "widget_image_edit.html"
-output += stash.get(['loc', [ 'height:' ]]);
-output += '\n          <input size="3" name="height" value="';
-//line 51 "widget_image_edit.html"
-output += stash.get('height');
 output += '"/>\n        </td>\n      </td>\n    </table>\n  </td>\n</tr>\n</table>\n</div>\n<div id="image_widget_edit_error_msg" class="widget_edit_error_msg"></div>\n<div class="st-widgets-options">\n    <img id="st-widgets-optionsicon" src="';
-//line 61 "widget_image_edit.html"
+//line 59 "widget_image_edit.html"
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
-//line 62 "widget_image_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+//line 60 "widget_image_edit.html"
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
-//line 65 "widget_image_edit.html"
+//line 63 "widget_image_edit.html"
 output += stash.get(['loc', [ 'Optional properties include the title of another page to which the image is attached, and link text. If link text is specified then a link to the image is displayed instead of the image.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n<tr>\n  <td class="label">';
-//line 68 "widget_image_edit.html"
+//line 66 "widget_image_edit.html"
 output += stash.get(['loc', [ 'Page in:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
-//line 70 "widget_image_edit.html"
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+//line 68 "widget_image_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
-//line 71 "widget_image_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+//line 69 "widget_image_edit.html"
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
+//line 70 "widget_image_edit.html"
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 72 "widget_image_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
-//line 74 "widget_image_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
-//line 75 "widget_image_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
-//line 76 "widget_image_edit.html"
+//line 73 "widget_image_edit.html"
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
+//line 74 "widget_image_edit.html"
 output += stash.get('image_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
-//line 78 "widget_image_edit.html"
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+//line 76 "widget_image_edit.html"
 
 // FILTER
 output += (function() {
@@ -442,27 +436,27 @@ output += stash.get('workspace_id');
 })();
 
 output += '"/>\n</p>\n</td>\n</tr>\n<tr>\n  <td class="label">';
-//line 83 "widget_image_edit.html"
+//line 81 "widget_image_edit.html"
 output += stash.get(['loc', [ 'Attached to:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-page_title-rb" value="current" ';
-//line 85 "widget_image_edit.html"
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-page_title-rb" value="current" ';
+//line 83 "widget_image_edit.html"
 output += stash.get('page_title') ? '' : 'checked';
 output += '>\n';
-//line 86 "widget_image_edit.html"
-output += stash.get(['loc', [ 'the current page' ]]);
+//line 84 "widget_image_edit.html"
+output += stash.get(['loc', [ 'wafl.page-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
+//line 85 "widget_image_edit.html"
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-page_title-rb" value="other" ';
 //line 87 "widget_image_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-page_title-rb" value="other" ';
-//line 89 "widget_image_edit.html"
 output += stash.get('page_title') ? 'checked' : '';
 output += ' ?>\n  ';
-//line 90 "widget_image_edit.html"
-output += stash.get(['loc', [ 'the page titled' ]]);
-//line 91 "widget_image_edit.html"
+//line 88 "widget_image_edit.html"
+output += stash.get(['loc', [ 'wafl.page-titled' ]]);
+//line 89 "widget_image_edit.html"
 output += stash.get('image_st_widget_page_title_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-page_title" name="page_title" value="';
-//line 93 "widget_image_edit.html"
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-page_title" name="page_title" value="';
+//line 91 "widget_image_edit.html"
 
 // FILTER
 output += (function() {
@@ -474,10 +468,10 @@ output += stash.get('page_title');
 })();
 
 output += '"/>\n</p>\n</td>\n</tr>\n<tr>\n<td class="label">';
-//line 98 "widget_image_edit.html"
+//line 96 "widget_image_edit.html"
 output += stash.get(['loc', [ 'Link text:' ]]);
 output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <input size="40" type="text" id="st-widget-label" name="label" value="';
-//line 100 "widget_image_edit.html"
+//line 98 "widget_image_edit.html"
 
 // FILTER
 output += (function() {
@@ -489,17 +483,160 @@ output += stash.get('label');
 })();
 
 output += '"/>\n  </td>\n</tr>\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
-//line 109 "widget_image_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
-//line 109 "widget_image_edit.html"
+//line 107 "widget_image_edit.html"
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
+//line 107 "widget_image_edit.html"
 output += stash.get('image_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="image_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
-//line 116 "widget_image_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+//line 114 "widget_image_edit.html"
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
-//line 117 "widget_image_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+//line 115 "widget_image_edit.html"
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
+    }
+    catch(e) {
+        var error = context.set_error(e, output);
+        throw(error);
+    }
+
+    return output;
+}
+
+Jemplate.templateMap['widget_video_edit.html'] = function(context) {
+    if (! context) throw('Jemplate function called without context\n');
+    var stash = context.stash;
+    var output = '';
+
+    try {
+output += '<span class="title">';
+//line 1 "widget_video_edit.html"
+output += stash.get(['loc', [ 'Video' ]]);
+output += '</span>\n<form>\n<div class="st-widget-dialog">\n<p class="st-widget-description">';
+//line 4 "widget_video_edit.html"
+output += stash.get(['loc', [ 'Embed video from YouTube, Vimeo, SlideShare or GoogleVideo on this page.' ]]);
+output += '</p>\n<div id="st-widgets-standardoptionspanel">\n<table class="st-widgets-optionstable">\n<tr>\n<td class="label">';
+//line 8 "widget_video_edit.html"
+output += stash.get(['loc', [ 'Video URL:' ]]);
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <input size="40" type="text" id="st-widget-video_url" name="video_url" value="';
+//line 10 "widget_video_edit.html"
+
+// FILTER
+output += (function() {
+    var output = '';
+
+output += stash.get('video_url');
+
+    return context.filter(output, 'html', []);
+})();
+
+output += '"/>\n  </td>\n</tr>\n<tr>\n  <td class="label">\n    ';
+//line 15 "widget_video_edit.html"
+output += stash.get(['loc', [ 'Size:' ]]);
+output += '\n  </td>\n  <td class="st-widget-dialog-editfield">\n    ';
+//line 18 "widget_video_edit.html"
+if (! stash.get('size')) {
+//line 18 "widget_video_edit.html"
+stash.set('size', 'original');
+}
+
+output += '\n    ';
+//line 19 "widget_video_edit.html"
+stash.set('sizes', [ [ 'small', stash.get(['loc', [ 'wikiwyg.small' ]]), 240 ], [ 'medium', stash.get(['loc', [ 'wikiwyg.medium' ]]), 480 ], [ 'large', stash.get(['loc', [ 'wikiwyg.large' ]]), 640 ], [ 'original', stash.get(['loc', [ 'wikiwyg.original-size' ]]), 0 ] ]);
+output += '\n    <table>\n    ';
+//line 43 "widget_video_edit.html"
+
+// FOREACH 
+(function() {
+    var list = stash.get('sizes');
+    list = new Jemplate.Iterator(list);
+    var retval = list.get_first();
+    var value = retval[0];
+    var done = retval[1];
+    var oldloop;
+    try { oldloop = stash.get('loop') } finally {}
+    stash.set('loop', list);
+    try {
+        while (! done) {
+            stash.data['choice'] = value;
+output += '\n      <tr>\n        <td><label>\n          <input type="radio" name="size" value="';
+//line 30 "widget_video_edit.html"
+output += stash.get(['choice', 0, 0, 0]);
+output += '"\n            ';
+//line 31 "widget_video_edit.html"
+if (stash.get(['choice', 0, 0, 0]) == stash.get('size')) {
+output += ' checked="1" ';
+}
+
+output += '/>\n          ';
+//line 32 "widget_video_edit.html"
+output += stash.get(['loc', [ stash.get(['choice', 0, 1, 0]) ]]);
+output += '\n          &nbsp;\n        </label></td>\n        <td style="color:#999999">\n          ';
+//line 40 "widget_video_edit.html"
+if (stash.get(['choice', 0, 2, 0])) {
+output += '\n            ';
+//line 37 "widget_video_edit.html"
+output += stash.get(['loc', [ 'wafl.width=px', stash.get(['choice', 0, 2, 0]) ]]);
+output += '\n          ';
+}
+else {
+output += '\n            <span id="st-widget-video-original-width">&nbsp;</span>\n          ';
+}
+
+output += '\n        </td>\n      </tr>\n    ';;
+            retval = list.get_next();
+            value = retval[0];
+            done = retval[1];
+        }
+    }
+    catch(e) {
+        throw(context.set_error(e, output));
+    }
+    stash.set('loop', oldloop);
+})();
+
+output += '\n      <tr>\n        <td><label>\n          <input type="radio" ';
+//line 46 "widget_video_edit.html"
+if (stash.get('width') || stash.get('height')) {
+output += 'checked="1"';
+}
+
+output += '\n                 name="size" value="custom"/>\n          ';
+//line 48 "widget_video_edit.html"
+output += stash.get(['loc', [ 'wafl.custom' ]]);
+output += '\n        </abel></td>\n        <td style="color:#999999">\n          ';
+//line 51 "widget_video_edit.html"
+output += stash.get(['loc', [ 'wafl.width:' ]]);
+output += '\n          <input size="3" name="width" value="';
+//line 52 "widget_video_edit.html"
+output += stash.get('width');
+output += '"/>\n          ';
+//line 53 "widget_video_edit.html"
+output += stash.get(['loc', [ 'wafl.height:' ]]);
+output += '\n          <input size="3" name="height" value="';
+//line 54 "widget_video_edit.html"
+output += stash.get('height');
+output += '"/>\n        </td>\n      </td>\n    </table>\n  </td>\n</tr>\n</table>\n</div>\n<div id="video_widget_edit_error_msg" class="widget_edit_error_msg"></div>\n<div class="st-widgets-options">\n    <img id="st-widgets-optionsicon" src="';
+//line 64 "widget_video_edit.html"
+output += stash.get('skin_path');
+output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
+//line 65 "widget_video_edit.html"
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
+output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
+//line 68 "widget_video_edit.html"
+output += stash.get(['loc', [ 'Optional properties include the size for displaying this video.' ]]);
+output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
+//line 76 "widget_video_edit.html"
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
+//line 76 "widget_video_edit.html"
+output += stash.get('video_st_widgetdialog_wikitext');
+output += '\n</span>\n    <span class="wikitext" id="video_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
+//line 83 "widget_video_edit.html"
+output += stash.get(['loc', [ 'do.save' ]]);
+output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
+//line 84 "widget_video_edit.html"
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -541,31 +678,31 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="file_widget_edit_erro
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_file_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_file_edit.html"
 output += stash.get(['loc', [ 'Optional properties include specifying a different page for the attachment, and link text.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n<tr>\n  <td class="label">';
 //line 24 "widget_file_edit.html"
 output += stash.get(['loc', [ 'Page in:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 26 "widget_file_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 27 "widget_file_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 28 "widget_file_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 30 "widget_file_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 31 "widget_file_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 32 "widget_file_edit.html"
 output += stash.get('file_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 34 "widget_file_edit.html"
 
 // FILTER
@@ -580,24 +717,24 @@ output += stash.get('workspace_id');
 output += '"/>\n</p>\n</td>\n</tr>\n<tr>\n  <td class="label">';
 //line 39 "widget_file_edit.html"
 output += stash.get(['loc', [ 'File attached to:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-page_title-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-page_title-rb" value="current" ';
 //line 41 "widget_file_edit.html"
 output += stash.get('page_title') ? '' : 'checked';
 output += '>\n';
 //line 42 "widget_file_edit.html"
-output += stash.get(['loc', [ 'the current page' ]]);
+output += stash.get(['loc', [ 'wafl.page-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 43 "widget_file_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-page_title-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-page_title-rb" value="other" ';
 //line 45 "widget_file_edit.html"
 output += stash.get('page_title') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 46 "widget_file_edit.html"
-output += stash.get(['loc', [ 'the page titled' ]]);
+output += stash.get(['loc', [ 'wafl.page-titled' ]]);
 //line 47 "widget_file_edit.html"
 output += stash.get('file_st_widget_page_title_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-page_title" name="page_title" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-page_title" name="page_title" value="';
 //line 49 "widget_file_edit.html"
 
 // FILTER
@@ -626,16 +763,16 @@ output += stash.get('label');
 
 output += '"/>\n  </td>\n</tr>\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 65 "widget_file_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 65 "widget_file_edit.html"
 output += stash.get('file_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="file_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 72 "widget_file_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 73 "widget_file_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -662,31 +799,31 @@ output += '</p>\n<div id="st-widgets-standardoptionspanel">\n<table class="st-wi
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 12 "widget_toc_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 15 "widget_toc_edit.html"
 output += stash.get(['loc', [ 'Optionally, specify which page\'s headers and sections to use for the table of contents.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n<tr>\n  <td class="label">';
 //line 18 "widget_toc_edit.html"
 output += stash.get(['loc', [ 'Page in:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 20 "widget_toc_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 21 "widget_toc_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 22 "widget_toc_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 24 "widget_toc_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 25 "widget_toc_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 26 "widget_toc_edit.html"
 output += stash.get('toc_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 28 "widget_toc_edit.html"
 
 // FILTER
@@ -701,24 +838,24 @@ output += stash.get('workspace_id');
 output += '"/>\n</p>\n</td>\n</tr>\n<tr>\n  <td class="label">';
 //line 33 "widget_toc_edit.html"
 output += stash.get(['loc', [ 'Headers and<br/>sections in:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-page_title-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-page_title-rb" value="current" ';
 //line 35 "widget_toc_edit.html"
 output += stash.get('page_title') ? '' : 'checked';
 output += '>\n';
 //line 36 "widget_toc_edit.html"
-output += stash.get(['loc', [ 'the current page' ]]);
+output += stash.get(['loc', [ 'wafl.page-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 37 "widget_toc_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-page_title-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-page_title-rb" value="other" ';
 //line 39 "widget_toc_edit.html"
 output += stash.get('page_title') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 40 "widget_toc_edit.html"
-output += stash.get(['loc', [ 'the page titled' ]]);
+output += stash.get(['loc', [ 'wafl.page-titled' ]]);
 //line 41 "widget_toc_edit.html"
 output += stash.get('toc_st_widget_page_title_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-page_title" name="page_title" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-page_title" name="page_title" value="';
 //line 43 "widget_toc_edit.html"
 
 // FILTER
@@ -732,16 +869,16 @@ output += stash.get('page_title');
 
 output += '"/>\n</p>\n</td>\n</tr>\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 53 "widget_toc_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 53 "widget_toc_edit.html"
 output += stash.get('toc_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="toc_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 60 "widget_toc_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 61 "widget_toc_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -766,24 +903,24 @@ output += stash.get(['loc', [ 'Display the contents of another page within the c
 output += '</p>\n<div id="st-widgets-standardoptionspanel">\n<table class="st-widgets-optionstable">\n<tr>\n  <td class="label">';
 //line 8 "widget_include_edit.html"
 output += stash.get(['loc', [ 'Other page in:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 10 "widget_include_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 11 "widget_include_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 12 "widget_include_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 14 "widget_include_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 15 "widget_include_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 16 "widget_include_edit.html"
 output += stash.get('include_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 18 "widget_include_edit.html"
 
 // FILTER
@@ -815,22 +952,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="include_widget_edit_e
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 33 "widget_include_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 36 "widget_include_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for page include.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 44 "widget_include_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 44 "widget_include_edit.html"
 output += stash.get('include_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="include_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 51 "widget_include_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 52 "widget_include_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -872,22 +1009,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="section_widget_edit_e
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_section_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_section_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for a section marker.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_section_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_section_edit.html"
 output += stash.get('section_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="section_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_section_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_section_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -912,24 +1049,24 @@ output += stash.get(['loc', [ 'Display a list of pages recently changed in a wor
 output += '</p>\n<div id="st-widgets-standardoptionspanel">\n<table class="st-widgets-optionstable">\n<tr>\n  <td class="label">';
 //line 8 "widget_recent_changes_edit.html"
 output += stash.get(['loc', [ 'Workspace:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 10 "widget_recent_changes_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 11 "widget_recent_changes_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 12 "widget_recent_changes_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 14 "widget_recent_changes_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 15 "widget_recent_changes_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 16 "widget_recent_changes_edit.html"
 output += stash.get('recent_changes_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 18 "widget_recent_changes_edit.html"
 
 // FILTER
@@ -946,13 +1083,13 @@ output += '"/>\n</p>\n</td>\n</tr>\n</table>\n</div>\n<div id="recent_changes_wi
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 27 "widget_recent_changes_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 30 "widget_recent_changes_edit.html"
 output += stash.get(['loc', [ 'Optionally, specify that the page contents should be displayed.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n<tr>\n<td class="label">\n  ';
 //line 38 "widget_recent_changes_edit.html"
-output += stash.get(['loc', [ 'Full results:' ]]);
+output += stash.get(['loc', [ 'wafl.full-results:' ]]);
 output += '\n</td>\n<td class="st-widget-dialog-editfield">\n<input type="checkbox" name="full"';
 //line 41 "widget_recent_changes_edit.html"
 if (stash.get('full')) {
@@ -961,16 +1098,16 @@ output += ' checked="checked"';
 
 output += ' />\n</td>\n</tr>\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 47 "widget_recent_changes_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 47 "widget_recent_changes_edit.html"
 output += stash.get('recent_changes_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="recent_changes_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 54 "widget_recent_changes_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 55 "widget_recent_changes_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -1012,22 +1149,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="hashtag_widget_edit_e
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_hashtag_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_hashtag_edit.html"
 output += stash.get(['loc', [ '' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_hashtag_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_hashtag_edit.html"
 output += stash.get('hashtag_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="hashtag_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_hashtag_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_hashtag_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -1069,7 +1206,7 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="tag_widget_edit_error
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_tag_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_tag_edit.html"
 output += stash.get(['loc', [ 'Optional properties include link text, and the name of a different workspace for the tags.' ]]);
@@ -1091,24 +1228,24 @@ output += stash.get('label');
 output += '"/>\n  </td>\n</tr>\n<tr>\n  <td class="label">';
 //line 30 "widget_tag_edit.html"
 output += stash.get(['loc', [ 'Search:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 32 "widget_tag_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 33 "widget_tag_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 34 "widget_tag_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 36 "widget_tag_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 37 "widget_tag_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 38 "widget_tag_edit.html"
 output += stash.get('tag_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 40 "widget_tag_edit.html"
 
 // FILTER
@@ -1122,16 +1259,16 @@ output += stash.get('workspace_id');
 
 output += '"/>\n</p>\n</td>\n</tr>\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 50 "widget_tag_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 50 "widget_tag_edit.html"
 output += stash.get('tag_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="tag_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 57 "widget_tag_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 58 "widget_tag_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -1173,31 +1310,31 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="tag_list_widget_edit_
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_tag_list_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_tag_list_edit.html"
 output += stash.get(['loc', [ 'Optional properties include specifying which workspace to use and whether to display page titles or whole pages.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n<tr>\n  <td class="label">';
 //line 24 "widget_tag_list_edit.html"
 output += stash.get(['loc', [ 'Pages in:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 26 "widget_tag_list_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 27 "widget_tag_list_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 28 "widget_tag_list_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 30 "widget_tag_list_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 31 "widget_tag_list_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 32 "widget_tag_list_edit.html"
 output += stash.get('tag_list_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 34 "widget_tag_list_edit.html"
 
 // FILTER
@@ -1211,7 +1348,7 @@ output += stash.get('workspace_id');
 
 output += '"/>\n</p>\n</td>\n</tr>\n\n\n\n\n<tr>\n<td class="label">\n  ';
 //line 44 "widget_tag_list_edit.html"
-output += stash.get(['loc', [ 'Full results:' ]]);
+output += stash.get(['loc', [ 'wafl.full-results:' ]]);
 output += '\n</td>\n<td class="st-widget-dialog-editfield">\n<input type="checkbox" name="full"';
 //line 47 "widget_tag_list_edit.html"
 if (stash.get('full')) {
@@ -1220,16 +1357,16 @@ output += ' checked="checked"';
 
 output += ' />\n</td>\n</tr>\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 53 "widget_tag_list_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 53 "widget_tag_list_edit.html"
 output += stash.get('tag_list_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="tag_list_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 60 "widget_tag_list_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 61 "widget_tag_list_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -1271,7 +1408,7 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="blog_widget_edit_erro
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_blog_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_blog_edit.html"
 output += stash.get(['loc', [ 'Optional properties include link text, and the name of a different workspace for the blog.' ]]);
@@ -1293,24 +1430,24 @@ output += stash.get('label');
 output += '"/>\n  </td>\n</tr>\n<tr>\n  <td class="label">';
 //line 30 "widget_blog_edit.html"
 output += stash.get(['loc', [ 'Blog on:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 32 "widget_blog_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 33 "widget_blog_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 34 "widget_blog_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 36 "widget_blog_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 37 "widget_blog_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 38 "widget_blog_edit.html"
 output += stash.get('blog_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 40 "widget_blog_edit.html"
 
 // FILTER
@@ -1324,16 +1461,16 @@ output += stash.get('workspace_id');
 
 output += '"/>\n</p>\n</td>\n</tr>\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 50 "widget_blog_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 50 "widget_blog_edit.html"
 output += stash.get('blog_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="blog_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 57 "widget_blog_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 58 "widget_blog_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -1375,31 +1512,31 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="blog_list_widget_edit
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_blog_list_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_blog_list_edit.html"
 output += stash.get(['loc', [ 'Optional parameters include specifying which workspace to use and whether to display page titles or whole pages.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n<tr>\n  <td class="label">';
 //line 24 "widget_blog_list_edit.html"
 output += stash.get(['loc', [ 'in:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 26 "widget_blog_list_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 27 "widget_blog_list_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 28 "widget_blog_list_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 30 "widget_blog_list_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 31 "widget_blog_list_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 32 "widget_blog_list_edit.html"
 output += stash.get('blog_list_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 34 "widget_blog_list_edit.html"
 
 // FILTER
@@ -1413,7 +1550,7 @@ output += stash.get('workspace_id');
 
 output += '"/>\n</p>\n</td>\n</tr>\n\n\n\n\n<tr>\n<td class="label">\n  ';
 //line 44 "widget_blog_list_edit.html"
-output += stash.get(['loc', [ 'Full results:' ]]);
+output += stash.get(['loc', [ 'wafl.full-results:' ]]);
 output += '\n</td>\n<td class="st-widget-dialog-editfield">\n<input type="checkbox" name="full"';
 //line 47 "widget_blog_list_edit.html"
 if (stash.get('full')) {
@@ -1422,16 +1559,16 @@ output += ' checked="checked"';
 
 output += ' />\n</td>\n</tr>\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 53 "widget_blog_list_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 53 "widget_blog_list_edit.html"
 output += stash.get('blog_list_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="blog_list_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 60 "widget_blog_list_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 61 "widget_blog_list_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -1473,7 +1610,7 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="weblog_widget_edit_er
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_weblog_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_weblog_edit.html"
 output += stash.get(['loc', [ 'Optional properties include link text, and the name of a different workspace for the blog.' ]]);
@@ -1495,24 +1632,24 @@ output += stash.get('label');
 output += '"/>\n  </td>\n</tr>\n<tr>\n  <td class="label">';
 //line 30 "widget_weblog_edit.html"
 output += stash.get(['loc', [ 'Blog on:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 32 "widget_weblog_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 33 "widget_weblog_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 34 "widget_weblog_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 36 "widget_weblog_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 37 "widget_weblog_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 38 "widget_weblog_edit.html"
 output += stash.get('weblog_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 40 "widget_weblog_edit.html"
 
 // FILTER
@@ -1526,16 +1663,16 @@ output += stash.get('workspace_id');
 
 output += '"/>\n</p>\n</td>\n</tr>\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 50 "widget_weblog_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 50 "widget_weblog_edit.html"
 output += stash.get('weblog_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="weblog_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 57 "widget_weblog_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 58 "widget_weblog_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -1577,31 +1714,31 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="weblog_list_widget_ed
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_weblog_list_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_weblog_list_edit.html"
 output += stash.get(['loc', [ 'Optional parameters include specifying which workspace to use and whether to display page titles or whole pages.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n<tr>\n  <td class="label">';
 //line 24 "widget_weblog_list_edit.html"
 output += stash.get(['loc', [ 'in:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 26 "widget_weblog_list_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 27 "widget_weblog_list_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 28 "widget_weblog_list_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 30 "widget_weblog_list_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 31 "widget_weblog_list_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 32 "widget_weblog_list_edit.html"
 output += stash.get('weblog_list_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 34 "widget_weblog_list_edit.html"
 
 // FILTER
@@ -1615,7 +1752,7 @@ output += stash.get('workspace_id');
 
 output += '"/>\n</p>\n</td>\n</tr>\n\n\n\n\n<tr>\n<td class="label">\n  ';
 //line 44 "widget_weblog_list_edit.html"
-output += stash.get(['loc', [ 'Full results:' ]]);
+output += stash.get(['loc', [ 'wafl.full-results:' ]]);
 output += '\n</td>\n<td class="st-widget-dialog-editfield">\n<input type="checkbox" name="full"';
 //line 47 "widget_weblog_list_edit.html"
 if (stash.get('full')) {
@@ -1624,16 +1761,16 @@ output += ' checked="checked"';
 
 output += ' />\n</td>\n</tr>\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 53 "widget_weblog_list_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 53 "widget_weblog_list_edit.html"
 output += stash.get('weblog_list_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="weblog_list_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 60 "widget_weblog_list_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 61 "widget_weblog_list_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -1675,22 +1812,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="fetchrss_widget_edit_
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_fetchrss_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_fetchrss_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for an RSS feed.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_fetchrss_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_fetchrss_edit.html"
 output += stash.get('fetchrss_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="fetchrss_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_fetchrss_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_fetchrss_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -1732,22 +1869,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="fetchatom_widget_edit
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_fetchatom_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_fetchatom_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for an Atom feed.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_fetchatom_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_fetchatom_edit.html"
 output += stash.get('fetchatom_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="fetchatom_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_fetchatom_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_fetchatom_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -1789,31 +1926,31 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="search_widget_edit_er
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_search_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_search_edit.html"
 output += stash.get(['loc', [ 'Optional properties include the name of the workspace to search, whether to search in the page title, text or tags, and whether to display full results or just page titles.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n<tr>\n  <td class="label">';
 //line 24 "widget_search_edit.html"
 output += stash.get(['loc', [ 'In:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 26 "widget_search_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 27 "widget_search_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 28 "widget_search_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 30 "widget_search_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 31 "widget_search_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 32 "widget_search_edit.html"
 output += stash.get('search_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 34 "widget_search_edit.html"
 
 // FILTER
@@ -1827,7 +1964,7 @@ output += stash.get('workspace_id');
 
 output += '"/>\n</p>\n</td>\n</tr>\n\n\n<tr>\n<td class="label">\n';
 //line 42 "widget_search_edit.html"
-output += stash.get(['loc', [ 'Search type:' ]]);
+output += stash.get(['loc', [ 'wafl.search-type:' ]]);
 output += '\n</td>\n<td class="st-widget-dialog-editfield">\n<input type="radio" name="search_type" value="text"\n';
 //line 46 "widget_search_edit.html"
 if (stash.get('search_type') == 'text' || stash.get('search_type') == '') {
@@ -1836,7 +1973,7 @@ output += 'checked="checked"';
 
 output += '\n/>';
 //line 47 "widget_search_edit.html"
-output += stash.get(['loc', [ 'Text' ]]);
+output += stash.get(['loc', [ 'wafl.text' ]]);
 output += '\n<input type="radio" name="search_type" value="category"\n';
 //line 49 "widget_search_edit.html"
 if (stash.get('search_type') == 'category') {
@@ -1845,7 +1982,7 @@ output += 'checked="checked"';
 
 output += '\n/>';
 //line 50 "widget_search_edit.html"
-output += stash.get(['loc', [ 'Tag' ]]);
+output += stash.get(['loc', [ 'wafl.tag' ]]);
 output += '\n<input type="radio" name="search_type" value="title"\n';
 //line 52 "widget_search_edit.html"
 if (stash.get('search_type') == 'title') {
@@ -1854,10 +1991,10 @@ output += 'checked="checked"';
 
 output += '\n/>';
 //line 53 "widget_search_edit.html"
-output += stash.get(['loc', [ 'Title' ]]);
+output += stash.get(['loc', [ 'wafl.title' ]]);
 output += '\n</td>\n</tr>\n\n\n\n<tr>\n<td class="label">\n  ';
 //line 61 "widget_search_edit.html"
-output += stash.get(['loc', [ 'Full results:' ]]);
+output += stash.get(['loc', [ 'wafl.full-results:' ]]);
 output += '\n</td>\n<td class="st-widget-dialog-editfield">\n<input type="checkbox" name="full"';
 //line 64 "widget_search_edit.html"
 if (stash.get('full')) {
@@ -1866,16 +2003,16 @@ output += ' checked="checked"';
 
 output += ' />\n</td>\n</tr>\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 70 "widget_search_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 70 "widget_search_edit.html"
 output += stash.get('search_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="search_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 77 "widget_search_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 78 "widget_search_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -1917,22 +2054,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="googlesoap_widget_edi
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_googlesoap_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_googlesoap_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for an Google search.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_googlesoap_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_googlesoap_edit.html"
 output += stash.get('googlesoap_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="googlesoap_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_googlesoap_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_googlesoap_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -1974,22 +2111,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="googlesearch_widget_e
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_googlesearch_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_googlesearch_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for an Google search.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_googlesearch_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_googlesearch_edit.html"
 output += stash.get('googlesearch_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="googlesearch_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_googlesearch_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_googlesearch_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -2031,22 +2168,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="technorati_widget_edi
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_technorati_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_technorati_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for a Technorati search.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_technorati_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_technorati_edit.html"
 output += stash.get('technorati_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="technorati_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_technorati_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_technorati_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -2088,22 +2225,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="aim_widget_edit_error
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_aim_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_aim_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for an AIM link.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_aim_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_aim_edit.html"
 output += stash.get('aim_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="aim_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_aim_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_aim_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -2145,22 +2282,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="yahoo_widget_edit_err
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_yahoo_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_yahoo_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for a Yahoo! link.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_yahoo_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_yahoo_edit.html"
 output += stash.get('yahoo_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="yahoo_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_yahoo_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_yahoo_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -2202,22 +2339,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="skype_widget_edit_err
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_skype_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_skype_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for a Skype link.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_skype_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_skype_edit.html"
 output += stash.get('skype_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="skype_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_skype_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_skype_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -2259,22 +2396,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="user_widget_edit_erro
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_user_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_user_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for a user name.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_user_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_user_edit.html"
 output += stash.get('user_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="user_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_user_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_user_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -2316,22 +2453,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="date_widget_edit_erro
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_date_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_date_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for a date display.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_date_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_date_edit.html"
 output += stash.get('date_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="date_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_date_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_date_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -2373,22 +2510,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="asis_widget_edit_erro
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 18 "widget_asis_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 21 "widget_asis_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for unformatted text.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 29 "widget_asis_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 29 "widget_asis_edit.html"
 output += stash.get('asis_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="asis_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 36 "widget_asis_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 37 "widget_asis_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -2445,22 +2582,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="new_form_page_widget_
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 24 "widget_new_form_page_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 27 "widget_new_form_page_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for a new form page.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 35 "widget_new_form_page_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 35 "widget_new_form_page_edit.html"
 output += stash.get('new_form_page_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="new_form_page_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 42 "widget_new_form_page_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 43 "widget_new_form_page_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);
@@ -2485,24 +2622,24 @@ output += stash.get(['loc', [ 'Display the contents of a spreadsheet within the 
 output += '</p>\n<div id="st-widgets-standardoptionspanel">\n<table class="st-widgets-optionstable">\n<tr>\n  <td class="label">';
 //line 8 "widget_ss_edit.html"
 output += stash.get(['loc', [ 'Other spreadsheet in:' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
+output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <p class="st-widget-dialog-defaultradio"><label><input type="radio" name="st-widget-workspace_id-rb" value="current" ';
 //line 10 "widget_ss_edit.html"
 output += stash.get('workspace_id') ? '' : 'checked';
 output += '>\n';
 //line 11 "widget_ss_edit.html"
-output += stash.get(['loc', [ 'the current workspace' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-this' ]]);
 output += '\n<i>&nbsp;&nbsp;';
 //line 12 "widget_ss_edit.html"
-output += stash.get(['loc', [ 'or' ]]);
-output += '</i></p>\n<p class="st-widget-dialog-choiceradio">\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
+output += stash.get(['loc', [ 'wafl.or' ]]);
+output += '</i></label></p>\n<p class="st-widget-dialog-choiceradio"><label>\n  <input type="radio" name="st-widget-workspace_id-rb" value="other" ';
 //line 14 "widget_ss_edit.html"
 output += stash.get('workspace_id') ? 'checked' : '';
 output += ' ?>\n  ';
 //line 15 "widget_ss_edit.html"
-output += stash.get(['loc', [ 'the workspace named' ]]);
+output += stash.get(['loc', [ 'wiki.wiki-named' ]]);
 //line 16 "widget_ss_edit.html"
 output += stash.get('ss_st_widget_workspace_id_rb');
-output += '&nbsp;\n<input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
+output += '&nbsp;\n</label><input size="25" type="text" id="st-widget-workspace_id" name="workspace_id" value="';
 //line 18 "widget_ss_edit.html"
 
 // FILTER
@@ -2549,22 +2686,22 @@ output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="ss_widget_edit_error_
 output += stash.get('skin_path');
 output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
 //line 39 "widget_ss_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
+output += stash.get(['loc', [ 'wafl.more-options' ]]);
 output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
 //line 42 "widget_ss_edit.html"
 output += stash.get(['loc', [ 'There are no optional properties for spreadsheet include.' ]]);
 output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
 //line 50 "widget_ss_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
+output += stash.get(['loc', [ 'wafl.wiki-text' ]]);
 //line 50 "widget_ss_edit.html"
 output += stash.get('ss_st_widgetdialog_wikitext');
 output += '\n</span>\n    <span class="wikitext" id="ss_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
 //line 57 "widget_ss_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
+output += stash.get(['loc', [ 'do.save' ]]);
 output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
 //line 58 "widget_ss_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
+output += stash.get(['loc', [ 'do.cancel' ]]);
+output += ' />\n</div>\n</form>\n\n\n\n\n';
     }
     catch(e) {
         var error = context.set_error(e, output);

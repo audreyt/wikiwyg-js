@@ -3,6 +3,7 @@ widgets:
   - link2_hyperlink
   - link2_section
   - image
+  - video
   - file
   - toc
   - include
@@ -91,7 +92,7 @@ widget:
         blank: [workspace_id]
     image_text:
         - { field: label, text: "link: %label" }
-        - { field: page_title, text: "link: %page_title (%section_name )" }
+        - { field: page_title, text: "link: %page_title (%section_name)" }
         - { field: default, text: "link: %section_name" }
 
   link2_hyperlink:
@@ -173,6 +174,27 @@ widget:
     image_text:
         - { field: label, text: "image: %label" }
         - { field: default, text: "image: %image_name" }
+
+  video:
+    id: video
+    label: Video
+    color: red
+    pattern: '{video: %video_url size=%size}'
+    fields: [video_url, size]
+    pdfields: []
+    extra_fields: []
+    input:
+       size: video_size
+    labels:
+      url: Video URL
+      size: Size
+    checks: [require_valid_video_url]
+    title: Embed video to '$video_url'. Click to edit.
+    desc: "Embed video from YouTube, Vimeo, SlideShare or GoogleVideo on this page."
+    more_desc: "Optional properties include the size for displaying this video."
+    required: [video_url]
+    image_text:
+        - { field: video_url, text: "video: %video_url" }
 
   file:
     id: file
@@ -620,18 +642,246 @@ widget:
     pattern: '{{%asis_content}}'
     markup: ['bound_phrase', '{{', '}}']
     field: asis_content
-    title: Unformatted Content
+    title: Unformatted content. Click to edit.
     desc: Include unformatted text in the page. This text will not be treated as wiki text. Use this form to edit the text.
     more_desc: There are no optional properties for unformatted text.
     required: [asis_content]
     image_text:
         - { field: default, text: "unformatted: %asis_content" }
 
+  pre:
+    id: pre
+    color: indianred
+    title: Preformatted text. Click to edit.
+    use_title_as_text: true
+
   html:
     id: html
     color: indianred
-    title: Raw HTML section. Edit in Wiki Text mode.
-    uneditable: true
+    title: Raw HTML block. Click to edit.
+    use_title_as_text: true
+
+  widget:
+    id: widget
+    color: indianred
+    title: __title__ Widget. Click to configure.
+    use_title_as_text: true
+
+  code:
+    id: code
+    color: indianred
+    title: Code block. Click to edit.
+    use_title_as_text: true
+
+  code-as3:
+    id: code-as3
+    color: indianred
+    title: Code block with ActionScript3 syntax. Click to edit.
+    use_title_as_text: true
+
+  code-actionscript3:
+    id: code-actionscript3
+    color: indianred
+    title: Code block with ActionScript3 syntax. Click to edit.
+    use_title_as_text: true
+
+  code-bash:
+    id: code-bash
+    color: indianred
+    title: Code block with Bash syntax. Click to edit.
+    use_title_as_text: true
+
+  code-shell:
+    id: code-shell
+    color: indianred
+    title: Code block with Shell syntax. Click to edit.
+    use_title_as_text: true
+
+  code-cf:
+    id: code-cf
+    color: indianred
+    title: Code block with ColdFusion syntax. Click to edit.
+    use_title_as_text: true
+
+  code-coldfusion:
+    id: code-codefusion
+    color: indianred
+    title: Code block with ColdFusion syntax. Click to edit.
+    use_title_as_text: true
+
+  code-csharp:
+    id: code-csharp
+    color: indianred
+    title: Code block with C# syntax. Click to edit.
+    use_title_as_text: true
+
+  code-cpp:
+    id: code-cpp
+    color: indianred
+    title: Code block with C++ syntax. Click to edit.
+    use_title_as_text: true
+
+  code-c:
+    id: code-c
+    color: indianred
+    title: Code block with C syntax. Click to edit.
+    use_title_as_text: true
+
+  code-css:
+    id: code-css
+    color: indianred
+    title: Code block with CSS syntax. Click to edit.
+    use_title_as_text: true
+
+  code-delphi:
+    id: code-delphi
+    color: indianred
+    title: Code block with Delphi syntax. Click to edit.
+    use_title_as_text: true
+
+  code-pascal:
+    id: code-pascal
+    color: indianred
+    title: Code block with Pascal syntax. Click to edit.
+    use_title_as_text: true
+
+  code-diff:
+    id: code-diff
+    color: indianred
+    title: Code block with Diff syntax. Click to edit.
+    use_title_as_text: true
+
+  code-patch:
+    id: code-patch
+    color: indianred
+    title: Code block with Patch syntax. Click to edit.
+    use_title_as_text: true
+
+  code-erlang:
+    id: code-erlang
+    color: indianred
+    title: Code block with Erlang syntax. Click to edit.
+    use_title_as_text: true
+
+  code-groovy:
+    id: code-groovy
+    color: indianred
+    title: Code block with Groovy syntax. Click to edit.
+    use_title_as_text: true
+
+  code-js:
+    id: code-js
+    color: indianred
+    title: Code block with JavaScript syntax. Click to edit.
+    use_title_as_text: true
+
+  code-javascript:
+    id: code-javascript
+    color: indianred
+    title: Code block with JavaScript syntax. Click to edit.
+    use_title_as_text: true
+
+  code-java:
+    id: code-java
+    color: indianred
+    title: Code block with Java syntax. Click to edit.
+    use_title_as_text: true
+
+  code-javafx:
+    id: code-javafx
+    color: indianred
+    title: Code block with JavaFX syntax. Click to edit.
+    use_title_as_text: true
+
+  code-perl:
+    id: code-perl
+    color: indianred
+    title: Code block with Perl syntax. Click to edit.
+    use_title_as_text: true
+
+  code-php:
+    id: code-php
+    color: indianred
+    title: Code block with PHP syntax. Click to edit.
+    use_title_as_text: true
+
+  code-powershell:
+    id: code-powershell
+    color: indianred
+    title: Code block with PowerShell syntax. Click to edit.
+    use_title_as_text: true
+
+  code-py:
+    id: code-py
+    color: indianred
+    title: Code block with Python syntax. Click to edit.
+    use_title_as_text: true
+
+  code-python:
+    id: code-python
+    color: indianred
+    title: Code block with Python syntax. Click to edit.
+    use_title_as_text: true
+
+  code-ruby:
+    id: code-ruby
+    color: indianred
+    title: Code block with Ruby syntax. Click to edit.
+    use_title_as_text: true
+
+  code-scala:
+    id: code-scala
+    color: indianred
+    title: Code block with Scala syntax. Click to edit.
+    use_title_as_text: true
+
+  code-sql:
+    id: code-sql
+    color: indianred
+    title: Code block with SQL syntax. Click to edit.
+    use_title_as_text: true
+
+  code-vb:
+    id: code-vb
+    color: indianred
+    title: Code block with VisualBasic syntax. Click to edit.
+    use_title_as_text: true
+
+  code-xml:
+    id: code-xml
+    color: indianred
+    title: Code block with XML syntax. Click to edit.
+    use_title_as_text: true
+
+  code-html:
+    id: code-html
+    color: indianred
+    title: Code block with HTML syntax. Click to edit.
+    use_title_as_text: true
+
+  code-xhtml:
+    id: code-xhtml
+    color: indianred
+    title: Code block with XHTML syntax. Click to edit.
+    use_title_as_text: true
+
+  code-xslt:
+    id: code-xslt
+    color: indianred
+    title: Code block with XSLT syntax. Click to edit.
+    use_title_as_text: true
+
+  code-json:
+    id: code-json
+    color: indianred
+    title: Code block with JSON syntax. Click to edit.
+    use_title_as_text: true
+
+  code-yaml:
+    id: code-yaml
+    color: indianred
+    title: Code block with YAML syntax. Click to edit.
+    use_title_as_text: true
 
   sharepoint:
     id: sharepoint
@@ -700,6 +950,7 @@ fields:
   tag_name: Tag name
   rss_url: RSS feed URL
   atom_url: Atom feed URL
+  video_url: Video URL
   aim_id: AIM screen name
   yahoo_id: Yahoo! ID
   skype_id: Skype name

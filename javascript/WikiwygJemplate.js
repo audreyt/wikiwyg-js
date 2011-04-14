@@ -716,63 +716,6 @@ output += ' />\n</div>\n</form>\n\n\n\n';
     return output;
 }
 
-Jemplate.templateMap['widget_hashtag_edit.html'] = function(context) {
-    if (! context) throw('Jemplate function called without context\n');
-    var stash = context.stash;
-    var output = '';
-
-    try {
-output += '<span class="title">';
-//line 1 "widget_hashtag_edit.html"
-output += stash.get(['loc', [ 'Signal Tag Link' ]]);
-output += '</span>\n<form>\n<div class="st-widget-dialog">\n<p class="st-widget-description">';
-//line 4 "widget_hashtag_edit.html"
-output += stash.get(['loc', [ '' ]]);
-output += '</p>\n<div id="st-widgets-standardoptionspanel">\n<table class="st-widgets-optionstable">\n<tr>\n<td class="label">';
-//line 8 "widget_hashtag_edit.html"
-output += stash.get(['loc', [ ':' ]]);
-output += '</td>\n  <td class="st-widget-dialog-editfield">\n    <input size="40" type="text" id="st-widget-tag" name="tag" value="';
-//line 10 "widget_hashtag_edit.html"
-
-// FILTER
-output += (function() {
-    var output = '';
-
-output += stash.get('tag');
-
-    return context.filter(output, 'html', []);
-})();
-
-output += '"/>\n  </td>\n</tr>\n</table>\n</div>\n<div id="hashtag_widget_edit_error_msg" class="widget_edit_error_msg"></div>\n<div class="st-widgets-options">\n    <img id="st-widgets-optionsicon" src="';
-//line 17 "widget_hashtag_edit.html"
-output += stash.get('skin_path');
-output += '/images/st/show_more.gif">\n    <a id="st-widgets-moreoptions" href="#">';
-//line 18 "widget_hashtag_edit.html"
-output += stash.get(['loc', [ 'More options' ]]);
-output += '</a>\n</div>\n<div id="st-widgets-moreoptionspanel">\n<p class="st-widget-description">';
-//line 21 "widget_hashtag_edit.html"
-output += stash.get(['loc', [ '' ]]);
-output += '</p>\n<table class="st-widgets-moreoptionstable">\n\n\n\n\n</table>\n<div class="st-widgetdialog-wikitext">\n    <span class="label">';
-//line 29 "widget_hashtag_edit.html"
-output += stash.get(['loc', [ 'wiki text' ]]);
-//line 29 "widget_hashtag_edit.html"
-output += stash.get('hashtag_st_widgetdialog_wikitext');
-output += '\n</span>\n    <span class="wikitext" id="hashtag_wafl_text">&nbsp;</span>\n</div>\n</div>\n</div>\n<div class="buttons">\n    <input id="st-widget-savebutton" type="submit" value=';
-//line 36 "widget_hashtag_edit.html"
-output += stash.get(['loc', [ 'Save' ]]);
-output += ' />\n    <input id="st-widget-cancelbutton" type="reset" value=';
-//line 37 "widget_hashtag_edit.html"
-output += stash.get(['loc', [ 'Cancel' ]]);
-output += ' />\n</div>\n</form>\n\n\n\n';
-    }
-    catch(e) {
-        var error = context.set_error(e, output);
-        throw(error);
-    }
-
-    return output;
-}
-
 Jemplate.templateMap['widget_html_edit.html'] = function(context) {
     if (! context) throw('Jemplate function called without context\n');
     var stash = context.stash;

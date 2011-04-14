@@ -6,7 +6,7 @@ proto.className = 'Document.Parser.Wikitext';
 proto.init = function() {}
 
 proto.create_grammar = function() {
-    var all_blocks = ['pre', 'html', 'hr', 'hx', 'waflparagraph', 'ul', 'ol', 'blockquote', 'table', 'p', 'empty', 'else'];
+    var all_blocks = ['pre', 'code', 'html', 'hr', 'hx', 'waflparagraph', 'ul', 'ol', 'blockquote', 'table', 'p', 'empty', 'else'];
 
     // Phrase TODO: im
     var all_phrases = ['waflphrase', 'asis', 'wikilink', 'wikilink2', 'a', 'im', 'mail', 'file', 'tt', 'b', 'i', 'del', 'a'];
@@ -112,6 +112,7 @@ proto.create_grammar = function() {
             }
         },
         pre: { match: /^\.pre\ *\n((?:[^\n]*\n)*?)\.pre\ *\n(?:\s*\n)?/ },
+        code: { match: /^\.code-\w+\ *\n((?:[^\n]*\n)*?)\.code-\w+\ *\n(?:\s*\n)?/ },
         hr: { match: /^--+(?:\s*\n)?/ },
         table: {
             match: /^((?:\|\| *([^\|\n]+?) *\n)?(((\|.*\| \n(?=\|))|(\|.*\|  +\n)|(?:\|.*?\|\n))+))/,
@@ -231,7 +232,7 @@ proto.create_grammar = function() {
         wikilink: {
             match: /(?:^|[_\W])(\[()(?=[^\s\[\]])(.*?)\](?=[_\W]|$))/,
             filter: function(node) {
-                node._href = '?' + node[2];
+                node._href = node[2];
                 return(node.text || node[2]);
             },
             lookbehind: true
@@ -240,7 +241,7 @@ proto.create_grammar = function() {
             type: 'wikilink',
             match: /(?:"([^"]*)"\s*)(\[(?=[^\s\[\]])(.*?)\](?=[_\W]|$))/,
             filter: function(node) {
-                node._href = '?' + node[2];
+                node._href = node[2];
                 return(node[1] || node[2]);
             }
         },

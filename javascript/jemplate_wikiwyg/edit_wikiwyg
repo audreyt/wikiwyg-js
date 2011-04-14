@@ -5,26 +5,26 @@
         <div id="st-editing-tools-edit">
             <ul>
                 <li class="flexButton">
-                    <a class="genericOrangeButton" id="st-save-button-link" href="#">[% loc('Save') %]</a>
+                    <a class="genericOrangeButton" id="st-save-button-link" href="#">[% loc('do.save') %]</a>
                 </li>
                 <li class="flexButton">
-                    <a class="genericOrangeButton" id="st-preview-button-link" href="#">[% loc('Preview') %]</a>
+                    <a class="genericOrangeButton" id="st-preview-button-link" href="#">[% loc('edit.preview') %]</a>
                 </li>
                 <li class="flexButton">
-                    <a class="genericOrangeButton" id="st-cancel-button-link" href="#">[% loc('Cancel') %]</a></li>
+                    <a class="genericOrangeButton" id="st-cancel-button-link" href="#">[% loc('do.cancel') %]</a></li>
                 </li>
             </ul>
 
             <ul class="editModeSwitcher">
-                <li><a href="#" id="st-mode-wysiwyg-button" onclick="return false;">[% loc('Rich Text') %]</a></li>
-                <li><a href="#" id="st-mode-wikitext-button" onclick="return false;">[% loc('Wiki Text') %]</a>
+                <li><a href="#" id="st-mode-wysiwyg-button" onclick="return false;">[% loc('edit.rich-text') %]</a></li>
+                <li><a href="#" id="st-mode-wikitext-button" onclick="return false;">[% loc('edit.wiki-text') %]</a>
                     <a href="#" id="st-edit-tips">(?)</a>
                 </li>
             </ul>
         </div><!-- st-editing-tools-edit END -->
 
         <div id="bootstrap-loader">
-            [% loc("Loading...") %]
+            [% loc("edit.loading") %]
             <img src="/static/skin/common/images/ajax-loader.gif">
         </div>
 
@@ -34,9 +34,9 @@
         <div id="controlsRight">
             <ul class="level1">
                 [% IF ui_is_expanded %]
-                <li><a href="#" title="[% loc('Return edit area to normal view') %]" id="st-edit-pagetools-expand">[% loc('Normal') %]</a></li>
+                <li><a href="#" title="[% loc('info.normal-view') %]" id="st-edit-pagetools-expand">[% loc('edit.normal') %]</a></li>
                 [% ELSE %]
-                <li><a href="#" title="[% loc('Expand edit area to fill browser window') %]" id="st-edit-pagetools-expand">[% loc('Expand') %]</a></li>
+                <li><a href="#" title="[% loc('edit.expand-view') %]" id="st-edit-pagetools-expand">[% loc('edit.expand') %]</a></li>
                 [% END %]
             </ul>
         </div><!-- controlsRight END -->
@@ -47,12 +47,12 @@
            <div id="contentTitle">
                 [% IF is_new && !is_incipient %]
                     <h2 id="st-editing-title" class="tableTitle">
-                        [% loc('Editing:') %]
+                        [% loc('edit.editing:') %]
                         <input type="text" size="65" id="st-newpage-pagename-edit" value="[% page.title | html_encode %]" onclick="Socialtext.clear_untitled(this)"/>
                     </h2>
                 [% ELSE %]
-                    <h2 id="st-editing-title" class="tableTitle" title="[% loc('Editing: ') %][% page.display_title %]">
-                        [% loc('Editing:') %]
+                    <h2 id="st-editing-title" class="tableTitle" title="[% loc('edit.editing=page', page.display_title) %]">
+                        [% loc('edit.editing:') %]
                         [% page.display_title %]
                         <input type="hidden" id="st-newpage-pagename-edit" value="[% page.title | html_encode %]" />
                     </h2>
@@ -69,11 +69,11 @@
 
                                 <div id="st-page-editing-button-toolbar">
                                     <div id="st-page-editing-uploadbutton">
-                                        <a id="st-edit-mode-uploadbutton" class="button" href="#" title="[% loc('Click this button to upload a file to the page') %]">[% loc('Upload files...') %]</a>
+                                        <a id="st-edit-mode-uploadbutton" class="button" href="#" title="[% loc('info.edit-upload') %]">[% loc('edit.upload') %]</a>
                                     </div>
 
                                     <div id="st-page-editing-tagbutton">
-                                        <a id="st-edit-mode-tagbutton" class="button" href="#" title="[% loc('Click this button to add a tag to the page') %]">[% loc('Add tags...') %]</a>
+                                        <a id="st-edit-mode-tagbutton" class="button" href="#" title="[% loc('info.edit-add-tag') %]">[% loc('edit.add-tags') %]</a>
                                     </div>
                                 </div>
                             </div>
@@ -108,44 +108,44 @@
 
 <div class="lightbox" id="st-tagqueue-interface">
     <form id="st-tagqueue">
-        <div class="title" id="st-tagqueue-title">[% loc('Add Tags') %]</div>
+        <div class="title" id="st-tagqueue-title">[% loc('do.add-tags') %]</div>
         <p id="st-tagqueue-tagprompt">
-            [% loc('Tag:') %] <input id="st-tagqueue-field" class="st-tagqueue-input" type="text" name="tagfield"/>
+            [% loc('edit.tag-prompt:') %] <input id="st-tagqueue-field" class="st-tagqueue-input" type="text" name="tagfield"/>
         </p>
         <div class="list" id="st-tagqueue-list" style="display: none">
             <span class="st-tagqueue-listlabel">
-                [% loc('Tags to apply:') %]
+                [% loc('edit.tag-queue:') %]
             </span>
         </div>
         <div class="buttons" id="st-tagqueue-buttons">
             <input type="button" id="st-tagqueue-close" 
-                   value="[% loc('Close') %]" />
+                   value="[% loc('do.close') %]" />
             <input type="submit" id="st-tagqueue-addbutton"
-                   value="[% loc('Add') %]" />
+                   value="[% loc('do.add-tag') %]" />
         </div>
     </form>
 </div>
 
 <div class="lightbox" id="st-newpage-duplicate-interface">
     <form onsubmit="return false;">
-        <div class="title" id="st-newpage-duplicate-title">[% loc('Page Already Exists') %]</div>
+        <div class="title" id="st-newpage-duplicate-title">[% loc('edit.page-exists') %]</div>
         <br />
-        <p class="st-newpage-duplicate-prompt">[% loc('There is <span id="st-newpage-duplicate-emphasis">already a page</span> named <a id="st-newpage-duplicate-link" href="#" target="">XXX</a>. Would you like to:')%]</p>
-        <p class="st-newpage-duplicate-option"><label><input type="radio" name="st-newpage-duplicate-option" id="st-newpage-duplicate-option-different" value="different"/> [% loc('Save with a different name:')%]</label> <input id="st-newpage-duplicate-pagename" size="40" type="text" name="pagename"/></p>
-        <p class="st-newpage-duplicate-option"><label><input type="radio" name="st-newpage-duplicate-option" id="st-newpage-duplicate-option-suggest" value="suggest"/> [% loc('Save the page with the name "<span id="st-newpage-duplicate-suggest">XXX</span>"')%]</label></p>
-        <p class="st-newpage-duplicate-option"><label><input type="radio" name="st-newpage-duplicate-option" id="st-newpage-duplicate-option-append" value="append"/> [% loc('Append your text to the bottom of the existing page named:')%] "<span id="st-newpage-duplicate-appendname">XXX</span>"</label></p>
+        <p class="st-newpage-duplicate-prompt">[% loc('info.page-exists:')%]</p>
+        <p class="st-newpage-duplicate-option"><label><input type="radio" name="st-newpage-duplicate-option" id="st-newpage-duplicate-option-different" value="different"/> [% loc('page.save-with-another-name:')%]</label> <input id="st-newpage-duplicate-pagename" size="40" type="text" name="pagename"/></p>
+        <p class="st-newpage-duplicate-option"><label><input type="radio" name="st-newpage-duplicate-option" id="st-newpage-duplicate-option-suggest" value="suggest"/> [% loc('page.save-with-name')%]</label></p>
+        <p class="st-newpage-duplicate-option"><label><input type="radio" name="st-newpage-duplicate-option" id="st-newpage-duplicate-option-append" value="append"/> [% loc('edit.append-to-page:')%] "<span id="st-newpage-duplicate-appendname">XXX</span>"</label></p>
         <div id="st-newpage-duplicate-buttons" style="float: right">
             <ul class="widgetButton" style="float:left; padding:10px">
                 <li class="flexButton">
                     <a class="submit genericOrangeButton" id="st-newpage-duplicate-okbutton" href="#">
-                        [% loc('OK') %]
+                        [% loc('do.ok') %]
                     </a>
                 </li>
             </ul>
             <ul class="widgetButton" style="float:left; padding:10px">
                 <li class="flexButton">
                     <a class="close genericOrangeButton" id="st-newpage-duplicate-cancelbutton" href="#">
-                        [% loc('Cancel') %]
+                        [% loc('do.cancel') %]
                     </a>
                 </li>
             </ul>
@@ -156,17 +156,17 @@
 <div id="st-newpage-save" class="lightbox">
     <form id="st-newpage-save-form">
     <div id="st-newpage-save-interface">
-        <div class="title" id="st-newpage-save-title">[% loc('Save Page As') %]</div>
-        <p id="st-newpage-save-prompt">[% loc('Enter a meaningful and distinctive title for your page.') %]</p>
+        <div class="title" id="st-newpage-save-title">[% loc('page.save-as') %]</div>
+        <p id="st-newpage-save-prompt">[% loc('info.new-page-name') %]</p>
         <p id="st-newpage-save-field-pagename">
-            [% loc('Page Title:') %] <input id="st-newpage-save-pagename" size="45" type="text" name="pagename"/>
+            [% loc('refcard.page-title:') %] <input id="st-newpage-save-pagename" size="45" type="text" name="pagename"/>
         </p>
-        <p id="st-newpage-save-tip">[% loc("Tip: You'll be able to find this page later by using the title you choose.") %]</p>
+        <p id="st-newpage-save-tip">[% loc("info.new-page-title") %]</p>
         <div class="buttons" id="st-newpage-save-buttons">
             <table width="100%" border="0">
             <tr>
-            <td align="right"><input type="button" id="st-newpage-save-cancelbutton" value="[% loc('Cancel') %]"/></td>
-            <td width="70px" align="right"><input type="submit" id="st-newpage-save-savebutton" value="[% loc('Save') %]" /></td>
+            <td align="right"><input type="button" id="st-newpage-save-cancelbutton" value="[% loc('do.cancel') %]"/></td>
+            <td width="70px" align="right"><input type="submit" id="st-newpage-save-savebutton" value="[% loc('do.save') %]" /></td>
             </tr>
             </table>
         </div>
@@ -176,71 +176,71 @@
 
 <div style="overflow-y:scroll;height:400px" id="st-ref-card" class="lightbox">
     <div class="buttons">
-        <input id="st-ref-card-close" class="close" type="button" value="[% loc('Close') %]"/>
+        <input id="st-ref-card-close" class="close" type="button" value="[% loc('do.close') %]"/>
     </div>
     <table class="st-refcard-table">
         <tr class="st-refcard-table-row">
-            <th>[% loc('To Get This...') %] </th>
-            <th>[% loc('Type This') %]</th>
+            <th>[% loc('refcard.to-get-this') %] </th>
+            <th>[% loc('refcard.type-this') %]</th>
         </tr>
         <tr class="st-refcard-table-row">
-            <td><b>[% loc('bold words') %]</b></td>
-            <td>*[% loc('bold words*') %]</td>
+            <td><b>[% loc('refcard.bold-words') %]</b></td>
+            <td>*[% loc('refcard.*bold-words*') %]</td>
         </tr> 
         <tr class="st-refcard-table-row">
-            <td><i>[% loc('italic words') %]</i></td>
-            <td>[% loc('_italic words_') %]</td>
+            <td><i>[% loc('refcard.italic-words') %]</i></td>
+            <td>[% loc('refcard._italic-words_') %]</td>
         </tr> 
         <tr class="st-refcard-table-row">
-            <td><del>[% loc('strikeout') %]</del></td>
-            <td>-[% loc('strikeout-') %]</td>
+            <td><del>[% loc('refcard.strikeout') %]</del></td>
+            <td>-[% loc('refcard.-strikeout-') %]</td>
         </tr> 
         <tr class="st-refcard-table-row">
-            <td><tt>[% loc('monospace') %]</tt></td>
-            <td>`[% loc('monospace`') %]</td>
+            <td><tt>[% loc('refcard.monospace') %]</tt></td>
+            <td>`[% loc('refcard.`monospace`') %]</td>
         </tr> 
         <tr class="st-refcard-table-row">
             <td>
                 <table class="formatter_table"><tbody>
                     <tr>
-                        <td>[% loc('table') %]</td>
-                        <td>[% loc('value') %]</td>
+                        <td>[% loc('refcard.table') %]</td>
+                        <td>[% loc('refcard.value') %]</td>
                     </tr>
                     <tr>
-                        <td>[% loc('dinette') %]</td>
-                        <td>$[% loc('75') %]</td>
+                        <td>[% loc('refcard.dinette') %]</td>
+                        <td>[% loc('refcard.$75') %]</td>
                     </tr>
                 </table>
             </td>
-            <td>[% loc('|table|value|<br>|dinette|$75|<br>') %]</td>
+            <td>[% '| ' + loc('refcard.table') + ' | ' + loc('refcard.value') + ' |<br>| ' + loc('refcard.dinette') + ' | ' + loc('refcard.$75') + ' |<br>' %]</td>
         </tr> 
         <tr class="st-refcard-table-row">
-            <td><blockquote>[% loc('indented') %]<br>[% loc('lines') %]</blockquote></td>
+            <td><blockquote>[% loc('refcard.indented-lines') %]</blockquote></td>
             <td>&gt;indented<br>&gt;lines</td>
         </tr> 
         <tr class="st-refcard-table-row">
-            <td><a href="./index.cgi?Page%20Link" title="\[Page link\]" target="_blank">Page Link</a></td>
-            <td>[[% loc('Page Link') %]]</td>
+            <td><a href="Page%20Link" title="[% loc('refcard.page-link') %]" target="_blank">[% loc('refcard.page-link') %]</a></td>
+            <td>[[% loc('refcard.page-link') %]]</td>
         </tr> 
         <tr class="st-refcard-table-row">
-            <td><a href="./index.cgi?Page%20Link" title="\[% loc('Page Link') %]\]" target="_blank">Link text</a></td>
-            <td>"[% loc('Link text') %]" [[% loc('Page Link') %]]</td>
+            <td><a href="Page%20Link" title="[% loc('refcard.page-name') %]" target="_blank">[% loc('wafl.link-text') %]</a></td>
+            <td>"[% loc('wafl.link-text') %]" [[% loc('refcard.page-name') %]]</td>
         </tr> 
         <tr class="st-refcard-table-row">
-            <td><u>[% loc('Page Link') %]</u> [% loc('to different-workspace') %]</td>
-            <td>{link: different-workspace [Page Title]} to different-workspace</td>
+            <td><u>[% loc('refcard.page-link') %]</u> [% loc('refcard.to-different-workspace') %]</td>
+            <td>{link: different-workspace [[% loc('refcard.page-link') %]]}</td>
         </tr> 
         <tr class="st-refcard-table-row">
-            <td>[% loc('Page section name') %]</td>
-            <td>{[% loc('section:Name}') %]</td>
+            <td>[% loc('refcard.page-section-name') %]</td>
+            <td>{section: [% loc('refcard.page-section-name') %]}</td>
         </tr> 
         <tr class="st-refcard-table-row">
-            <td><u>[% loc('Link to section') %]</u> [% loc('in the same page') %]</td>
-            <td>{[% loc('link: Section} (note: headings are sections too)') %]</td>
+            <td><u>[% loc('refcard.link-to-section') %]</u> [% loc('refcard.in-same-page') %]</td>
+            <td>{link: [% loc('wafl.section') %]} [% loc('refcard.headings-are-sections') %]</td>
         </tr> 
         <tr class="st-refcard-table-row">
-            <td><u>Link to section</u> of a different page</td>
-            <td>{link: [Page Title] Section}</td>
+            <td><u>[% loc('refcard.link-to-section') %]</u> [% loc('refcard.of-different-page') %]</td>
+            <td>{link: [[% loc('refcard.page-name') %]] [% loc('wafl.section') %]}</td>
         </tr> 
         <tr class="st-refcard-table-row">
             <td><u>Link to section</u> of a page in another workspace</td>
@@ -343,7 +343,7 @@
             <td>.pre<br>Block of text with no *special* punctuation<br>.pre</td>
         </tr> 
         <tr class="st-refcard-table-row">
-            <td><sup>™</sup></td>
+            <td><sup>&#x2122;</sup></td>
             <td>{tm}</td>
         </tr> 
         <tr class="st-refcard-table-row">
@@ -354,27 +354,27 @@
 </div>
 
 <div id="st-table-settings" class="lightbox">
-    <span class="title">[% loc('Edit Table') %]</span>
+    <span class="title">[% loc('table.edit') %]</span>
     <input type="checkbox" name="sort" />
-    <label for="sort">[% loc('Table is Sortable') %]</label>
+    <label for="sort">[% loc('table.table-sortable') %]</label>
 
     <br/>
 
     <input type="checkbox" name="border" />
-    <label for="border">[% loc('Show Cell Borders') %]</label>
+    <label for="border">[% loc('table.show-cell-borders') %]</label>
 
     <div>
         <ul class="widgetButton" style="float:left; padding:10px">
             <li class="flexButton">
                 <a class="submit genericOrangeButton" id="table-info-save" href="#">
-                    [% loc('Save') %]
+                    [% loc('do.save') %]
                 </a>
             </li>
         </ul>
         <ul class="widgetButton" style="float:left; padding:10px">
             <li class="flexButton">
                 <a class="close genericOrangeButton" id="table-info-cancel" href="#">
-                    [% loc('Cancel') %]
+                    [% loc('do.cancel') %]
                 </a>
             </li>
         </ul>

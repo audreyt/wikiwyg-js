@@ -2,6 +2,10 @@
 'socialtext-editor.js':
     parts:
         - {dir: skin/s2/javascript, file: main.js}
+        - {dir: skin/common/javascript, file: 'rangy-core.js'}
+        - {dir: skin/common/javascript, file: 'rangy-serializer.js'}
+        - {dir: skin/common/javascript, file: 'rangy-init.js'}
+        - {dir: skin/common/javascript, file: 'jquery.rangyinputs.js'}
         - jemplate_wikiwyg.js
         - jemplate_wikiwyg_edit.js
         - lib/Wikiwyg.js
@@ -22,6 +26,10 @@
 'socialtext-editor-light.js':
     parts:
         - {dir: skin/s2/javascript, file: main.js}
+        - {dir: skin/common/javascript, file: 'rangy-core.js'}
+        - {dir: skin/common/javascript, file: 'rangy-serializer.js'}
+        - {dir: skin/common/javascript, file: 'rangy-init.js'}
+        - {dir: skin/common/javascript, file: 'jquery.rangyinputs.js'}
         - lib/Wikiwyg.js
         - Widgets.js
         - lib/Wikiwyg/Widgets.js
