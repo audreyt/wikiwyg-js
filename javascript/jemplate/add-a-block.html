@@ -1,0 +1,71 @@
+<div id="st-widget-block-dialog" class="lightbox">
+    <span id="st-widget-block-title" class="title"></span>
+    <form id="add-a-block-form" action="#" onsubmit="return false">
+        <p>
+            <span id="st-widget-block-prompt" style="font-style: italic"></span>
+        </p>
+        <fieldset style="margin-top: 5px; padding: 5px; border: 1px solid #ccc; width: 480px">
+            <legend style="padding: 3px">[% loc('wafl.content') %]</legend>
+            <textarea id="st-widget-block-content" wrap="soft" style="font-family: monaco, consolas, 'droid sans mono', monospace; width: 470px; height: 240px; font-size: 11px"></textarea>
+        </fieldset>
+        <div id="st-widget-block-syntax-div" style="padding-top: 5px; float: left; display: none">
+            [% loc('code.syntax-highlight-as:') %]
+            <select id="st-widget-block-syntax" name="st-widget-block-syntax" style="display: none">
+            </select>
+            <select id="st-widget-block-syntax-options" name="st-widget-block-syntax-options" style="display: none">
+                <option value="">[% loc('code.plain-text') %]</option>
+                <option data-alias="actionscript3" value="as3">[% loc('code.actionscript3') %]</option>
+                <option value="actionscript3">[% loc('code.actionscript3') %]</option>
+                <option data-alias="shell" value="bash">[% loc('code.bash') %]</option>
+                <option value="c">[% loc('code.c') %]</option>
+                <option value="csharp">[% loc('code.c#') %]</option>
+                <option value="cpp">[% loc('code.c++') %]</option>
+                <option data-alias="coldfusion" value="cf">[% loc('code.coldfusion') %]</option>
+                <option value="coldfusion">[% loc('code.coldfusion') %]</option>
+                <option value="css">[% loc('code.css') %]</option>
+                <option data-alias="pascal" value="delphi">[% loc('code.delphi') %]</option>
+                <option value="diff">[% loc('code.diff') %]</option>
+                <option value="erlang">[% loc('code.erlang') %]</option>
+                <option value="groovy">[% loc('code.groovy') %]</option>
+                <option value="html">[% loc('code.html') %]</option>
+                <option value="java">[% loc('code.java') %]</option>
+                <option value="javafx">[% loc('code.javafx') %]</option>
+                <option data-alias="javascript" value="js">[% loc('code.javascript') %]</option>
+                <option value="javascript">[% loc('code.javascript') %]</option>
+                <option value="json">[% loc('code.json') %]</option>
+                <option value="pascal">[% loc('code.pascal') %]</option>
+                <option data-alias="diff" value="patch">[% loc('code.patch') %]</option>
+                <option value="perl">[% loc('code.perl') %]</option>
+                <option value="php">[% loc('code.php') %]</option>
+                <option value="powershell">[% loc('code.powershell') %]</option>
+                <option data-alias="python" value="py">[% loc('code.python') %]</option>
+                <option value="python">[% loc('code.python') %]</option>
+                <option value="ruby">[% loc('code.ruby') %]</option>
+                <option value="scala">[% loc('code.scala') %]</option>
+                <option value="shell">[% loc('code.shell') %]</option>
+                <option value="sql">[% loc('code.sql') %]</option>
+                <option value="vb">[% loc('code.visualbasic') %]</option>
+                <option data-alias="html" value="xhtml">[% loc('code.xhtml') %]</option>
+                <option value="xml">[% loc('code.xml') %]</option>
+                <option data-alias="xml" value="xslt">[% loc('code.xslt') %]</option>
+                <option value="yaml">[% loc('code.yaml') %]</option>
+            </select>
+        </div>
+        <div style="float: right">
+            <ul class="widgetButton" style="float:left; padding:10px">
+                <li class="flexButton">
+                    <a class="save genericOrangeButton" id="st-widget-block-save" href="#">
+                        [% loc('do.save') %]
+                    </a>
+                </li>
+            </ul>
+            <ul class="widgetButton" style="float:left; padding:10px">
+                <li class="flexButton">
+                    <a class="close genericOrangeButton" id="st-widget-block-cancel" href="#">
+                        [% loc('do.cancel') %]
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </form>
+</div>
