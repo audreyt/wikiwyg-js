@@ -2,7 +2,10 @@ WIKIWYG LEGAL.txt FILE:
 
 LEGAL INFORMATION
 
-This LEGAL.txt file accompanies the Wikiwyg program. It includes notices required by the 
+This LEGAL.txt file accompanies the Wikiwyg program,
+placed under the javascript/ directory of this repository.
+
+It includes notices required by the 
 licenses as well as general legal notices.
 
 =========================================
