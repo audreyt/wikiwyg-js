@@ -1,3 +1,958 @@
+// BEGIN jquery-plugin.js
+(function ($) {
+
+$.poll = function (test, callback, interval, maximum) {
+    if (! (test && callback)) {
+        throw("usage: jQuery.poll(test_func, callback [, interval_ms, maximum_ms])");
+    }
+    if (! interval) interval = 250; 
+    if (! maximum) maximum = 30000;
+
+    setTimeout(
+        function() {
+            if (id) {
+                clearInterval(id);
+                // throw("jQuery.poll failed");
+            }
+        }, maximum
+    );
+
+    var id = setInterval(function() {
+        if (test()) { 
+            clearInterval(id);
+            id = 0;
+            callback();
+        }
+    }, interval);
+};
+
+})(jQuery);
+;
+// BEGIN lookahead.js
+(function($){
+    var SELECTED_COLOR = '#CCC';
+    var BG_COLOR = '#EEE';
+    var lookaheads = [];
+
+    var hastyped = false;
+
+    var DEFAULTS = {
+        count: 10,
+        filterName: 'filter',
+        filterType: 'sql',
+        requireMatch: false,
+        params: { 
+            order: 'alpha',
+            count: 30, // for fetching
+            minimal: 1
+        }
+    };
+
+    var FILTER_TYPES = {
+        plain: '$1',
+        sql: '\\b$1',
+        solr: '$1* OR $1'
+    };
+
+    var KEYCODES = {
+        DOWN: 40,
+        UP: 38,
+        ENTER: 13,
+        SHIFT: 16,
+        ESC: 27,
+        TAB: 9
+    };
+
+    Lookahead = function (input, opts) {
+        if (!input) throw new Error("Missing input element");
+        if (!opts.url) throw new Error("url missing");
+        if (!opts.linkText) throw new Error("linkText missing");
+
+        var targetWindow = opts.getWindow && opts.getWindow();
+        if (targetWindow) {
+            this.window = targetWindow;
+            this.$ = targetWindow.jQuery;
+        }
+        else {
+            this.window = window;
+            this.$ = jQuery;
+        }
+
+        this._items = [];
+        this.input = input;
+        this.opts = $.extend(true, {}, DEFAULTS, opts); // deep extend
+        var self = this;
+
+        if (this.opts.clickCurrentButton) {
+            this.opts.clickCurrentButton.unbind('click').click(function() {
+                self.clickCurrent();
+                return false;
+            });
+        }
+
+        $(this.input)
+            .attr('autocomplete', 'off')
+            .unbind('keyup')
+            .keyup(function(e) {
+                if (e.keyCode == KEYCODES.ESC) {
+                    $(input).val('').blur();
+                    self.clearLookahead();
+                }
+                else if (e.keyCode == KEYCODES.ENTER) {
+                    if (self.opts.requireMatch) {
+                        if (self._items.length) {
+                            self.clickCurrent();
+                        }
+                    }
+                    else {
+                        self.acceptInputValue();
+                    }
+                }
+                else if (e.keyCode == KEYCODES.DOWN) {
+                    self.selectDown();
+                }
+                else if (e.keyCode == KEYCODES.UP) {
+                    self.selectUp();
+                }
+                else if (e.keyCode != KEYCODES.TAB && e.keyCode != KEYCODES.SHIFT) {
+                    self.onchange();
+                }
+                return false;
+            })
+            .unbind('keydown')
+            .keydown(function(e) {
+                if (!self.hastyped) {
+                    self.hastyped=true;
+                    if (self.opts.onFirstType) {
+                        self.opts.onFirstType($(self.input));
+                    }
+                }
+                if (self.lookahead && self.lookahead.is(':visible')) {
+                    if (e.keyCode == KEYCODES.TAB) {
+                        // tab complete rather than select
+                        self.selectDown();
+                        return false;
+                    }
+                    else if (e.keyCode == KEYCODES.ENTER) {
+                        return false;
+                    }
+                }
+            })
+            .unbind('blur')
+            .blur(function(e) {
+                setTimeout(function() {
+                    if (self._accepting) {
+                        self._accepting = false;
+                        $(self.input).focus();
+                    }
+                    else {
+                        self.clearLookahead();
+                        if ($.isFunction(self.opts.onBlur)) {
+                            self.opts.onBlur(action);
+                        }
+                    }
+                }, 50);
+            });
+
+        this.allowMouseClicks();
+    }
+
+    $.fn.lookahead = function(opts) {
+        this.each(function(){
+            this.lookahead = new Lookahead(this, opts); 
+            lookaheads.push(this.lookahead);
+        });
+
+        return this;
+    };
+
+    $.fn.abortLookahead = function() {
+        this.each(function() {
+            this.lookahead.abort();
+        });
+    }
+
+    Lookahead.prototype = {
+        'window': window,
+        '$': window.$
+    };
+
+    Lookahead.prototype.allowMouseClicks = function() { 
+        var self = this;
+
+        var elements = [ this.getLookahead() ];
+        if (this.opts.allowMouseClicks)
+            elements.push(this.opts.allowMouseClicks);
+
+        $.each(elements, function () {
+            $(this).unbind('mousedown').mousedown(function() {
+                // IE: Use _accepting to prevent onBlur
+                if ($.browser.msie) self._accepting = true;
+                $(self.input).focus();
+                // Firefox: This works because this is called before blur
+                return false;
+            });
+        });
+    };
+
+    Lookahead.prototype.clearLookahead = function () {
+        this._cache = {};
+        this._items = [];
+        this.hide();
+    };
+
+    Lookahead.prototype.getLookahead = function () {
+        /* Subract the offsets of all absolutely positioned parents
+         * so that we can position the lookahead directly below the
+         * input element. I think jQuery's offset function should do
+         * this for you, but maybe they'll fix it eventually...
+         */
+        var left = $(this.input).offset().left;
+        var top = $(this.input).offset().top + $(this.input).height() + 10;
+
+        if (this.window !== window) {
+            // XXX: container specific
+            var offset = this.$('iframe[name='+window.name+']').offset();
+            if (offset) {
+                left += offset.left;
+                top += offset.top;
+            }
+
+            // Map unload to remove the lookahead, otherwise it can hang
+            // around after we move a widget
+            var self = this;
+            $(window).unload(function() {
+                self.lookahead.remove();
+            });
+        }
+
+        if (!this.lookahead) {
+            this.lookahead = this.$('<div></div>')
+                .hide()
+                .css({
+                    textAlign: 'left',
+                    zIndex: 3001,
+                    position: 'absolute',
+                    display: 'none', // Safari needs this explicitly: {bz: 2431}
+                    background: BG_COLOR,
+                    border: '1px solid black',
+                    padding: '0px'
+                })
+                .prependTo('body');
+
+            this.$('<ul></ul>')
+                .css({
+                    listStyle: 'none',
+                    padding: '0',
+                    margin: '0'
+                })
+                .appendTo(this.lookahead);
+
+        }
+
+        this.lookahead.css({
+            left: left + 'px',
+            top: top + 'px'
+        });
+
+        return this.lookahead;
+    };
+
+    Lookahead.prototype.getLookaheadList = function () {
+        return this.$('ul', this.getLookahead());
+    };
+
+    Lookahead.prototype.linkTitle = function (item) {
+        var lt = this.opts.linkText(item);
+        return typeof (lt) == 'string' ? lt : lt[0];
+    };
+
+    Lookahead.prototype.linkDesc = function (item) {
+        var lt = this.opts.linkText(item);
+        return typeof (lt) == 'string' ? '' : lt[2];
+    };
+
+    Lookahead.prototype.linkValue = function (item) {
+        var lt = this.opts.linkText(item);
+        return typeof (lt) == 'string' ? lt : lt[1];
+    };
+
+    Lookahead.prototype.filterRE = function (val) {
+        var pattern = '(' + val + ')';
+
+        if (/^\w/.test(val)) {
+            pattern = "\\b" + pattern;
+        }
+
+        return new RegExp(pattern, 'ig');
+    };
+    
+    Lookahead.prototype.filterData = function (val, data) {
+        var self = this;
+
+        var filtered = [];
+        var re = this.filterRE(val);
+
+        $.each(data, function(i, item) {
+            if (filtered.length >= self.opts.count) {
+                if (self.opts.showAll) {
+                    filtered.push({
+                        title: loc("lookahead.all-results"),
+                        displayAs: val,
+                        noThumbnail: true,
+                        onAccept: function() {
+                            self.opts.showAll(val)
+                        }
+                    });
+                    return false; // Break out of the $.each loop
+                }
+                return;
+            }
+
+            var title = self.linkTitle(item);
+            var desc = self.linkDesc(item) || '';
+
+            if (title.match(re) || desc.match(re)) {
+                if (self.opts.grep && !self.opts.grep(item)) return;
+
+                /* Add <b></b> and escape < and > in original text */
+                var _Mark_ = String.fromCharCode(0xFFFC);
+                var _Done_ = String.fromCharCode(0xFFFD);
+
+                filtered.push({
+                    bolded_title: title.replace(re, _Mark_ + '$1' + _Done_)
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(new RegExp(_Mark_, 'g'), '<b>')
+                        .replace(new RegExp(_Done_, 'g'), '</b>'),
+                    title: title,
+                    bolded_desc: desc.replace(re, _Mark_ + '$1' + _Done_)
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(new RegExp(_Mark_, 'g'), '<b>')
+                        .replace(new RegExp(_Done_, 'g'), '</b>'),
+                    desc: desc,
+                    value: self.linkValue(item),
+                    orig: item
+                });
+            }
+        });
+
+        return filtered;
+    };
+
+    Lookahead.prototype.displayData = function (data) {
+        var self = this;
+        this._items = data;
+        var lookaheadList = this.getLookaheadList();
+        lookaheadList.html('');
+
+        if (data.length) {
+            $.each(data, function (i) {
+                var item = this || {};
+                var li = self.$('<li></li>')
+                    .css({
+                        padding: '3px 5px',
+                        height: '15px', // overridden when there are thumbnails
+                        lineHeight: '15px',
+                        'float': 'left',
+                        'clear': 'both'
+                    })
+                    .appendTo(lookaheadList);
+                if (self.opts.getEntryThumbnail && !item.noThumbnail) {
+                    // lookaheads with thumbnails are taller
+                    li.height(30);
+                    if (!item.desc) li.css('line-height', '30px');
+
+                    var src = self.opts.getEntryThumbnail(item); 
+                    self.$('<img/>')
+                        .css({
+                            'vertical-align': 'middle',
+                            'marginRight': '5px',
+                            'border': '1px solid #666',
+                            'cursor': 'pointer',
+                            'float': 'left',
+                            'width': '27px',
+                            'height': '27px'
+                        })
+                        .click(function() {
+                            self.accept(i);
+                            return false;
+                        })
+                        .attr('src', src)
+                        .appendTo(li);
+                }
+                self.itemNode(item, i).appendTo(li);
+            });
+            this.show();
+        }
+        else {
+            lookaheadList.html('<li></li>');
+            $('li', lookaheadList)
+                .text(loc("error.no-match=lookahead", $(this.input).val()))
+                .css({padding: '3px 5px'});
+            this.show();
+        }
+    };
+
+    Lookahead.prototype.itemNode = function(item, index) {
+        var self = this;
+        var $node = self.$('<div class="lookaheadItem"></div>')
+            .css({ 'float': 'left' });
+
+        $node.append(
+            self.$('<a href="#"></a>')
+                .css({ whiteSpace: 'nowrap' })
+                .html(item.bolded_title || item.title)
+                .attr('value', index)
+                .click(function() {
+                    self.accept(index);
+                    return false;
+                })
+        );
+
+        if (item.desc) {
+            $node.append(
+                self.$('<div></div>')
+                    .html(item.bolded_desc)
+                    .css('whiteSpace', 'nowrap')
+            );
+        }
+        return $node
+    };
+
+    Lookahead.prototype.show = function () {
+        var self = this;
+
+        var lookahead = this.getLookahead();
+        if (!lookahead.is(':visible')) {
+            lookahead.fadeIn(function() {
+                self.allowMouseClicks();
+                if ($.isFunction(self.opts.onShow)) {
+                    self.opts.onShow();
+                }
+            });
+        }
+
+        // IE6 iframe hack:
+        // Enabling the select overlap breaks clicking on the lookahead if the
+        // lookahead is inserted into a different window.
+        // NOTE: We cannot have "zIndex:" here, otherwise elements in the
+        // lookahead become unclickable and causes {bz: 2597}.
+        if (window === this.window)
+            this.lookahead.createSelectOverlap({ padding: 1 });
+    };
+
+    Lookahead.prototype.hide = function () {
+        var lookahead = this.getLookahead();
+        if (lookahead.is(':visible')) {
+            lookahead.fadeOut();
+        }
+    };
+
+    Lookahead.prototype.acceptInputValue = function() {
+        var value = $(this.input).val();
+        this.clearLookahead();
+
+        if (this.opts.onAccept) {
+            this.opts.onAccept.call(this.input, value, {});
+        }
+    };
+
+    Lookahead.prototype.accept = function (i) {
+        if (!i) i = 0; // treat undefined as 0
+        var item;
+        if (arguments.length) {
+            item = this._items[i];
+            this.select(item);
+        }
+        else if (this._selected) {
+            // Check if we are displaying the last selected value
+            if (this.displayAs(this._selected) == $(this.input).val()) {
+                item = this._selected;
+            }
+        }
+
+        var value = item ? item.value : $(this.input).val();
+
+        this.clearLookahead();
+
+        if (item.onAccept) {
+            item.onAccept.call(this.input, value, item);
+        }
+        else if (this.opts.onAccept) {
+            this.opts.onAccept.call(this.input, value, item);
+        }
+    }
+
+    Lookahead.prototype.displayAs = function (item) {
+        if (item && item.displayAs) {
+            return item.displayAs;
+        }
+        else if ($.isFunction(this.opts.displayAs)) {
+            return this.opts.displayAs(item);
+        }
+        else if (item) {
+            return item.value;
+        }
+        else {
+            return $(this.input).val();
+        }
+    }
+
+    Lookahead.prototype.select = function (item, provisional) {
+        this._selected = item;
+        if (!provisional) {
+            $(this.input).val(this.displayAs(item));
+        }
+    }
+    
+    Lookahead.prototype._highlight_element = function (el) {
+        jQuery('li.selected', this.lookahead)
+            .removeClass('selected')
+            .css({ background: '' });
+        el.addClass('selected').css({ background: SELECTED_COLOR });
+    }
+
+    Lookahead.prototype.select_element = function (el, provisional) {
+        this._highlight_element(el);
+        var value = el.find('a').attr('value');
+        var item = this._items[value];
+        this.select(item, provisional);
+    }
+
+    Lookahead.prototype.selectDown = function () {
+        if (!this.lookahead) return;
+        var el;
+        if (jQuery('li.selected', this.lookahead).length) {
+            el = jQuery('li.selected', this.lookahead).next('li');
+        }
+        if (! (el && el.length) ) {
+            el = jQuery('li:first', this.lookahead);
+        }
+        this.select_element(el, false);
+    };
+
+    Lookahead.prototype.selectUp = function () {
+        if (!this.lookahead) return;
+        var el;
+        if (jQuery('li.selected', this.lookahead).length) {
+            el = jQuery('li.selected', this.lookahead).prev('li');
+        }
+        if (! (el && el.length) ) {
+            el = jQuery('li:last', this.lookahead);
+        }
+        this.select_element(el, false);
+    };
+
+    Lookahead.prototype.clickCurrent = function () {
+        if (!this.opts.requireMatch) {
+            this.acceptInputValue();
+        }
+        else if (this._items.length) {
+            var selitem = jQuery('li.selected a', this.lookahead);
+            if (selitem.length && selitem.attr('value')) {
+                this.accept(selitem.attr('value'));
+            }
+            else if (this._items.length == 1) {
+                // Only one candidate - accept it
+                this.accept(0);
+            }
+            else {
+                var val = $(this.input).val();
+                var fullMatchIndex = null;
+
+                $.each(this._items, function(i) {
+                    var item = this || {};
+                    if (item.bolded_title == ('<b>'+item.title.replace(/</g, "&lt;").replace(/>/g, "&gt;") +'</b>')) {
+                        if (fullMatchIndex) {
+                            // Two or more full matches - do nothing
+                            return;
+                        }
+                        fullMatchIndex = i;
+                    }
+                });
+
+                // Only one full match - accept it
+                if (fullMatchIndex != null) {
+                    this.accept(fullMatchIndex);
+                }
+            }
+        }
+    };
+
+    Lookahead.prototype.storeCache = function (val, data) {
+        this._cache = this._cache || {};
+        this._cache[val] = data;
+        this._prevVal = val;
+    }
+
+    Lookahead.prototype.getCached = function (val) {
+        this._cache = this._cache || {};
+
+        if (this._cache[val]) {
+            // We've already done this query, so just return this data
+            return this.filterData(val, this._cache[val])
+        }
+        else if (this._prevVal) {
+            var re = this.filterRE(this._prevVal);
+            if (val.match(re)) {
+                // filter the previous data, but only return if we still
+                // have at least the minimum or if filtering the data made
+                // no difference
+                var cached = this._cache[this._prevVal];
+                if (cached) {
+                    filtered = this.filterData(val, cached)
+                    var use_cache = cached.length == filtered.length
+                                 || filtered.length >= this.opts.count;
+                    if (use_cache) {
+                        // save this for next time
+                        this.storeCache(val, cached);
+                        return filtered;
+                    }
+                }
+            }
+        }
+        return [];
+    };
+
+    Lookahead.prototype.abort = function () {
+        if (this.request) this.request.abort();
+    };
+
+    Lookahead.prototype.createFilterValue = function (val) {
+        if (this.opts.filterValue) {
+            return this.opts.filterValue(val);
+        }
+        else {
+            var filter = FILTER_TYPES[this.opts.filterType];
+            if (!filter) {
+                throw new Error('invalid filterType: ' + this.opts.filterType);
+            }
+            return val.replace(/^(.*)$/, filter);
+        }
+    };
+
+    Lookahead.prototype.onchange = function () {
+        var self = this;
+        if (this._loading_lookahead) {
+            this._change_queued = true;
+            return;
+        }
+
+        this._change_queued = false;
+
+        var val = $(this.input).val();
+        if (!val) {
+            this.clearLookahead()
+            return;
+        }
+
+        var cached = this.getCached(val);
+        if (cached.length) {
+            this.displayData(cached);
+            return;
+        }
+
+        var url = typeof(this.opts.url) == 'function'
+                ? this.opts.url() : this.opts.url;
+
+        var params = this.opts.params;
+        params[this.opts.filterName] = this.createFilterValue(val);
+
+        this._loading_lookahead = true;
+        this.request = $.ajax({
+            url: url,
+            data: params,
+            cache: false,
+            dataType: 'json',
+            success: function (data) {
+                self.storeCache(val, data);
+                self._loading_lookahead = false;
+                if (self._change_queued) {
+                    self.onchange();
+                    return;
+                }
+                self.displayData(
+                    self.filterData(val, data)
+                );
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                self._loading_lookahead = false;
+                if (self._change_queued) {
+                    self.onchange();
+                    return;
+                }
+                var $error = self.$('<span></span>')
+                    .addClass("st-suggestion-warning");
+                self.$('<li></li>')
+                    .append($error)
+                    .appendTo(self.getLookaheadList());
+
+                if (textStatus == 'parsererror') {
+                    $error.html(loc("error.parsing-data"));
+                }
+                else if (self.opts.onError) {
+                    var errorHandler = self.opts.onError[xhr.status]
+                                    || self.opts.onError['default'];
+                    if (errorHandler) {
+                        if ($.isFunction(errorHandler)) {
+                            $error.html(
+                                errorHandler(xhr, textStatus, errorThrown)
+                            );
+                        }
+                        else {
+                            $error.html(errorHandler);
+                        }
+                    }
+                }
+                else {
+                    $error.html(textStatus);
+                }
+                self.show();
+            }
+        });
+    };
+
+})(jQuery);
+;
+// BEGIN jquery.selectOverlap.js
+(function($){
+    
+    function width_height (node, opts) {
+        var w = $(node).width();
+        var h = $(node).height();
+        if (!opts.noPadding) {
+            w += 2;
+            h += 2;
+        }
+        return {width:  w, height: h};
+    }
+
+    $.fn.createSelectOverlap = function() {
+        var opts = {};
+        if (arguments.length) opts = arguments[0];
+        if ($.browser.msie && $.browser.version < 7) {
+            this.each(function(){
+                var $iframe = $('iframe.iframeHack', this);
+                if ($iframe.size() == 0) {
+                    $iframe = $('<iframe src="/static/html/blank.html"></iframe>')
+                        .addClass('iframeHack')
+                        .css({
+                            position: 'absolute',
+                            filter: "alpha(opacity=0)",
+                            top:    opts.noPadding ? 0 : -1,
+                            left:   opts.noPadding ? 0 : -1,
+                            zIndex: opts.zIndex || -1
+                        })
+                        .appendTo(this);
+                }
+
+                $(this).mouseover(function() {
+                    $iframe.css(width_height(this, opts));
+                });
+                $iframe.css(width_height(this, opts));
+            });
+        }
+        return this;
+    };
+})(jQuery);
+;
+// BEGIN Class.js
+(function() {
+
+Class = function(classDefinition, classWrapper) {
+    if (!classDefinition) throw("Class requires a class definition string as its first argument");
+    if (!classWrapper) throw("Class requires a class wrapper function as its second argument");
+
+    if (! classDefinition.match(/^([\w\.]+)(?:\(\s*([\w\.]+)\s*\))?(?:\s+(.*?)\s*)?$/))
+        throw("Can't parse Class Definition: '" + classDefinition + "'");
+    var className = RegExp.$1;
+    var baseClassName = RegExp.$2 || '';
+    var options = [];
+    if (RegExp.$3) {
+        options = RegExp.$3.split(/\s+/);
+    }
+    var incValues = [];
+    var strict = true;
+    for (var i = 0, l = options.length; i < l; i++) {
+        var option = options[i];
+        if (option == '-nostrict') {
+            strict = false;
+        }
+        if (option.match(/^-inc=(.+)$/)) {
+            incValues = RegExp.$1.split(',');
+        }
+    }
+
+    var parts = className.split('.');
+    var klass = Class.global;
+    for (var i = 0; i < parts.length; i++) {
+        if (! klass[parts[i]]) {
+            klass[parts[i]] = function() {
+                try { this.init() } catch(e) {}
+            };
+        }
+        klass = klass[parts[i]];
+    }
+    klass.className = className;
+
+    klass.isa = function(baseName) {
+        klass.baseClassName = baseName;
+        if (baseName) {
+            klass.prototype = eval('new ' + baseName + '()');
+            klass.prototype.superFunc = function(name) {
+                return eval(baseName).prototype[name];
+            }
+        }
+    };
+    klass.isa(baseClassName);
+
+    klass.global = Class.global;
+
+    klass.addGlobal = function() {
+        this.newGlobals++;
+        return Class.global;
+    }
+
+    klass.extend = function(pairs) {
+        if (typeof pairs != 'object') {
+            throw("extend requires an object of name:value pairs");
+        }
+        for (var name in pairs) {
+            klass.prototype[name] = pairs[name];
+        }
+    }
+
+    for (var ii = 0, ll = incValues.length; ii < ll; ii++) {
+        var value = incValues[ii];
+        if (value == 'proto') {
+            incValues[ii] = klass.prototype;
+        }
+        else if (value == 'this') {
+            incValues[ii] = klass;
+        }
+        else {
+            incValues[ii] = Class.global[value];
+        }
+    }
+
+    if (strict) {
+        Class.eval_strict(classWrapper, klass, incValues);
+    }
+    else {
+        classWrapper.apply(klass, incValues);
+    }
+
+    return klass;
+};
+
+})();
+
+Class.global = this;
+
+Class.eval_strict = function(classWrapper, klass, incValues) {
+    var globals = 0;
+    var last_key;
+
+    for (var k in Class.global) {
+        globals++;
+        last_key = k;
+    }
+
+    klass.newGlobals = 0;
+
+    classWrapper.apply(klass, incValues);
+
+    var globals_after = 0;
+    for (var k in Class.global) {
+        globals_after++;
+    }
+
+    if (globals + klass.newGlobals != globals_after) {
+        throw("Class '" + klass.className + "' defines " + (globals_after - globals) + " new global JavaScript variables without using this.addGlobal()");
+    }
+
+    delete klass.newGlobals;
+};
+
+;
+// BEGIN loc.js
+function loc() {
+    if (typeof LocalizedStrings == 'undefined')
+        LocalizedStrings = {};
+
+    var locale = Socialtext.loc_lang;
+    var dict = LocalizedStrings[locale] || LocalizedStrings['en'] || {};
+    var str = arguments[0] || "";
+    var l10n = dict[str];
+    var nstr = "";
+
+    if (locale == 'xx') {
+        l10n = str.replace(/[A-Z]/g, 'X').replace(/[a-z]/g, 'x');
+    }
+    else if (locale == 'xq') {
+        l10n = "«" + str + "»";
+    }
+    else if (locale == 'xr') {
+        l10n = str.replace(/a/g, '4')
+                  .replace(/e/g, '3')
+                  .replace(/o/g, '0')
+                  .replace(/t/g, '7')
+                  .replace(/b/g, '8')
+                  .replace(/qu4n7/g, 'quant')
+                  .replace(/<4 hr3f/g, '<a href');
+    }
+
+    if (!l10n) {
+        /* If the hash-lookup failed, convert " into \\\" and try again. */
+        nstr = str.replace(/\"/g, "\\\"");
+        l10n = dict[nstr];
+        if (!l10n) {
+            /* If the hash-lookup failed, convert [_1] into %1 and try again. */
+            nstr = nstr.replace(/\[_(\d+)\]/g, "%$1");
+            l10n = dict[nstr] || str;
+        }
+    }
+
+    l10n = l10n.replace(/\\\"/g, "\"");
+
+    /* Convert both %1 and [_1] style vars into the given arguments */
+    for (var i = 1; i < arguments.length; i++) {
+        var rx = new RegExp("\\[_" + i + "\\]", "g");
+        var rx2 = new RegExp("%" + i + "", "g");
+        l10n = l10n.replace(rx, arguments[i]);
+        l10n = l10n.replace(rx2, arguments[i]);
+
+        var quant = new RegExp("\\[(?:quant|\\*),_" + i + ",([^\\],]+)(?:,([^\\]]+))?\\]");
+        while (quant.exec(l10n)) {
+            var num = arguments[i] || 0;
+            if (num == 1) {
+                l10n = l10n.replace(quant, num + ' ' + RegExp.$1);
+            }
+            else {
+                l10n = l10n.replace(quant, num + ' ' + (RegExp.$2 || (RegExp.$1 + 's')));
+            }
+        }
+    }
+
+    return l10n;
+};
+
+loc.all_widgets = function(){
+    $(function(){
+        $('span[data-loc-text]').each(function(){
+            var $span = $(this);
+            $span.text(loc($span.data('loc-text')));
+        });
+        $('input[data-loc-val]').each(function(){
+            var $input = $(this);
+            $input.val(loc($input.data('loc-val')));
+        });
+    });
+};
+;
+// BEGIN socialtext-editor-light.js
 // BEGIN main.js
 /* 
 COPYRIGHT NOTICE:
@@ -12345,4 +13300,5 @@ proto._preload_video_dimensions = function() {
 }
 
 
+;
 ;
