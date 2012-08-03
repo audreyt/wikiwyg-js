@@ -12,7 +12,9 @@ with little or no change to the wiki engine's core software.
 
 Note how you can switch between Richtext and Wikitext modes.
 
-For supported syntax see: https://www.socialtext.net/help-en/?action=refcard
+For supported syntax see:
+
+    https://www.socialtext.net/help/wikitext_syntax
 
 Happy hacking!
 鳳
